@@ -32,9 +32,6 @@ GOOGLE_CLOUD_PROJECT: str = os.getenv("GOOGLE_CLOUD_PROJECT", "")
 GOOGLE_CLOUD_LOCATION: str = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
 GOOGLE_API_KEY: str | None = os.getenv("GOOGLE_API_KEY")
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
-GCS_INGREDIENT_IMAGES_FOLDER = os.environ.get(
-  "GCS_INGREDIENT_IMAGES_FOLDER", ""
-)
 LOGGING_LEVEL = os.getenv(key="LOGGING_LEVEL", default="INFO")
 LOG_TO_FILE: bool = os.getenv("LOG_TO_FILE", "True").lower() == "true"
 VIEW_ENDPOINT = os.getenv(

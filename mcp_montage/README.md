@@ -41,7 +41,6 @@ GOOGLE_CLOUD_PROJECT="your-project"
 GOOGLE_CLOUD_LOCATION="global"
 # GOOGLE_API_KEY="your-api-key"
 GCS_BUCKET_NAME="your-bucket"
-GCS_INGREDIENT_IMAGES_FOLDER="gs://your-bucket/ingredient-images"
 VIEW_ENDPOINT="http://localhost:8080/view?uri="
 
 # Path to service account JSON (optional, for non-ADC authentication)
@@ -56,7 +55,6 @@ VIEW_ENDPOINT="http://localhost:8080/view?uri="
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI region (e.g., `global`) |
 | `GOOGLE_API_KEY` | [Optional] API key for public Gemini API (when Vertex is disabled) |
 | `GCS_BUCKET_NAME` | GCS bucket for media storage |
-| `GCS_INGREDIENT_IMAGES_FOLDER` | [Optional] GCS path for ingredient/character images |
 | `VIEW_ENDPOINT` | [Optional] Sign server URL for generating viewable links |
 | `GOOGLE_APPLICATION_CREDENTIALS` | [Optional] Path to service account JSON |
 

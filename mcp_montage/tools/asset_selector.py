@@ -26,7 +26,6 @@ from pydantic import Field
 from schemas import ImageMetadata
 from services.agents.factory import AgentFactory
 from services.agents.text_agent import GeminiAgent
-from shared.constants import GCS_INGREDIENT_IMAGES_FOLDER
 from utils.image import convert_image_to_part
 from utils.storage import list_gcs_images
 
@@ -37,7 +36,7 @@ class SelectAssetRequest:
 
   assets_folder: Annotated[
     str, Field(description="GCS folder URI containing various asset images")
-  ] = GCS_INGREDIENT_IMAGES_FOLDER
+  ]
   images_context: Annotated[
     list[str],
     Field(description="List of GCS URIs of user-provided images."),
