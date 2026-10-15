@@ -4,12 +4,28 @@ set -euo pipefail
 mkdir -p build/ui-smoke/android
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;google_apis;x86_64' 'emulator'
-printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name montage-smoke --device pixel_2 --package 'system-images;android-35;google_apis;x86_64'
-"$ANDROID_HOME/emulator/emulator" -avd montage-smoke -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 > build/ui-smoke/android/emulator.log 2>&1 &
+printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name montage-smoke --path "$PWD/build/android-smoke-avd" --device pixel_2 --package 'system-images;android-35;google_apis;x86_64'
+# The current emulator defaults to 12 GB of userdata, exceeding free hosted disk
+# after the toolchain build. This local-only draft needs a much smaller volume.
 python3 - <<'PY'
-import subprocess, time
+from pathlib import Path
+import re
+p = Path('build/android-smoke-avd/config.ini')
+s = p.read_text()
+s = re.sub(r'^disk.dataPartition.size=.*\n?', '', s, flags=re.M)
+p.write_text(s + '\ndisk.dataPartition.size=2048M\n')
+PY
+"$ANDROID_HOME/emulator/emulator" -avd montage-smoke -partition-size 2048 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 > build/ui-smoke/android/emulator.log 2>&1 &
+smoke_emulator_pid=$!
+python3 - "$smoke_emulator_pid" <<'PY'
+import os, subprocess, sys, time
+from pathlib import Path
 end = time.monotonic() + 300
 while time.monotonic() < end:
+    try:
+        os.kill(int(sys.argv[1]), 0)
+    except ProcessLookupError:
+        raise SystemExit(Path('build/ui-smoke/android/emulator.log').read_text()[-4000:])
     p = subprocess.run(['adb', '-s', 'emulator-5554', 'shell', 'getprop', 'sys.boot_completed'], capture_output=True, text=True, timeout=15)
     if p.stdout.strip() == '1':
         break
