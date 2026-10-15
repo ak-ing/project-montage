@@ -5,8 +5,8 @@ mkdir -p build/ui-smoke/android
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;google_apis;x86_64' 'emulator'
 printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name montage-smoke --path "$PWD/build/android-smoke-avd" --device pixel_2 --package 'system-images;android-35;google_apis;x86_64'
-# The current emulator defaults to 12 GB of userdata, exceeding free hosted disk
-# after the toolchain build. This local-only draft needs a much smaller volume.
+# Request smaller userdata than the 12 GB default. The image can impose a higher
+# minimum; CI also frees unused preinstalled toolchains before creating the AVD.
 python3 - <<'PY'
 from pathlib import Path
 import re
