@@ -60,6 +60,7 @@ try:
     assert '/' in resolved, resolved
     adb('shell', 'am', 'start', '-W', '-n', resolved)
     find(None, '2 scenes · 10s visible · 1s transition buffer')
+    assert len([n for n in tree().iter('node') if n.get('text') == 'Project Montage']) == 1, 'Duplicate native/Compose title bars'
     assert find('add-scene').get('enabled') == 'false'
     screenshot('initial')
     tap('project-title')
