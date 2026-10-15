@@ -11,7 +11,7 @@ struct MontageView: UIViewControllerRepresentable {
 
 @main
 struct MontageApp: App {
-    var body: some Scene {
+    var body: some SwiftUI.Scene {
         WindowGroup { MontageView().ignoresSafeArea() }
     }
 }
