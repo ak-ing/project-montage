@@ -27,6 +27,7 @@
         };
         A0000000000000000000000A = {isa = XCConfigurationList; buildConfigurations = (A0000000000000000000000B, A0000000000000000000000C,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
         A0000000000000000000000B = {isa = XCBuildConfiguration; buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
                 GENERATE_INFOPLIST_FILE = YES;
                 IPHONEOS_DEPLOYMENT_TARGET = 15.0;
                 PRODUCT_BUNDLE_IDENTIFIER = dev.montage.app.uitests;
@@ -39,6 +40,7 @@
 
 }; name = Debug; };
         A0000000000000000000000C = {isa = XCBuildConfiguration; buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
                 GENERATE_INFOPLIST_FILE = YES;
                 IPHONEOS_DEPLOYMENT_TARGET = 15.0;
                 PRODUCT_BUNDLE_IDENTIFIER = dev.montage.app.uitests;

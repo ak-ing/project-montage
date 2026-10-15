@@ -13,12 +13,12 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertFalse(add.isEnabled)
         attach(app, "initial")
 
-        let title = app.textFields["project-title"]
+        let title = app.textViews["project-title"]
         XCTAssertTrue(title.exists, app.debugDescription)
         title.tap()
         title.typeText(" UI smoke title")
         XCTAssertTrue((title.value as? String)?.contains("UI smoke title") == true)
-        let description = app.textFields["scene-description"]
+        let description = app.textViews["scene-description"]
         XCTAssertTrue(description.exists, app.debugDescription)
         description.tap()
         description.typeText("Smoke scene")

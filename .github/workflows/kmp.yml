@@ -94,6 +94,7 @@ jobs:
       - name: Allow hosted emulator acceleration
         run: sudo chmod a+rw /dev/kvm
       - name: Exercise Android app UI on emulator
+        timeout-minutes: 12
         run: ./scripts/boot-android-smoke.sh
       - name: Upload APK and reports
         if: ${{ always() }}
@@ -136,6 +137,7 @@ jobs:
       - name: Require executed native tests
         run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log
       - name: Exercise iOS app UI on simulator
+        timeout-minutes: 12
         run: ./scripts/ios-ui-smoke.sh
       - name: Upload iOS test evidence
         if: ${{ always() }}
@@ -146,9 +148,16 @@ jobs:
             kmp/ios-tests.log
             kmp/build/reports/core/iosSimulatorArm64/**
             kmp/ios-app/module.xcodeproj/**
-            kmp/build/ui-smoke/ios/DraftUiSmoke.xcresult/**
             kmp/build/ui-smoke/ios/attachments/**
             kmp/build/ui-smoke/ios/xcodebuild.log
             kmp/build/ui-smoke/ios/result.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Upload complete iOS UI result bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-ui-xcresult
+          path: kmp/build/ui-smoke/ios/DraftUiSmoke.xcresult/**
           retention-days: 7
           if-no-files-found: warn
