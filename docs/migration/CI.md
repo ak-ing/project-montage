@@ -21,4 +21,10 @@
 
 **尚未推送或触发 GitHub Actions；以上四个远端作业均未实际运行。** 工作流配置不能证明 Windows/macOS/iOS 已编译成功。首次运行仍需确认 Toolchain 在托管 runner 上的下载、Xcode 工程生成、Apple SDK 兼容性与模拟器启动。
 
+## 2026-10-15 提交与首次触发
+
+骨架、迁移文档与工作流已随提交 `8f6c3a3` 推送至私有仓库的 `rewrite/kmp`。这次推送符合工作流的分支与路径过滤条件；上文“尚未推送”是 10 月 14 日验证时的历史状态。本次提交前重新执行 core JVM 测试，五项均成功；actionlint 和暂存内容检查通过。`kmp/.gitattributes` 保持官方 wrapper 原始字节，避免 Windows checkout 改变已校验文件。
+
+云环境访问 `api.github.com` 时在代理 CONNECT 阶段返回 403，尚不能查询 run ID、作业状态或日志。因此远端作业的启动与结果均未确认，不应记为通过或失败。已在环境配置草稿保留现有域名并添加 `api.github.com`；用户保存使配置生效后，先重试 API，确认网络与私有仓库 API 授权，再按此提交 SHA 查询结果。Git 推送成功不代表 API 授权也可用。不要重复推送空提交来替代状态诊断。
+
 此工作流不覆盖桌面 UI 启动、macOS Intel、Windows Arm64、Android 设备 UI、iOS 真机、安装包、签名、公证或完整云生成流程。现有 Linux 实测结果及完整未验证清单见 [VALIDATION.md](VALIDATION.md)。
