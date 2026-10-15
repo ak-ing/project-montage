@@ -41,7 +41,11 @@
 每个作业的测试检查均成功：至少五个测试完成、无失败、无跳过。当前套件含五个测试；由于原始报告下载受限，这里依据远端检查结果，不声称已在本地审阅所有 XML/日志。iOS 的 `SwiftUI.Scene` 修复已由实际编译证实。
 
 
-产物和详细日志下载被重定向至 `productionresultssa17.blob.core.windows.net` 后遭代理 403。已保留现有域名并将该主机加入配置草稿，待环境设置保存生效。作业状态和错误标注通过 GitHub API 已读取；尚未将远端报告或生成的 Xcode 工程下载到本地。
+环境发布后，网络策略已报告 `enforced`，GitHub API 可用，并再次确认上述四个作业全部成功。下载产物的新重定向主机为 `productionresultssa2.blob.core.windows.net`，说明 GitHub 会使用不同存储节点；仅允许之前的 `productionresultssa17.blob.core.windows.net` 不足。
+
+GitHub [官方 runner 网络要求](https://github.com/github/docs/blob/main/data/reusables/actions/runner-essential-communications.md) 将 `*.blob.core.windows.net` 列为日志、产物和缓存上传/下载所需域名。已保留原有配置并将该通配规则保存到环境配置草稿，需发布这次新增规则后才能验证下载。该规则覆盖 Azure Blob 域名，范围比单个存储节点更广，是为了适配官方会变动的下载目标；不应以单个 `saN` 主机替代。配置保存不代表运行实例已应用新规则。
+
+目前尚未将远端报告或生成的 Xcode 工程下载到本地。发布后可重新执行 `gh run download 38729383572 -R ak-ing/project-montage-private`。四平台 UI 启动冒烟仍未完成。
 
 
 此工作流不覆盖桌面 UI 启动、macOS Intel、Windows Arm64、Android 设备 UI、iOS 真机、安装包、签名、公证或完整云生成流程。现有 Linux 实测结果及完整未验证清单见 [VALIDATION.md](VALIDATION.md)。
