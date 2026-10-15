@@ -1,0 +1,6 @@
+modules:
+  - android-app
+  - core
+  - desktop-app
+  - ios-app
+  - shared-ui

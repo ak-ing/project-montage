@@ -1,0 +1,17 @@
+product: android/app
+apply:
+  - ../compose.module-template.yaml
+dependencies:
+  - ../shared-ui
+  - androidx.activity:activity-compose:1.13.0
+settings:
+  android:
+    namespace: dev.montage.app
+    applicationId: dev.montage.app
+    compileSdk: 37
+    targetSdk: 37
+    minSdk: 24
+    versionCode: 1
+    versionName: 0.1.0
+  jvm:
+    release: 17

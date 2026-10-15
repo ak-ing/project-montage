@@ -1,0 +1,5 @@
+product: ios/app
+apply:
+  - ../compose.module-template.yaml
+dependencies:
+  - ../shared-ui

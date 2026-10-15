@@ -1,0 +1,13 @@
+Project Montage KMP migration skeleton
+
+The original Project Montage implementation is Copyright 2026 Google LLC,
+licensed under Apache License 2.0. Its sources and license remain at repository root.
+
+The kotlin and kotlin.bat wrapper scripts are from JetBrains Kotlin Toolchain 0.13.0:
+Copyright 2000-2026 JetBrains s.r.o. and contributors.
+Licensed under Apache License 2.0 (see ../LICENSE).
+Source: https://github.com/JetBrains/kotlin-toolchain
+Distribution: https://packages.jetbrains.team/maven/p/amper/amper/org/jetbrains/kotlin/kotlin-cli/0.13.0/
+
+This notice covers source files included in this skeleton, not a complete
+third-party notice bundle for future application binary distributions.

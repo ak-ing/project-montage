@@ -1,0 +1,10 @@
+product: jvm/app
+apply:
+  - ../compose.module-template.yaml
+dependencies:
+  - ../shared-ui
+  - $compose.desktop.currentOs
+settings:
+  jvm:
+    release: 21
+    mainClass: montage.desktop.MainKt

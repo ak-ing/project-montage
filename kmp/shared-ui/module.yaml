@@ -1,0 +1,9 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android, iosArm64, iosSimulatorArm64]
+apply:
+  - ../compose.module-template.yaml
+dependencies:
+  - ../core: exported
+  - $compose.foundation: exported
+  - org.jetbrains.compose.material3:material3:1.9.0: exported

@@ -1,0 +1,135 @@
+name: KMP skeleton
+
+on:
+  push:
+    branches: [rewrite/kmp]
+    paths: ['kmp/**', '.github/workflows/kmp.yml']
+  pull_request:
+    paths: ['kmp/**', '.github/workflows/kmp.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kmp-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            shell: cmd
+            cli: call kotlin.bat
+            python: python
+          - os: macos-26
+            shell: bash
+            cli: ./kotlin
+            python: python3
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: kmp
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify toolchain
+        run: ${{ matrix.cli }} --version
+      - name: Build native-host desktop artifacts
+        run: ${{ matrix.cli }} build -m desktop-app
+      - name: Test shared logic on JVM
+        run: ${{ matrix.cli }} test -m core --platform jvm
+      - name: Require executed tests
+        run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/core/jvm
+      - name: Upload desktop artifacts and reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-${{ matrix.os }}
+          path: |
+            kmp/build/tasks/*_jarJvm/*.jar
+            kmp/build/reports/core/jvm/*.xml
+          retention-days: 7
+          if-no-files-found: warn
+
+  android:
+    name: Android APK and host unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: kmp
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check hosted SDK prerequisite
+        run: |
+          test -n "${ANDROID_HOME:-}"
+          test -s "$ANDROID_HOME/licenses/android-sdk-license"
+      - name: Verify toolchain
+        run: ./kotlin --version
+      - name: Build APK
+        run: ./kotlin build -m android-app
+      - name: Test shared logic for Android
+        run: ./kotlin test -m core --platform android
+      - name: Require executed tests
+        run: python3 scripts/verify-ci-tests.py --xml-dir build/reports/core/android
+      - name: Upload APK and reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-debug
+          path: |
+            kmp/build/tasks/_android-app_buildAndroidDebug/*.apk
+            kmp/build/reports/core/android/*.xml
+          retention-days: 7
+          if-no-files-found: warn
+
+  ios:
+    name: iOS Arm64 simulator
+    runs-on: macos-26
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: kmp
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check Apple host and SDK
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+          xcrun simctl list devices available
+      - name: Verify toolchain
+        run: ./kotlin --version
+      - name: Build simulator application
+        run: ./kotlin build -m ios-app --platform iosSimulatorArm64
+      - name: Test shared logic on simulator
+        run: |
+          set -o pipefail
+          ./kotlin test -m core --platform iosSimulatorArm64 --format teamcity 2>&1 | tee ios-tests.log
+      - name: Require executed native tests
+        run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log
+      - name: Upload iOS test evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-simulator-evidence
+          path: |
+            kmp/ios-tests.log
+            kmp/build/reports/core/iosSimulatorArm64/**
+            kmp/ios-app/module.xcodeproj/**
+          retention-days: 7
+          if-no-files-found: warn
