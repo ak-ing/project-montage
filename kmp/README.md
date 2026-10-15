@@ -41,7 +41,9 @@ Android 工具由 Toolchain 自动提供，首次需按工具提示接受 Androi
 ./kotlin test -m core --platform iosSimulatorArm64
 ```
 
-Toolchain 可在首次 iOS 构建时生成 `ios-app/module.xcodeproj`（官方支持行为）；生成后检查 bundle ID 为自己的标识并将项目纳入版本管理。真机签名、Team、最低部署版本与商店发布需在 Xcode 设置，本次 Linux 环境不做已验证声明。Swift 桥接依照官方 `KotlinModules` framework 格式。
+`ios-app/module.xcodeproj` 已从成功的 CI 产物取回并审查后纳入版本管理。bundle ID 为 `dev.montage.app`，最低 iOS 15.0；保留官方 Toolchain 管理的 Kotlin 集成阶段。`MontageUITests` 与共享 scheme 用于模拟器 UI 冒烟；Swift 桥接使用官方 `KotlinModules` framework。真机 Team、签名和商店发行仍需另行配置与验证。
+
+四端 UI 冒烟命令、截图和报告路径见 [CI.md](../docs/migration/CI.md)。
 
 ## 云环境
 

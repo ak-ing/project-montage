@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 mkdir -p build/ui-smoke/android
-sdkmanager 'system-images;android-35;google_apis;x86_64' 'emulator'
-printf 'no\n' | avdmanager create avd --force --name montage-smoke --device pixel_2 --package 'system-images;android-35;google_apis;x86_64'
+export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;google_apis;x86_64' 'emulator'
+printf 'no\n' | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name montage-smoke --device pixel_2 --package 'system-images;android-35;google_apis;x86_64'
 "$ANDROID_HOME/emulator/emulator" -avd montage-smoke -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on -memory 2048 > build/ui-smoke/android/emulator.log 2>&1 &
 python3 - <<'PY'
 import subprocess, time
