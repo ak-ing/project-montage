@@ -4,6 +4,8 @@ apply:
 dependencies:
   - ../shared-ui
   - $compose.desktop.currentOs
+test-dependencies:
+  - org.jetbrains.compose.ui:ui-test-junit4:1.12.1
 settings:
   jvm:
     release: 21

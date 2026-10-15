@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import montage.core.appendScene
 import montage.core.sampleProject
@@ -25,21 +26,21 @@ fun MontageApp(platformName: String) {
                     value = draft.title,
                     onValueChange = { draft = draft.copy(title = it) },
                     label = { Text("Project title") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("project-title"),
                 )
-                Text("${draft.scenes.size} scenes · ${draft.visibleDurationSeconds}s visible · ${draft.transitionBufferSeconds}s transition buffer")
+                Text("${draft.scenes.size} scenes · ${draft.visibleDurationSeconds}s visible · ${draft.transitionBufferSeconds}s transition buffer", modifier = Modifier.testTag("draft-summary"))
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("New scene description") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("scene-description"),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(enabled = description.isNotBlank(), onClick = {
+                    Button(modifier = Modifier.testTag("add-scene"), enabled = description.isNotBlank(), onClick = {
                         draft = draft.appendScene(description)
                         description = ""
                     }) { Text("Add scene") }
-                    TextButton(onClick = { draft = sampleProject(); description = "" }) { Text("Reset sample") }
+                    TextButton(modifier = Modifier.testTag("reset-sample"), onClick = { draft = sampleProject(); description = "" }) { Text("Reset sample") }
                 }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(draft.scenes, key = { it.id }) { scene ->
