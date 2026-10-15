@@ -19,12 +19,29 @@
 
 2026-10-14 UTC，本地使用校验过官方发布 SHA-256 的 actionlint 1.7.12 检查通过。报告脚本已读取实际 JVM/Android 各五条成功测试，并通过重新执行 JVM 测试得到的真实 TeamCity 日志验证。缺报告、零测试、失败、跳过和未完成事件五种拒绝场景也已检查。
 
-**尚未推送或触发 GitHub Actions；以上四个远端作业均未实际运行。** 工作流配置不能证明 Windows/macOS/iOS 已编译成功。首次运行仍需确认 Toolchain 在托管 runner 上的下载、Xcode 工程生成、Apple SDK 兼容性与模拟器启动。
+10 月 14 日仅完成本地验证；远端结果见下面的运行记录。工作流配置本身不构成平台验证证据。
 
 ## 2026-10-15 提交与首次触发
 
-骨架、迁移文档与工作流已随提交 `8f6c3a3` 推送至私有仓库的 `rewrite/kmp`。这次推送符合工作流的分支与路径过滤条件；上文“尚未推送”是 10 月 14 日验证时的历史状态。本次提交前重新执行 core JVM 测试，五项均成功；actionlint 和暂存内容检查通过。`kmp/.gitattributes` 保持官方 wrapper 原始字节，避免 Windows checkout 改变已校验文件。
+骨架、迁移文档与工作流已随提交 `8f6c3a3` 推送至私有仓库的 `rewrite/kmp`。这次推送符合工作流的分支与路径过滤条件。本次提交前重新执行 core JVM 测试，五项均成功；actionlint 和暂存内容检查通过。`kmp/.gitattributes` 保持官方 wrapper 原始字节，避免 Windows checkout 改变已校验文件。
 
-云环境访问 `api.github.com` 时在代理 CONNECT 阶段返回 403，尚不能查询 run ID、作业状态或日志。因此远端作业的启动与结果均未确认，不应记为通过或失败。已在环境配置草稿保留现有域名并添加 `api.github.com`；用户保存使配置生效后，先重试 API，确认网络与私有仓库 API 授权，再按此提交 SHA 查询结果。Git 推送成功不代表 API 授权也可用。不要重复推送空提交来替代状态诊断。
+最初 API 被网络策略拒绝；配置生效后，已确认私有仓库 API 可用。使用 `gh` 时显式指定 `-R ak-ing/project-montage-private`，避免工具根据 fork 的上游选中 Google 仓库。
+
+首次运行：[38728676534](https://github.com/ak-ing/project-montage-private/actions/runs/38728676534)，提交 `8f6c3a3`。Windows、macOS、Android 三个作业成功（含测试数量检查）；iOS 在 Swift 编译阶段失败，后续测试未执行。GitHub check annotations 明确报出 `Scene` 类型查找歧义及 `MontageApp` 不符合 `App` 协议。共享模型导出的 `Scene` 与 SwiftUI 同名；提交 `6bdfc0d` 将返回类型限定为 `SwiftUI.Scene`。
+
+修复后的运行：[38729383572](https://github.com/ak-ing/project-montage-private/actions/runs/38729383572)，提交 `6bdfc0d`，**总体 success，四个作业全部 success**：
+
+| 平台 | 已验证 |
+| --- | --- |
+| Windows x64 | 桌面 JVM 编译、core JVM 测试、报告检查、产物上传 |
+| macOS Arm64 | 桌面 JVM 编译、core JVM 测试、报告检查、产物上传 |
+| Android | Debug APK、core host 测试、报告检查、产物上传 |
+| iOS Arm64 模拟器 | Swift/Kotlin 应用编译、core 模拟器测试、TeamCity 事件检查、证据上传 |
+
+每个作业的测试检查均成功：至少五个测试完成、无失败、无跳过。当前套件含五个测试；由于原始报告下载受限，这里依据远端检查结果，不声称已在本地审阅所有 XML/日志。iOS 的 `SwiftUI.Scene` 修复已由实际编译证实。
+
+
+产物和详细日志下载被重定向至 `productionresultssa17.blob.core.windows.net` 后遭代理 403。已保留现有域名并将该主机加入配置草稿，待环境设置保存生效。作业状态和错误标注通过 GitHub API 已读取；尚未将远端报告或生成的 Xcode 工程下载到本地。
+
 
 此工作流不覆盖桌面 UI 启动、macOS Intel、Windows Arm64、Android 设备 UI、iOS 真机、安装包、签名、公证或完整云生成流程。现有 Linux 实测结果及完整未验证清单见 [VALIDATION.md](VALIDATION.md)。

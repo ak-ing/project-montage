@@ -46,10 +46,10 @@
 
 ## 未验证 / 不在本次实现内
 
-- **远端 CI**：四平台工作流已添加，actionlint 和测试报告校验已通过；未推送/运行 GitHub Actions。详见 [CI.md](CI.md)。
+- **远端 CI（10 月 15 日补充）**：已提交并推送。修复 iOS Swift 类型重名后，运行 38729383572 的 Windows/macOS 桌面编译和测试、Android APK 和 host 测试、iOS 应用编译和模拟器 core 测试全部成功。证据与限制见 [CI.md](CI.md)。本记录上方的 Linux 实测结果保留。
 
-- **Windows/macOS 原生运行与分发**：这里只验证 Linux JVM 共享路径；Windows x64、macOS x64/Arm64 的 Skiko 运行、菜单/键盘/权限、MSI/DMG、签名、公证需对应主机。
-- **iOS 编译/链接/运行/签名**：Linux 没有 Xcode/Apple SDK，Swift 与 Kotlin/Native 的集成尚未执行；首次 Mac 构建生成的 Xcode 工程、bundle ID、最低 iOS 版本和 Team 需检查。不可据 JVM 成功推断 iOS 已通过。
+- **Windows/macOS 原生运行与分发**：已通过 Windows x64/macOS Arm64 CI 编译与 core 测试，但没有验证桌面 UI 启动；Windows x64、macOS x64/Arm64 的 Skiko 运行、菜单/键盘/权限、MSI/DMG、签名、公证需对应主机。
+- **iOS 编译/链接/运行/签名**：Linux 没有 Xcode/Apple SDK；远端 macOS CI 已通过 Swift/Kotlin 应用编译和 core 模拟器测试，但未验证应用 UI 启动或签名；首次 Mac 构建生成的 Xcode 工程、bundle ID、最低 iOS 版本和 Team 需检查。不可据 JVM 成功推断 iOS 已通过。
 - **Android 设备 UI**：APK 生成成功，但未安装到模拟器/真机，未做 instrumentation、旋转、权限或生命周期测试。
 - **云端全流程**：ADK/MCP 实际连接、身份验证、Google Search、Gemini/Veo/Omni/Lyria/TTS、GCS 与签名下载、FFmpeg/字幕/对齐均未运行。骨架没有伪造成功响应。
 - **原版运行时测试**：未安装全部 Python/模型权重或启动三服务；当前仓库没有 README 所称 tests/ 套件。环境中存在 GOOGLE_APPLICATION_CREDENTIALS 绑定，但没有检查/泄露其值，也没有声称 GCP 授权可用。
