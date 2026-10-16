@@ -67,6 +67,26 @@ def screenshot(stage):
     (out / f'{stage}.png').write_bytes(adb('exec-out', 'screencap', '-p', binary=True))
 
 
+def preview_metadata():
+    find(text='Paused')
+    value = find('video-metadata').get('text', '')
+    # Android includes the AAC priming packet in this fixture (8023 ms); other native readers report 8000.
+    duration = int(value.split(' ms', 1)[0])
+    assert 7950 <= duration <= 8100 and '160 × 90' in value and '0°' in value and 'Audio' in value, value
+    return value
+
+
+def wait_position(minimum, maximum):
+    deadline = time.monotonic() + 15
+    position = -1
+    while time.monotonic() < deadline:
+        position = int(find('video-position').get('text').split('/')[0].strip())
+        if minimum <= position <= maximum:
+            return position
+        time.sleep(0.1)
+    raise AssertionError(f'Playback position {position} did not reach {minimum}..{maximum}')
+
+
 try:
     adb('logcat', '-c')
     adb('shell', 'am', 'force-stop', 'dev.montage.app')
@@ -141,8 +161,7 @@ try:
     find(text='Available on this device')
     preview_button = next(n for n in tree().iter('node') if n.get('resource-id', '').split('/')[-1].startswith('preview-video-'))
     tap_node(preview_button)
-    metadata = find('video-metadata').get('text', '')
-    assert '8000 ms' in metadata and '160 × 90' in metadata and '0°' in metadata and 'Audio' in metadata, metadata
+    metadata = preview_metadata()
     find('video-thumbnail')
     find(text='Paused')
     screenshot('preview-ready')
@@ -154,11 +173,12 @@ try:
     find(text='Paused')
     paused_position = int(find('video-position').get('text').split('/')[0].strip())
     assert paused_position >= 500, paused_position
+    time.sleep(0.3)
+    assert abs(int(find('video-position').get('text').split('/')[0].strip()) - paused_position) <= 100
     slider = find('video-seek')
     x1, y1, x2, y2 = map(int, re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', slider.get('bounds')).groups())
     adb('shell', 'input', 'swipe', str(x1 + (x2 - x1) // 4), str((y1 + y2) // 2), str(x1 + (x2 - x1) * 3 // 4), str((y1 + y2) // 2), '400')
-    seek_position = int(find('video-position').get('text').split('/')[0].strip())
-    assert 4500 <= seek_position <= 7500, seek_position
+    seek_position = wait_position(4500, 7500)
     screenshot('preview-seek')
     tap('preview-back')
     find(text='Unsaved changes')
@@ -174,7 +194,7 @@ try:
     preview_document = json.loads(adb('exec-out', 'run-as', 'dev.montage.app', 'cat', 'files/workspace.json'))
     preview_asset = preview_document['videos'][0]
     tap('preview-video-' + preview_asset['id'])
-    assert '8000 ms' in find('video-metadata').get('text', '')
+    preview_metadata()
     find(text='Paused')
     screenshot('preview-restored')
     tap('preview-back')
@@ -187,7 +207,7 @@ try:
     adb('push', str(preview_fixture), '/data/local/tmp/montage-preview-fixture.mp4')
     adb('shell', 'run-as', 'dev.montage.app', 'cp', '/data/local/tmp/montage-preview-fixture.mp4', managed_preview)
     tap('preview-retry')
-    assert '8000 ms' in find('video-metadata').get('text', '')
+    preview_metadata()
     find(text='Paused')
     tap('preview-back')
     restored_copy = adb('exec-out', 'run-as', 'dev.montage.app', 'cat', managed_preview, binary=True)
