@@ -123,6 +123,9 @@ class DraftUiSmokeTest {
             compose.onNodeWithTag("import-video").performClick()
             compose.waitUntil(30_000) { compose.onAllNodesWithText("Could not import video. Check file access and available storage, then retry.").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("video-tab").assertTextContains("Videos 0")
+            compose.onNodeWithTag("project-title").performTextReplacement("Draft after import error")
+            compose.onNodeWithTag("storage-status").assertTextEquals("Unsaved changes")
+            compose.onNodeWithTag("project-title").performTextReplacement("My first Montage")
             compose.onNodeWithTag("import-video").performClick()
             compose.waitUntil(30_000) { compose.onAllNodesWithText("Available on this device").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Montage-import-smoke.mp4").assertExists()

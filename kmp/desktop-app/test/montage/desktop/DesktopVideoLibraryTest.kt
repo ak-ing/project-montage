@@ -5,9 +5,8 @@ import kotlinx.coroutines.*
 import org.junit.Test
 import org.junit.Assert.*
 import java.awt.FileDialog
-import java.awt.Robot
+import java.awt.EventQueue
 import java.awt.Window
-import java.awt.event.KeyEvent
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -72,8 +71,10 @@ class DesktopVideoLibraryTest {
             val result = async(Dispatchers.Default) { DesktopVideoLibrary(directory).pickAndImport() }
             withTimeout(30_000) {
                 while (Window.getWindows().filterIsInstance<FileDialog>().none { it.isVisible }) delay(100)
-                delay(500) // Allow the OS dialog to receive keyboard focus.
-                Robot().apply { keyPress(KeyEvent.VK_ESCAPE); keyRelease(KeyEvent.VK_ESCAPE) }
+                val picker = Window.getWindows().filterIsInstance<FileDialog>().first { it.isVisible }
+                delay(500) // Native peers finish opening after AWT marks the dialog visible.
+                // Exercise the same native close path used when the importing screen is disposed.
+                EventQueue.invokeLater { picker.dispose() }
                 assertNull(result.await())
             }
             assertTrue(directory.listFiles()!!.isEmpty())

@@ -68,10 +68,14 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertFalse(app.buttons["save-draft"].isEnabled)
 
         app.buttons["import-video"].tap()
-        let file = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Montage-import-smoke")).firstMatch
+        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage-import-smoke")).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         attach(app, "video-picker")
-        file.tap()
+        let thumbnail = file.images.firstMatch
+        XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)
+        thumbnail.tap()
+        let open = app.buttons["Open"].firstMatch
+        if open.waitForExistence(timeout: 3) { open.tap() }
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Montage-import-smoke.mp4"].exists)
         app.buttons["save-draft"].tap()

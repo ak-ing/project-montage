@@ -61,4 +61,4 @@ Android 工具由 Toolchain 自动提供，首次需按工具提示接受 Androi
 
 四平台 GitHub Actions 作业、测试数量检查及首次远端运行限制见 [CI.md](../docs/migration/CI.md)。
 
-云端图形冒烟可用 `DISPLAY=:99 ./scripts/run-desktop-cloud.sh`（先启动可用的 Xorg dummy display），具体经过与限制见验证记录。
+云端图形冒烟可用 `DISPLAY=:99 ./scripts/run-desktop-cloud.sh`（先启动可用的 Xorg dummy display），该开发辅助脚本使用可写的 `/workspace/.tooling/montage-preview` 项目目录，具体经过与限制见验证记录。

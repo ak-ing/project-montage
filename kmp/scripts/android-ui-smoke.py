@@ -16,6 +16,7 @@ args = parser.parse_args()
 out = Path('build/ui-smoke/android')
 out.mkdir(parents=True, exist_ok=True)
 sequence = 0
+launcher_recoveries = 0
 
 
 def adb(*command, binary=False):
@@ -32,9 +33,17 @@ def tree():
 
 
 def find(tag=None, text=None, description=None):
+    global launcher_recoveries
     deadline = time.monotonic() + 30
     while time.monotonic() < deadline:
         root = tree()
+        if any(n.get('package') == 'android' and n.get('text') == "Pixel Launcher isn't responding" for n in root.iter('node')):
+            assert launcher_recoveries == 0, 'Repeated system launcher ANR; emulator is unstable'
+            close = next(n for n in root.iter('node') if n.get('resource-id') == 'android:id/aerr_close')
+            screenshot('launcher-anr')
+            tap_node(close)
+            launcher_recoveries += 1
+            continue
         nodes = [n for n in root.iter('node') if
                  (n.get('resource-id', '').split('/')[-1] == tag if tag else
                   n.get('content-desc') == description if description else n.get('text') == text)]
@@ -45,7 +54,10 @@ def find(tag=None, text=None, description=None):
 
 
 def tap(tag=None, text=None, description=None):
-    node = find(tag, text, description)
+    tap_node(find(tag, text, description))
+
+
+def tap_node(node):
     assert node.get('enabled') == 'true', node.attrib
     x1, y1, x2, y2 = map(int, re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.get('bounds')).groups())
     adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
@@ -134,7 +146,9 @@ try:
     assert adb('shell', 'pidof', 'dev.montage.app').strip()
     crashes = adb('logcat', '-d', '-b', 'crash')
     assert 'dev.montage.app' not in crashes, crashes
-    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'draft edit/save/restart; native picker cancel/import; source deletion; byte-exact copy/restart; remove/save/cleanup', 'serial': args.serial, 'fixture_sha256': hashlib.sha256(imported).hexdigest(), 'imported_bytes': len(imported), 'managed_cleanup_empty': True}, indent=2))
+    application_anrs = re.findall(r'ANR in dev\.montage\.app\b.*', adb('logcat', '-d'))
+    assert not application_anrs, application_anrs
+    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'draft edit/save/restart; native picker cancel/import; source deletion; byte-exact copy/restart; remove/save/cleanup', 'serial': args.serial, 'fixture_sha256': hashlib.sha256(imported).hexdigest(), 'imported_bytes': len(imported), 'managed_cleanup_empty': True, 'system_launcher_recoveries': launcher_recoveries}, indent=2))
     print('Android UI smoke passed: draft recovery; native picker cancel/import, independent copy, restart and removal')
 finally:
     (out / 'logcat.txt').write_text(adb('logcat', '-d'))

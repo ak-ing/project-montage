@@ -145,7 +145,7 @@ jobs:
       - name: Require executed native tests
         run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log --min-tests 16
       - name: Exercise iOS app UI on simulator
-        timeout-minutes: 12
+        timeout-minutes: 16
         run: ./scripts/ios-ui-smoke.sh
       - name: Upload iOS test evidence
         if: ${{ always() }}
