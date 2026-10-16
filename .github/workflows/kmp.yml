@@ -72,6 +72,18 @@ jobs:
           Set-Service AudioEndpointBuilder -StartupType Manual
           Start-Service AudioEndpointBuilder
           Start-Service Audiosrv
+          # Server images can install Media Foundation without registering the DirectShow filters JavaFX uses.
+          foreach ($montageDll in @('msmpeg2adec.dll', 'msmpeg2vdec.dll')) {
+            $montageCodecPath = Join-Path $env:WINDIR "System32\$montageDll"
+            if (-not (Test-Path $montageCodecPath)) { throw "Missing hosted system codec: $montageDll" }
+            & "$env:WINDIR\System32\regsvr32.exe" /s $montageCodecPath
+            Write-Output "$montageDll registration exit: $LASTEXITCODE"
+          }
+          $montageAacClsid = [guid]'{E1F1A0B8-BEEE-490d-BA7C-066C40B5E2B9}'
+          $montageAacDecoder = [Activator]::CreateInstance([Type]::GetTypeFromCLSID($montageAacClsid))
+          Write-Output "Microsoft AAC decoder activated: $($montageAacDecoder.GetType().FullName)"
+          [void][Runtime.InteropServices.Marshal]::ReleaseComObject($montageAacDecoder)
+          $global:LASTEXITCODE = 0
       - name: Exercise desktop Compose UI
         run: ${{ matrix.cli }} test -m desktop-app --platform jvm
       - name: Require desktop UI test
