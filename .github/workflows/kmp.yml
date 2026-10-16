@@ -7,6 +7,13 @@ on:
   pull_request:
     paths: ['kmp/**', '.github/workflows/kmp.yml']
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to validate
+        required: true
+        default: all
+        type: choice
+        options: [all, desktop, android, ios]
 
 permissions:
   contents: read
@@ -17,6 +24,7 @@ concurrency:
 
 jobs:
   desktop:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'desktop' }}
     name: Desktop (${{ matrix.os }})
     strategy:
       fail-fast: false
@@ -68,6 +76,7 @@ jobs:
           if-no-files-found: warn
 
   android:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'android' }}
     name: Android APK and host unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -117,6 +126,7 @@ jobs:
           if-no-files-found: warn
 
   ios:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'ios' }}
     name: iOS Arm64 simulator
     runs-on: macos-26
     timeout-minutes: 45

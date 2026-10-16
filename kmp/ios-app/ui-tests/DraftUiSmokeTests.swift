@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import XCTest
+import CoreGraphics
 
 final class DraftUiSmokeTests: XCTestCase {
     func testEditAppendAndResetDraft() {
@@ -73,7 +74,9 @@ final class DraftUiSmokeTests: XCTestCase {
         attach(app, "video-picker")
         let thumbnail = file.images.firstMatch
         XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)
-        thumbnail.tap()
+        XCTAssertFalse(thumbnail.frame.isEmpty)
+        // Files exposes the thumbnail as a non-interactive image; tap its AX-reported frame.
+        thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30), app.debugDescription)
