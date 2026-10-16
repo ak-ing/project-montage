@@ -37,8 +37,8 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
         val url = withContext(Dispatchers.Main) {
             suspendCancellableCoroutine<NSURL?> { continuation ->
                 check(pending == null) { "Video picker is already open" }
-                // Open a security-scoped URL, then make our managed copy off the UI thread.
-                val picker = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeMovie), asCopy = false)
+                // Import mode gives us a sandbox copy, rather than opening the original in place.
+                val picker = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeMovie), asCopy = true)
                 picker.delegate = delegate
                 picker.allowsMultipleSelection = false
                 val documents = NSHomeDirectory() + "/Documents"
@@ -55,7 +55,7 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
                 }
             }
         } ?: return null
-        NSLog("Montage video import: received selected URL")
+        NSLog("Montage video import: received imported copy")
         return withContext(Dispatchers.Default) { importUrl(url) }
     }
 
@@ -66,9 +66,9 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
         val destination = "$directory/$id.media"
         try {
             check(manager.createDirectoryAtPath(directory, true, null, null)) { "Cannot create video directory" }
-            // Platform copying is bounded; the selected original is never moved or deleted.
-            check(manager.copyItemAtURL(url, NSURL.fileURLWithPath(partial), null)) { "Cannot stage imported video" }
-            NSLog("Montage video import: staged managed copy")
+            // asCopy=true already copied the user's original. Move that app-owned copy to avoid a second large copy.
+            check(manager.moveItemAtURL(url, NSURL.fileURLWithPath(partial), null)) { "Cannot stage imported video" }
+            NSLog("Montage video import: staged imported copy")
             val asset = VideoAsset(id, url.lastPathComponent ?: "Imported video", byteSize(partial))
             check(manager.moveItemAtPath(partial, destination, null)) { "Cannot commit video" }
             NSLog("Montage video import: committed managed copy")

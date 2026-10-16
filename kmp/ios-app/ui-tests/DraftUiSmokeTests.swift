@@ -112,23 +112,19 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        let more = app.buttons["More"].firstMatch
-        XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
-        more.tap()
-        let list = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "List")).firstMatch
-        XCTAssertTrue(list.waitForExistence(timeout: 10), app.debugDescription)
-        list.tap()
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
         if capture { attach(app, "video-picker") }
-        XCTAssertTrue(file.isHittable, app.debugDescription)
-        // Keep the native touch down across several frames on a busy simulator.
-        file.press(forDuration: 0.2)
+        let thumbnail = file.images.firstMatch
+        XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(thumbnail.frame.isEmpty)
+        // Activate the native file thumbnail, including Files' second-tap open behavior.
+        thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
         attach(app, "picker-after-selection-" + prefix)
-        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: more)
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
         wait(for: [dismissed], timeout: 15)
     }
 

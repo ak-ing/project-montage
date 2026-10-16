@@ -133,6 +133,7 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
                     pending = null
                     lastPositionUs = selected.timestamp.coerceAtLeast(0)
                     lastRenderedUs = lastPositionUs
+                    lastReportedUs = lastPositionUs
                     anchorUs = lastPositionUs; anchorNanos = System.nanoTime()
                     if (playing) audioLine?.start()
                     state.update { it.copy(positionMillis = metadata.constrainPosition(lastPositionUs / 1000),

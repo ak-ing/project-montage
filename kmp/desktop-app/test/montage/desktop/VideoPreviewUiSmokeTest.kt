@@ -107,6 +107,16 @@ class VideoPreviewUiSmokeTest {
                 center.red > 0.6f && center.blue < 0.3f
             }
             capture("preview-seek")
+            compose.onNodeWithTag("play-video").performScrollTo().performClick()
+            compose.waitUntil(10_000) { provider.current.state.value.status == PlaybackStatus.Ended }
+            compose.onNodeWithTag("play-video").assertTextContains("Replay").performClick()
+            compose.waitUntil(4_000) {
+                val state = provider.current.state.value
+                state.status == PlaybackStatus.Playing && state.positionMillis in 300..2500
+            }
+            compose.onNodeWithTag("pause-video").performClick()
+            compose.waitUntil(5_000) { provider.current.state.value.status == PlaybackStatus.Paused }
+            capture("preview-replay")
             compose.onNodeWithTag("preview-back").performScrollTo().performClick()
             compose.onNodeWithTag("project-title").assertTextContains("Unsaved preview draft")
             compose.onNodeWithTag("storage-status").assertTextEquals("Unsaved changes")
