@@ -73,11 +73,10 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled, app.debugDescription)
         attach(app, "video-picker")
-        let thumbnail = file.images.firstMatch
-        XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertFalse(thumbnail.frame.isEmpty)
-        // Files exposes the thumbnail as a non-interactive image; tap its AX-reported frame.
-        thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let filename = file.staticTexts["Montage-import-smoke"]
+        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(filename.isHittable, app.debugDescription)
+        filename.tap()
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30), app.debugDescription)
@@ -103,9 +102,10 @@ final class DraftUiSmokeTests: XCTestCase {
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
-        let image = file.images.firstMatch
-        XCTAssertTrue(image.waitForExistence(timeout: 10))
-        image.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let filename = file.staticTexts[prefix]
+        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(filename.isHittable, app.debugDescription)
+        filename.tap()
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
         XCTAssertTrue(app.staticTexts[prefix + ".mp4"].waitForExistence(timeout: 30), app.debugDescription)
