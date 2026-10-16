@@ -168,6 +168,8 @@ jobs:
             kmp/ios-app/module.xcodeproj/**
             kmp/build/ui-smoke/ios/attachments/**
             kmp/build/ui-smoke/ios/xcodebuild.log
+            kmp/build/ui-smoke/ios/import-stages.log
+            kmp/build/ui-smoke/ios/storage-result.json
             kmp/build/ui-smoke/ios/result.json
           retention-days: 7
           if-no-files-found: warn

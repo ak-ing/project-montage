@@ -71,6 +71,7 @@ final class DraftUiSmokeTests: XCTestCase {
         app.buttons["import-video"].tap()
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage-import-smoke")).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
+        XCTAssertTrue(file.isEnabled, app.debugDescription)
         attach(app, "video-picker")
         let thumbnail = file.images.firstMatch
         XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)

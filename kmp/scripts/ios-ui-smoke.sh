@@ -31,9 +31,26 @@ xcodebuild test-without-building -project ios-app/module.xcodeproj -scheme app \
   -resultBundlePath build/ui-smoke/ios/DraftUiSmoke.xcresult \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee -a build/ui-smoke/ios/xcodebuild.log || xcode_status=$?
+xcrun simctl spawn "$simulator_id" log show --last 30m --style compact \
+  --predicate 'process == "ios-app" AND eventMessage BEGINSWITH "Montage video import:"' \
+  > build/ui-smoke/ios/import-stages.log || true
 xcrun xcresulttool get test-results summary --path build/ui-smoke/ios/DraftUiSmoke.xcresult > build/ui-smoke/ios/result.json
 xcrun xcresulttool export attachments --path build/ui-smoke/ios/DraftUiSmoke.xcresult --output-path build/ui-smoke/ios/attachments
 test "$xcode_status" -eq 0
+app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
+python3 - "$app_data" <<'PY'
+from pathlib import Path
+import hashlib, json, sys
+root=Path(sys.argv[1])
+original=root/'Documents/Montage-import-smoke.mp4'
+fixture=Path('test-data/import-smoke.mp4')
+assert original.read_bytes()==fixture.read_bytes(), 'Import/removal changed the original test video'
+workspace=root/'Library/Application Support/ProjectMontage/workspace.json'
+assert not json.loads(workspace.read_text())['videos']
+media=workspace.parent/'media'
+assert not list(media.iterdir()), 'Managed media was not removed after successful save'
+Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps({'source_preserved':True,'managed_cleanup_empty':True,'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest()},indent=2)+'\n')
+PY
 python3 - <<'PY'
 import json
 p=json.load(open('build/ui-smoke/ios/result.json'))

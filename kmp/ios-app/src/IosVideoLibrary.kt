@@ -20,11 +20,14 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
     private var pending: CancellableContinuation<NSURL?>? = null
     private val delegate = object : NSObject(), UIDocumentPickerDelegateProtocol {
         override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) {
+            NSLog("Montage video import: selection callback")
+            controller.dismissViewControllerAnimated(true, null)
             pending?.let { if (it.isActive) it.resume(didPickDocumentsAtURLs.firstOrNull() as? NSURL) }
             pending = null
         }
 
         override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
+            NSLog("Montage video import: cancellation callback")
             pending?.let { if (it.isActive) it.resume(null) }
             pending = null
         }
@@ -34,7 +37,8 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
         val url = withContext(Dispatchers.Main) {
             suspendCancellableCoroutine<NSURL?> { continuation ->
                 check(pending == null) { "Video picker is already open" }
-                val picker = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeMovie), asCopy = false)
+                // Import mode gives us a sandbox copy, rather than opening the original in place.
+                val picker = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeMovie), asCopy = true)
                 picker.delegate = delegate
                 picker.allowsMultipleSelection = false
                 val documents = NSHomeDirectory() + "/Documents"
@@ -43,6 +47,7 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
                 pending = continuation
                 continuation.invokeOnCancellation { pending = null }
                 try {
+                    NSLog("Montage video import: presenting picker")
                     present(picker)
                 } catch (failure: Exception) {
                     pending = null
@@ -50,6 +55,7 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
                 }
             }
         } ?: return null
+        NSLog("Montage video import: received imported copy")
         return withContext(Dispatchers.Default) { importUrl(url) }
     }
 
@@ -60,9 +66,12 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
         val destination = "$directory/$id.media"
         try {
             check(manager.createDirectoryAtPath(directory, true, null, null)) { "Cannot create video directory" }
-            check(manager.copyItemAtURL(url, NSURL.fileURLWithPath(partial), null)) { "Cannot copy selected video" }
+            // asCopy=true already copied the user's original. Move that app-owned copy to avoid a second large copy.
+            check(manager.moveItemAtURL(url, NSURL.fileURLWithPath(partial), null)) { "Cannot stage imported video" }
+            NSLog("Montage video import: staged imported copy")
             val asset = VideoAsset(id, url.lastPathComponent ?: "Imported video", byteSize(partial))
             check(manager.moveItemAtPath(partial, destination, null)) { "Cannot commit video" }
+            NSLog("Montage video import: committed managed copy")
             return asset
         } finally {
             if (manager.fileExistsAtPath(partial)) manager.removeItemAtPath(partial, null)
