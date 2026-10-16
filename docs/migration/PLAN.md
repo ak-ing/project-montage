@@ -7,7 +7,7 @@
 
 原版目录原地保留；相对该同步基线的新增实现位于 `kmp/`。上游同步本身包含删除旧 App Engine YAML 等变更，属于 Google 提交，不是迁移删减。今后用 `git diff 19de972 -- mcp_client mcp_montage sign_server deploy third_party` 检查保留情况。
 
-当前已交付分析、协作规则、共享草稿模型与测试、CMP 示例界面、三个宿主（桌面覆盖 Windows/macOS，另含 Android、iOS）及四端 UI 冒烟。真实生成、媒体播放器、凭据接入与导出仍未实现。最终产品能力见下表。
+当前已交付分析、协作规则、共享草稿模型与测试、CMP 示例界面、三个宿主（桌面覆盖 Windows/macOS，另含 Android、iOS）及骨架四端 UI 冒烟。已新增单工作区本地保存/重载、版本化文档和任务检查点中断恢复，验证状态见 [VALIDATION.md](VALIDATION.md)。真实生成、任务执行器、媒体播放器、凭据接入与导出仍未实现。最终产品能力见下表。
 
 ## 已确认的产品架构
 

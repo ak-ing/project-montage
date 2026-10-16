@@ -59,6 +59,7 @@ try:
     resolved = adb('shell', 'cmd', 'package', 'resolve-activity', '--brief', 'dev.montage.app').strip().splitlines()[-1]
     assert '/' in resolved, resolved
     adb('shell', 'am', 'start', '-W', '-n', resolved)
+    find(None, 'No unsaved changes')
     find(None, '2 scenes · 10s visible · 1s transition buffer')
     assert len([n for n in tree().iter('node') if n.get('text') == 'Project Montage']) == 1, 'Duplicate native/Compose title bars'
     assert find('add-scene').get('enabled') == 'false'
@@ -75,15 +76,25 @@ try:
     find(None, '3 scenes · 14s visible · 2s transition buffer')
     assert find('add-scene').get('enabled') == 'false'
     screenshot('added')
+    tap('save-draft')
+    find(None, 'No unsaved changes')
+    adb('shell', 'am', 'force-stop', 'dev.montage.app')
+    adb('shell', 'am', 'start', '-W', '-n', resolved)
+    find(None, 'No unsaved changes')
+    find(None, '3 scenes · 14s visible · 2s transition buffer')
+    assert 'UI smoke title' in find('project-title').get('text', '')
+    screenshot('restored')
     tap('reset-sample')
     find(None, '2 scenes · 10s visible · 1s transition buffer')
     assert 'My first Montage' in find('project-title').get('text', '')
     assert find('add-scene').get('enabled') == 'false'
     screenshot('reset')
+    tap('save-draft')
+    find(None, 'No unsaved changes')
     assert adb('shell', 'pidof', 'dev.montage.app').strip()
     crashes = adb('logcat', '-d', '-b', 'crash')
     assert 'dev.montage.app' not in crashes, crashes
-    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'initial, edit title, append scene, reset', 'serial': args.serial}, indent=2))
-    print('Android UI smoke passed: launch, edit, append, reset; no app crash')
+    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'initial, edit title, append scene, save, force-stop/relaunch, restore, reset/save', 'serial': args.serial}, indent=2))
+    print('Android UI smoke passed: edit, append, save, process restart, restore, reset/save; no app crash')
 finally:
     (out / 'logcat.txt').write_text(adb('logcat', '-d'))

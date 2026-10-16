@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 package montage.core
 
+import kotlinx.serialization.Serializable
+
 /** Complete upstream MCP capability inventory. These are contracts, not implemented tools. */
+@Serializable
 enum class MontageTool(val wireName: String) {
     SelectAsset("select_asset"),
     StoryboardByText("generate_storyboard_by_text"),

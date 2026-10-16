@@ -1,6 +1,12 @@
 # 四平台骨架 CI
 
-最新运行：[38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)，源码 `75f1f04`，**四个作业全部成功**。已下载并逐份校验五个产物包，审阅实际报告：20 次 core 测试执行与四条 UI 流程均成功，无失败、无跳过。移动端 UI 结果来自模拟器。完整摘要见 [验证清单](evidence/ui-38759747810.json)。
+## 当前设备工作区验证
+
+工作流现要求每端至少 12 个领域测试、桌面至少 4 个存储/UI 测试。桌面流程新增保存→重置编辑→重载，并通过新建 repository 验证磁盘结果；另覆盖损坏文件保护与修复后重试。Android/iOS 新增保存→终止进程→重新启动→恢复标题及分镜→重置并保存，增加 restored 截图。最新源码的远端验证结果待本次运行完成后记录；以下是先前骨架的已验证基线。
+
+## 已验证的原始骨架基线
+
+运行：[38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)，源码 `75f1f04`，**四个作业全部成功**。已下载并逐份校验五个产物包，审阅实际报告：20 次 core 测试执行与四条 UI 流程均成功，无失败、无跳过。移动端 UI 结果来自模拟器。完整摘要见 [验证清单](evidence/ui-38759747810.json)。
 
 | 平台 | 托管主机 | 构建与共享测试 | UI 流程 |
 | --- | --- | --- | --- |
@@ -33,7 +39,7 @@ Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；�
 
 工作流是 [kmp.yml](../../.github/workflows/kmp.yml)。推送 `rewrite/kmp` 或提交 PR 时，修改 `kmp/**` 或工作流会触发，也支持手动运行。仅 `docs/**` 修改不触发构建。所有构建与测试由固定版本的 Kotlin Toolchain wrapper 发起，没有新增 Gradle 工程。
 
-`scripts/verify-ci-tests.py` 检查 JVM/Android JUnit XML 与 iOS TeamCity 事件，每端要求至少五个领域测试，全部完成、无失败、无跳过。桌面 UI 要求至少一个成功测试；Android 脚本断言失败与 iOS XCTest/汇总失败都会使作业失败。构建成功、配置了测试或零测试均不能替代 UI 验证。
+`scripts/verify-ci-tests.py` 检查 JVM/Android JUnit XML 与 iOS TeamCity 事件，工作流显式要求每端至少 12 个领域测试，全部完成、无失败、无跳过。桌面存储/UI 要求至少 4 个成功测试；Android 脚本断言失败与 iOS XCTest/汇总失败都会使作业失败。构建成功、配置了测试或零测试均不能替代 UI 验证。
 
 Android 从明确的 SDK 工具路径启动模拟器，不依赖 runner 的 PATH。AVD 请求 2 GB 用户数据分区；镜像仍可能要求更高初始化下限。构建后清理这个一次性 runner 中不再使用的 NDK、CMake 与 .NET，释放镜像初始化所需空间。新版默认 12 GB 超过构建后约 5.9 GB 的可用磁盘，缩小分区后仍约需 7.2 GB，故不能只靠分区设置。监控在模拟器进程提前退出时立即失败，避免等待完整启动超时。坐标从 UI XML 的控件边界计算。
 
@@ -49,7 +55,7 @@ iOS 优先复用已启动的 iPhone 模拟器，测试有执行超时。失败�
 
 ```sh
 ./kotlin test -m desktop-app --platform jvm
-python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 1
+python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 4
 ```
 
 Windows 使用 `kotlin.bat`，桌面需要图形会话。无 GPU 云端使用 `SKIKO_RENDER_API=SOFTWARE`；当前云实例还需 source `scripts/cloud-env.sh` 并提供 Xorg `DISPLAY`。CI 不加载云专用脚本。
@@ -58,4 +64,4 @@ Android：`./kotlin build -m android-app` 后，在有 KVM、已接受 SDK 许�
 
 iOS：在 macOS/Xcode 上先 `./kotlin build -m ios-app --platform iosSimulatorArm64`，再 `./scripts/ios-ui-smoke.sh`。
 
-本次验证对象是内存草稿骨架。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。
+当前验证对象是设备端草稿工作区与任务检查点基础。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。

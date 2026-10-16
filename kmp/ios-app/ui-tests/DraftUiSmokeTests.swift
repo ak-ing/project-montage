@@ -6,6 +6,7 @@ final class DraftUiSmokeTests: XCTestCase {
         continueAfterFailure = false
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
         app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30), app.debugDescription)
         let initial = app.staticTexts["2 scenes · 10s visible · 1s transition buffer"]
         XCTAssertTrue(initial.waitForExistence(timeout: 30), app.debugDescription)
         let add = app.buttons["add-scene"]
@@ -28,11 +29,23 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertFalse(add.isEnabled)
         attach(app, "added")
 
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["3 scenes · 14s visible · 2s transition buffer"].exists)
+        XCTAssertTrue((app.textViews["project-title"].value as? String)?.contains("UI smoke title") == true)
+        XCTAssertTrue(app.staticTexts["Smoke scene"].exists)
+        attach(app, "restored")
+
         app.buttons["reset-sample"].tap()
         XCTAssertTrue(initial.waitForExistence(timeout: 10))
         XCTAssertEqual(title.value as? String, "My first Montage")
         XCTAssertFalse(app.staticTexts["Smoke scene"].exists)
         attach(app, "reset")
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
     }
 
     private func attach(_ app: XCUIApplication, _ name: String) {

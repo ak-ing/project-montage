@@ -2,4 +2,7 @@
 import androidx.compose.ui.window.ComposeUIViewController
 import montage.ui.MontageApp
 
-fun ViewController() = ComposeUIViewController { MontageApp("iOS") }
+fun ViewController(): platform.UIKit.UIViewController {
+    val storage = IosWorkspaceStorage()
+    return ComposeUIViewController { MontageApp("iOS", storage) }
+}

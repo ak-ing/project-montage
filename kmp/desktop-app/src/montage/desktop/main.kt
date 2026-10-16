@@ -5,8 +5,11 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import montage.ui.MontageApp
 
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Project Montage") {
-        MontageApp(System.getProperty("os.name"))
+fun main() {
+    val storage = FileWorkspaceStorage(defaultWorkspaceFile())
+    application {
+        Window(onCloseRequest = ::exitApplication, title = "Project Montage") {
+            MontageApp(System.getProperty("os.name"), storage)
+        }
     }
 }

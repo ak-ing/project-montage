@@ -3,7 +3,7 @@ package montage.core
 
 import kotlinx.serialization.Serializable
 
-/** Client-owned draft. Provider-specific generation constraints belong to the backend adapter. */
+/** Device-owned draft. Provider-specific generation constraints belong to the provider adapter. */
 @Serializable
 data class Scene(val id: String, val description: String, val durationSeconds: Int) {
     init {

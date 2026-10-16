@@ -20,6 +20,7 @@
 | Compose Multiplatform | 1.12.1 | Maven Central `org/jetbrains/compose/compose-gradle-plugin/maven-metadata.xml`；实际编译由 Toolchain 启用 Compose |
 | Compose Material3 | 1.9.0 | Maven Central `org/jetbrains/compose/material3/material3/maven-metadata.xml`；独立发布节奏，不能套用 CMP 版本号 |
 | kotlinx.serialization | 1.11.0 | Maven Central `org/jetbrains/kotlinx/kotlinx-serialization-json/maven-metadata.xml` |
+| kotlinx.coroutines | 1.11.0 | 2026-10-15 新增显式依赖；Maven Central `org/jetbrains/kotlinx/kotlinx-coroutines-core/maven-metadata.xml` 的最新正式版；用于在后台 dispatcher 执行本地存储 |
 | AndroidX activity-compose | 1.13.0 | Google Maven `androidx/activity/activity-compose/maven-metadata.xml` |
 | Android compile/target SDK | 37 | Toolchain 0.13 官方默认与 Google SDK repository metadata；minSdk 24 是兼容下限 |
 | JDK | Toolchain 管理 JDK 25 | 官方工具链使用的 LTS 运行环境；桌面宿主 bytecode 21、共享模块/Android bytecode 17 是兼容目标，不是依赖版本 |

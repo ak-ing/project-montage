@@ -5,5 +5,6 @@ apply:
   - ../compose.module-template.yaml
 dependencies:
   - ../core: exported
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
   - $compose.foundation: exported
   - org.jetbrains.compose.material3:material3:1.9.0: exported

@@ -15,8 +15,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val storage = AndroidWorkspaceStorage(applicationContext)
         setContent {
-            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android") }
+            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage) }
         }
     }
 }

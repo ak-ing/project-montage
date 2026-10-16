@@ -4,13 +4,17 @@
 
 ## 结构
 
-- `core`：共享草稿模型、时长计算、平台/会话接口及单元测试。
+- `core`：共享草稿、版本化项目文档、任务检查点与中断恢复、存储接口及单元测试。
 - `shared-ui`：所有端共享的 CMP 本地草稿界面。
 - `desktop-app`：Windows/macOS JVM 宿主（Linux 也可用于编译验证）。
 - `android-app`：Android Activity 宿主。
 - `ios-app`：SwiftUI 宿主和 ComposeUIViewController，面向真机 Arm64 与 Apple Silicon 模拟器。
 
-界面支持编辑标题、追加分镜、重置样例，数据仅在内存中。目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。模型 API、凭据接入、本地持久化、文件选择、播放和导出均尚未实现；后续按迁移计划补齐。
+界面支持编辑标题、追加分镜、重置样例、**Save draft** 保存和 **Reload saved** 重载。编辑后必须点击保存，等待 **No unsaved changes** 再关闭；未保存编辑可通过 **Discard edits & reload** 丢弃。读取损坏/未知版本文档时禁用编辑并保留原文件，可修复文件后重试读取；保存失败时保留界面编辑以供重试。
+
+目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。当前实现单个本地工作区与任务检查点的存储基础；恢复时将 Running 标记为 Interrupted，保留提供商 operation ID，不自动运行任务。模型 API、任务执行器、凭据接入、素材选择、播放和导出均尚未实现。
+
+项目文档为 UTF-8 `workspace.json`（schemaVersion 1），只存草稿和检查点，不存媒体字节或凭据。Windows 存于 `%LOCALAPPDATA%/ProjectMontage`，macOS 存于 `~/Library/Application Support/ProjectMontage`，Linux 存于 `$XDG_DATA_HOME/project-montage`（默认 `~/.local/share/project-montage`）；桌面测试可用 JVM 属性 `montage.dataDir` 指定独立目录。Android 使用应用内部 files 目录的 AtomicFile，iOS 使用沙盒 Application Support/ProjectMontage 的原子文件写入。桌面在同目录写临时文件、同步并原子替换；文件系统不支持原子替换时报告保存失败。当前不支持多个应用实例同时编辑同一文档。
 
 ## 构建与运行
 
