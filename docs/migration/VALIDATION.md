@@ -68,7 +68,7 @@
 - **桌面发行与扩展平台矩阵**：Windows x64/macOS Arm64 已通过真实窗口 UI 冒烟；macOS Intel、Windows Arm64、全面原生菜单/键盘/权限回归、MSI/DMG、签名和公证尚未验证。
 - **iOS 真机与发行**：应用编译/链接、共享逻辑及模拟器 UI 已通过，Xcode 工程已审查；Team、真机签名、真机 UI、最低 iOS 15 的实际运行及发行仍未验证。
 - **Android 扩展设备回归**：实际 APK 已安装到 API 35 模拟器并完成 UI 流程；真机、其他系统版本、旋转、权限及生命周期全面回归仍未验证。
-- **云端全流程**：ADK/MCP 实际连接、身份验证、Google Search、Gemini/Veo/Omni/Lyria/TTS、GCS 与签名下载、FFmpeg/字幕/对齐均未运行。骨架没有伪造成功响应。
+- **设备端生成全流程**：提供商原生认证与 API 直连、Google Search、Gemini/Veo/Omni/Lyria/TTS、本地持久化、媒体合成/字幕/对齐和导出均未运行。目标不部署自建 ADK/MCP/GCS 签名后端；原版服务也未作集成验证。骨架没有伪造成功响应。
 - **原版运行时测试**：未安装全部 Python/模型权重或启动三服务；当前仓库没有 README 所称 tests/ 套件。原实例曾配置 GOOGLE_APPLICATION_CREDENTIALS 绑定，但没有检查/泄露其值，也没有声称 GCP 授权可用。
 - **功能迁移**：仅内存草稿预览可用；持久化、上传、播放、分享、登录、聊天/任务/生成均是明确后续任务，不是最终范围删减。
 - **发行审计**：传递依赖 SBOM、FFmpeg 构建许可证、MMS_FA 权重和远程演示素材授权未完成。

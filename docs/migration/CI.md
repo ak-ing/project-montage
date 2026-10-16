@@ -58,4 +58,4 @@ Android：`./kotlin build -m android-app` 后，在有 KVM、已接受 SDK 许�
 
 iOS：在 macOS/Xcode 上先 `./kotlin build -m ios-app --platform iosSimulatorArm64`，再 `./scripts/ios-ui-smoke.sh`。
 
-本次验证对象是内存草稿骨架。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与完整云生成流程仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。
+本次验证对象是内存草稿骨架。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。

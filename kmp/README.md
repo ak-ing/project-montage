@@ -10,7 +10,7 @@
 - `android-app`：Android Activity 宿主。
 - `ios-app`：SwiftUI 宿主和 ComposeUIViewController，面向真机 Arm64 与 Apple Silicon 模拟器。
 
-界面支持编辑标题、追加分镜、重置样例。数据仅在内存中，云生成、登录、文件选择、播放、保存和后端连接都还未实现；这些仍在最终迁移范围内。
+界面支持编辑标题、追加分镜、重置样例，数据仅在内存中。目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。模型 API、凭据接入、本地持久化、文件选择、播放和导出均尚未实现；后续按迁移计划补齐。
 
 ## 构建与运行
 
@@ -49,7 +49,7 @@ Android 工具由 Toolchain 自动提供，首次需按工具提示接受 Androi
 
 在 `/workspace/project-montage-private/kmp` 执行 ` . ./scripts/cloud-env.sh` 后再执行上述命令。脚本配置可写缓存/SDK 路径，并让 Java HTTP 客户端使用环境代理与系统 CA。使用现有 checkout，不创建额外 worktree。
 
-骨架无需数据库、Google API key 或 GCP 服务。不要为了本地预览启动付费生成流水线。后端集成另按原版环境文档配置，凭据仅通过安全环境设置提供。
+骨架无需数据库、Google API key 或 GCP 服务。这里的云环境仅用于开发/构建，不是产品运行后端。不要为了本地预览启动付费生成流水线。后续模型 API 直连使用提供商支持的原生认证或用户自行配置的凭据，并通过平台安全存储保管，不在应用中内置共享密钥或服务账号。
 
 版本来源、Alpha 状态与 Android 内部工具版本限制见 [TOOLCHAIN.md](../docs/migration/TOOLCHAIN.md)。
 

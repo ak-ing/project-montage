@@ -20,7 +20,7 @@ enum class MontageTool(val wireName: String) {
 
 data class SessionRef(val app: String, val user: String, val id: String)
 
-/** Cloud authentication, ADK event streaming and persistence are implemented behind this boundary later. */
+/** Device-owned sessions and local persistence are implemented behind this boundary later. */
 interface SessionGateway {
     suspend fun create(app: String, user: String): SessionRef
     suspend fun fork(source: SessionRef, upToEventId: String): SessionRef
