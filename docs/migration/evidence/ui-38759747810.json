@@ -1,0 +1,83 @@
+{
+  "run_id": 38759747810,
+  "commit": "75f1f04ed4b5b50eb29c027e93f6c4da5829d6b8",
+  "run_url": "https://github.com/ak-ing/project-montage-private/actions/runs/38759747810",
+  "artifacts": [
+    {
+      "name": "ios-ui-xcresult",
+      "id": 11986617097,
+      "digest": "sha256:669f11541096ae79cddb43ee22a7d9b7afc51fbf0ff0346007feb8606e09337b",
+      "checksum_verified": true
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 11986572257,
+      "digest": "sha256:75cd61c0a5833e6cfb0144dbd0755c6746d5c754df69844bc567c3c019d72ffb",
+      "checksum_verified": true,
+      "core_tests": [
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration",
+        "noBoundaryNeedsNoBuffer",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity",
+        "appendPreservesSourceAndAvoidsIdentityCollisions",
+        "draftSurvivesJsonRoundTrip"
+      ],
+      "ui_status": "passed",
+      "ui_tests": [
+        "DraftUiSmokeTests.testEditAppendAndResetDraft"
+      ],
+      "xcode_review": "dev.montage.app, iOS 15.0, shared app scheme with MontageUITests"
+    },
+    {
+      "name": "android-debug",
+      "id": 11985767808,
+      "digest": "sha256:41ad8675bd9015799a4704b422042a295f21b3d6227937bc5f170c5d11d43ece",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()"
+      ],
+      "ui_status": "passed",
+      "ui_flow": "initial, edit title, append scene, reset"
+    },
+    {
+      "name": "desktop-macos-26",
+      "id": 11985266816,
+      "digest": "sha256:69bd29f2444a34ab5e8f4dbe24c5c97ce4a5ae998bd63741d4fe0a9f665b074e",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()"
+      ],
+      "ui_tests": [
+        "editAppendAndResetDraft"
+      ],
+      "ui_status": "passed"
+    },
+    {
+      "name": "desktop-windows-2025",
+      "id": 11984629340,
+      "digest": "sha256:a5f4fe91455c13221aa91615dab218b4dce662a26449a7a5e7ea77df0c4ca31d",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()"
+      ],
+      "ui_tests": [
+        "editAppendAndResetDraft"
+      ],
+      "ui_status": "passed"
+    }
+  ],
+  "failed": 0,
+  "skipped": 0,
+  "scope": "In-memory draft UI smoke; no cloud generation, signing or physical-device validation"
+}

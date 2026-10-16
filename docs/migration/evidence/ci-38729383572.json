@@ -1,0 +1,146 @@
+{
+  "run_id": 38729383572,
+  "run_url": "https://github.com/ak-ing/project-montage-private/actions/runs/38729383572",
+  "commit": "6bdfc0d8074d4c2333087c37a596db813b09f440",
+  "retrieved_on": "2026-10-15",
+  "download_method": "Connected GitHub artifact download, followed by local SHA-256 verification",
+  "artifacts": [
+    {
+      "name": "desktop-windows-2025",
+      "artifact_id": 11969922614,
+      "sha256": "7cd126f2119627f8bfeea464d2eed00b6695a6e3774d5e4cde82f2c95a0d0d64",
+      "checksum_verified": true,
+      "tests": [
+        {
+          "name": "draftSurvivesJsonRoundTrip()",
+          "result": "passed"
+        },
+        {
+          "name": "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+          "result": "passed"
+        },
+        {
+          "name": "appendPreservesSourceAndAvoidsIdentityCollisions()",
+          "result": "passed"
+        },
+        {
+          "name": "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+          "result": "passed"
+        },
+        {
+          "name": "noBoundaryNeedsNoBuffer()",
+          "result": "passed"
+        }
+      ],
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "ui_smoke_covered": false
+    },
+    {
+      "name": "desktop-macos-26",
+      "artifact_id": 11969637631,
+      "sha256": "a0d90d066fec40a0a8d6aad530ed220182d14dc2e62a10690b15982a41f03fee",
+      "checksum_verified": true,
+      "tests": [
+        {
+          "name": "draftSurvivesJsonRoundTrip()",
+          "result": "passed"
+        },
+        {
+          "name": "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+          "result": "passed"
+        },
+        {
+          "name": "appendPreservesSourceAndAvoidsIdentityCollisions()",
+          "result": "passed"
+        },
+        {
+          "name": "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+          "result": "passed"
+        },
+        {
+          "name": "noBoundaryNeedsNoBuffer()",
+          "result": "passed"
+        }
+      ],
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "ui_smoke_covered": false
+    },
+    {
+      "name": "android-debug",
+      "artifact_id": 11969338296,
+      "sha256": "4c816fa8b748bc78ed429cfddd0aa3f38d3dfc8592b80cb388973ae11bbe38cd",
+      "checksum_verified": true,
+      "tests": [
+        {
+          "name": "draftSurvivesJsonRoundTrip()",
+          "result": "passed"
+        },
+        {
+          "name": "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+          "result": "passed"
+        },
+        {
+          "name": "appendPreservesSourceAndAvoidsIdentityCollisions()",
+          "result": "passed"
+        },
+        {
+          "name": "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+          "result": "passed"
+        },
+        {
+          "name": "noBoundaryNeedsNoBuffer()",
+          "result": "passed"
+        }
+      ],
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "ui_smoke_covered": false
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "artifact_id": 11968774718,
+      "sha256": "78746b419fc621a750937d66f801435175fdd22c89859e867f633ce948a6cecc",
+      "checksum_verified": true,
+      "tests": [
+        {
+          "name": "transitionConsumesExtraFootageInsteadOfVisibleDuration",
+          "result": "passed"
+        },
+        {
+          "name": "noBoundaryNeedsNoBuffer",
+          "result": "passed"
+        },
+        {
+          "name": "rejectsInvalidSceneDurationsAndDuplicateIdentity",
+          "result": "passed"
+        },
+        {
+          "name": "appendPreservesSourceAndAvoidsIdentityCollisions",
+          "result": "passed"
+        },
+        {
+          "name": "draftSurvivesJsonRoundTrip",
+          "result": "passed"
+        }
+      ],
+      "executed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "ui_smoke_covered": false
+    }
+  ],
+  "xcode_review": {
+    "project_present": true,
+    "shared_scheme": "app",
+    "app_target": "app",
+    "original_bundle_id": "ios-app",
+    "explicit_minimum_ios_version": false,
+    "original_ui_test_targets": 0,
+    "action_taken": "Track reviewed project; set dev.montage.app and iOS 15.0, add XCTest UI target and CI execution."
+  }
+}

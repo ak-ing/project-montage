@@ -1,51 +1,61 @@
 # 四平台骨架 CI
 
-工作流位于 [kmp.yml](../../.github/workflows/kmp.yml)。推送 `rewrite/kmp` 或提交 PR 时，修改 `kmp/**` 或工作流自身会触发；也支持手动运行。仅文档修改不触发构建。
+最新运行：[38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)，源码 `75f1f04`，**四个作业全部成功**。已下载并逐份校验五个产物包，审阅实际报告：20 次 core 测试执行与四条 UI 流程均成功，无失败、无跳过。移动端 UI 结果来自模拟器。完整摘要见 [验证清单](evidence/ui-38759747810.json)。
 
-| 作业 | GitHub 托管主机 | 检查 |
-| --- | --- | --- |
-| Windows 桌面 | windows-2025，x64 | 官方 kotlin.bat、桌面 JVM 编译、core JVM 测试 |
-| macOS 桌面 | macos-26，Arm64 | 官方 kotlin、桌面 JVM 编译、core JVM 测试 |
-| Android | ubuntu-latest | Debug APK、core Android host 单元测试 |
-| iOS | macos-26，Arm64 | Xcode/模拟器 SDK 检查、模拟器应用构建、core iosSimulatorArm64 测试 |
+| 平台 | 托管主机 | 构建与共享测试 | UI 流程 |
+| --- | --- | --- | --- |
+| Windows | windows-2025，x64 | 桌面 JVM 构建、5 个 core 测试 | JUnit/Compose UI，真实 ComposeWindow 与本机 Skiko |
+| macOS | macos-26，Arm64 | 桌面 JVM 构建、5 个 core 测试 | 同上，在 macOS 主机执行 |
+| Android | ubuntu-latest | Debug APK、5 个 core host 测试 | API 35 x86_64 模拟器，安装 APK，adb/UIAutomator |
+| iOS | macos-26，Arm64 | Swift/Kotlin 应用构建、5 个 core 模拟器测试 | XCTest 启动实际应用，经系统无障碍界面交互 |
 
-所有构建由仓库固定版本的 Kotlin Toolchain wrapper 发起。CI 不载入云实例专用的 `cloud-env.sh`。Android 使用托管 runner 预装 SDK 和已接受的许可；缺少许可时明确失败，不生成许可文件。iOS 首次构建自动生成的 Xcode 工程作为检查证据上传，后续需在 Mac 上检查并纳入版本管理。
+每端 UI 流程检查：初始 `2 scenes / 10s / 1s`、空描述时新增按钮禁用、编辑标题、输入并新增分镜、`3 scenes / 14s / 2s`、输入清空后按钮再次禁用，以及重置回样例。保存初始、新增、重置截图。Android 另保存 UI 树、emulator.log、logcat；iOS 保存结果 JSON、截图附件及完整 xcresult。
 
-测试后执行 `kmp/scripts/verify-ci-tests.py`：JVM/Android 检查 JUnit XML，iOS 检查 Toolchain TeamCity 事件，要求至少执行当前五个测试、全部完成、无失败且无跳过。构建或测试命令自身失败也会使作业失败。产物和报告保留七天；桌面 JAR 不是自包含安装包。
+最终截图已审阅并纳入版本管理，避免只依赖七天后过期的 Actions 产物：
 
-工作流仅申请 `contents: read`，checkout 不保留认证信息，不需要云服务密钥，不发布或签名。Actions 固定为官方 release 对应完整提交：checkout v7.0.1、upload-artifact v7.0.2。更新时从各官方仓库重新核实 release 和 SHA。相同分支的新运行取消旧运行。
+| Windows | macOS | Android | iOS |
+| --- | --- | --- | --- |
+| [新增分镜](evidence/ui-windows-added.png) | [新增分镜](evidence/ui-macos-added.png) | [新增分镜](evidence/ui-android-added.png) | [新增分镜](evidence/ui-ios-added.png) |
 
-## 本次验证与限制
+Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；现使用 NoActionBar 与 edge-to-edge，并通过 UI 树确认标题仅有一个。修改后的完整交互、统计、重置及崩溃检查再次通过。桌面各有 1 个 JUnit UI 测试、Android 有 1 条 adb 流程，iOS 有 1 个 XCTest UI 测试；各端另有 5 个领域测试。
 
-2026-10-14 UTC，本地使用校验过官方发布 SHA-256 的 actionlint 1.7.12 检查通过。报告脚本已读取实际 JVM/Android 各五条成功测试，并通过重新执行 JVM 测试得到的真实 TeamCity 日志验证。缺报告、零测试、失败、跳过和未完成事件五种拒绝场景也已检查。
+## 指定 CI 产物与 Xcode 审查
 
-10 月 14 日仅完成本地验证；远端结果见下面的运行记录。工作流配置本身不构成平台验证证据。
+2026-10-15 已下载指定运行 [38729383572](https://github.com/ak-ing/project-montage-private/actions/runs/38729383572)（`6bdfc0d`）全部四份 ZIP，在本地按 GitHub 提供的 SHA-256 逐份校验。Windows/macOS/Android 的 JUnit 报告各 5 成功、0 失败、0 跳过；iOS TeamCity 日志也为 5 开始、5 完成、0 失败、0 跳过。额外的空测试引擎没有计入执行数量。[产物校验清单](evidence/ci-38729383572.json)包含提交、产物 ID、摘要和测试名。这些旧报告只覆盖共享逻辑。
 
-## 2026-10-15 提交与首次触发
+旧 Xcode 产物含 `project.pbxproj` 与共享 `app.xcscheme`，但 bundle ID 为默认 `ios-app`、没有明确最低 iOS 版本、scheme 的 Testables 为空。已将审查后的工程纳入版本管理，设置 `dev.montage.app`、iOS 15.0，保留 Toolchain 管理的 Kotlin 集成阶段，新增独立 `MontageUITests` 目标。UI 测试源码位于 `ios-app/ui-tests/`，不参与生产 app 的同步源码组。模拟器不需要开发团队或真机签名。
 
-骨架、迁移文档与工作流已随提交 `8f6c3a3` 推送至私有仓库的 `rewrite/kmp`。这次推送符合工作流的分支与路径过滤条件。本次提交前重新执行 core JVM 测试，五项均成功；actionlint 和暂存内容检查通过。`kmp/.gitattributes` 保持官方 wrapper 原始字节，避免 Windows checkout 改变已校验文件。
+首次 iOS Swift 构建中的 `Scene` 重名问题已由 `SwiftUI.Scene` 限定修复，并由实际编译验证。UI 测试按实际无障碍树使用 `TextView` 查询当前多行输入框；测试不会把无匹配控件视为成功。
 
-最初 API 被网络策略拒绝；配置生效后，已确认私有仓库 API 可用。使用 `gh` 时显式指定 `-R ak-ing/project-montage-private`，避免工具根据 fork 的上游选中 Google 仓库。
+本次接续早期，直接 `gh run download` 遇到 Blob 403；已通过连接的 GitHub 下载工具取回原始和最终产物，再在本地核对摘要，完成了证据检查，没有重复修改环境草稿。
 
-首次运行：[38728676534](https://github.com/ak-ing/project-montage-private/actions/runs/38728676534)，提交 `8f6c3a3`。Windows、macOS、Android 三个作业成功（含测试数量检查）；iOS 在 Swift 编译阶段失败，后续测试未执行。GitHub check annotations 明确报出 `Scene` 类型查找歧义及 `MontageApp` 不符合 `App` 协议。共享模型导出的 `Scene` 与 SwiftUI 同名；提交 `6bdfc0d` 将返回类型限定为 `SwiftUI.Scene`。
+## 检查与产物规则
 
-修复后的运行：[38729383572](https://github.com/ak-ing/project-montage-private/actions/runs/38729383572)，提交 `6bdfc0d`，**总体 success，四个作业全部 success**：
+工作流是 [kmp.yml](../../.github/workflows/kmp.yml)。推送 `rewrite/kmp` 或提交 PR 时，修改 `kmp/**` 或工作流会触发，也支持手动运行。仅 `docs/**` 修改不触发构建。所有构建与测试由固定版本的 Kotlin Toolchain wrapper 发起，没有新增 Gradle 工程。
 
-| 平台 | 已验证 |
-| --- | --- |
-| Windows x64 | 桌面 JVM 编译、core JVM 测试、报告检查、产物上传 |
-| macOS Arm64 | 桌面 JVM 编译、core JVM 测试、报告检查、产物上传 |
-| Android | Debug APK、core host 测试、报告检查、产物上传 |
-| iOS Arm64 模拟器 | Swift/Kotlin 应用编译、core 模拟器测试、TeamCity 事件检查、证据上传 |
+`scripts/verify-ci-tests.py` 检查 JVM/Android JUnit XML 与 iOS TeamCity 事件，每端要求至少五个领域测试，全部完成、无失败、无跳过。桌面 UI 要求至少一个成功测试；Android 脚本断言失败与 iOS XCTest/汇总失败都会使作业失败。构建成功、配置了测试或零测试均不能替代 UI 验证。
 
-每个作业的测试检查均成功：至少五个测试完成、无失败、无跳过。当前套件含五个测试；由于原始报告下载受限，这里依据远端检查结果，不声称已在本地审阅所有 XML/日志。iOS 的 `SwiftUI.Scene` 修复已由实际编译证实。
+Android 从明确的 SDK 工具路径启动模拟器，不依赖 runner 的 PATH。AVD 请求 2 GB 用户数据分区；镜像仍可能要求更高初始化下限。构建后清理这个一次性 runner 中不再使用的 NDK、CMake 与 .NET，释放镜像初始化所需空间。新版默认 12 GB 超过构建后约 5.9 GB 的可用磁盘，缩小分区后仍约需 7.2 GB，故不能只靠分区设置。监控在模拟器进程提前退出时立即失败，避免等待完整启动超时。坐标从 UI XML 的控件边界计算。
 
+iOS 优先复用已启动的 iPhone 模拟器，测试有执行超时。失败时也尝试导出汇总与附件。完整 xcresult 单独上传为 `ios-ui-xcresult`，主要 `ios-simulator-evidence` 包保留日志、结果 JSON、截图和工程，便于直接审阅。
 
-环境发布后，网络策略已报告 `enforced`，GitHub API 可用，并再次确认上述四个作业全部成功。下载产物的新重定向主机为 `productionresultssa2.blob.core.windows.net`，说明 GitHub 会使用不同存储节点；仅允许之前的 `productionresultssa17.blob.core.windows.net` 不足。
+所有产物保留七天；代表截图另存于仓库证据目录。桌面 JAR 不是自包含安装包。软件渲染用于稳定的桌面功能验证，不代表 GPU 性能测试。
 
-GitHub [官方 runner 网络要求](https://github.com/github/docs/blob/main/data/reusables/actions/runner-essential-communications.md) 将 `*.blob.core.windows.net` 列为日志、产物和缓存上传/下载所需域名。已保留原有配置并将该通配规则保存到环境配置草稿，需发布这次新增规则后才能验证下载。该规则覆盖 Azure Blob 域名，范围比单个存储节点更广，是为了适配官方会变动的下载目标；不应以单个 `saN` 主机替代。配置保存不代表运行实例已应用新规则。
+工作流仅申请 `contents: read`，checkout 不保留认证信息，不需要云服务密钥、不发布或签名。官方 checkout v7.0.1 与 upload-artifact v7.0.2 固定完整提交，工作流已用 actionlint 1.7.12 检查。Android 使用托管 SDK 与已有许可，不伪造许可文件。
 
-目前尚未将远端报告或生成的 Xcode 工程下载到本地。发布后可重新执行 `gh run download 38729383572 -R ak-ing/project-montage-private`。四平台 UI 启动冒烟仍未完成。
+## 复现与范围
 
+从 `kmp/` 执行：
 
-此工作流不覆盖桌面 UI 启动、macOS Intel、Windows Arm64、Android 设备 UI、iOS 真机、安装包、签名、公证或完整云生成流程。现有 Linux 实测结果及完整未验证清单见 [VALIDATION.md](VALIDATION.md)。
+```sh
+./kotlin test -m desktop-app --platform jvm
+python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 1
+```
+
+Windows 使用 `kotlin.bat`，桌面需要图形会话。无 GPU 云端使用 `SKIKO_RENDER_API=SOFTWARE`；当前云实例还需 source `scripts/cloud-env.sh` 并提供 Xorg `DISPLAY`。CI 不加载云专用脚本。
+
+Android：`./kotlin build -m android-app` 后，在有 KVM、已接受 SDK 许可的 Linux 主机运行 `./scripts/boot-android-smoke.sh`。已有设备可在安装 APK 后执行 `python3 scripts/android-ui-smoke.py --serial <serial>`，并确保 adb 在 PATH。
+
+iOS：在 macOS/Xcode 上先 `./kotlin build -m ios-app --platform iosSimulatorArm64`，再 `./scripts/ios-ui-smoke.sh`。
+
+本次验证对象是内存草稿骨架。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与完整云生成流程仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。

@@ -1,8 +1,27 @@
 # 验证记录
 
-用户时区 America/Tijuana：2026-10-13。执行主机记录为 2026-10-14 UTC。Linux x86_64，4 CPU 配额、32 GiB 内存。此记录针对当前实例和此次骨架，不代表已经推送、发布环境或在新任务/四端真机验证。
+用户时区 America/Tijuana：2026-10-13。执行主机记录为 2026-10-14 UTC。Linux x86_64，4 CPU 配额、32 GiB 内存。以下原始本地记录针对骨架；后续的提交、远端 CI 和 UI 冒烟状态见本节及 CI.md。真机与完整业务仍未验证。
 
-## 已通过
+## 2026-10-15：CI 产物与四端 UI
+
+运行 38729383572 的四份产物已全部下载，ZIP SHA-256 与 GitHub 记录逐份一致。Windows/macOS/Android 的 XML 各有 5 个领域测试成功，iOS TeamCity 日志记录 5 个测试完成；四端均为 0 失败、0 跳过。[逐项清单](evidence/ci-38729383572.json)保留提交、产物 ID、摘要和测试名。
+
+生成的 Xcode 工程已审查并纳入版本管理，补齐 `dev.montage.app`、iOS 15.0 和 XCTest UI target。
+
+最终运行 [38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)（源码 `75f1f04`）四个作业全部成功。五份 ZIP 已逐份校验 SHA-256，实际 XML、TeamCity、Android result.json 与 XCTest 汇总已核对：
+
+| 平台 | 共享逻辑 | UI 冒烟 |
+| --- | --- | --- |
+| Windows x64 | 5 成功 | 1 个 ComposeWindow/JUnit 测试成功 |
+| macOS Arm64 | 5 成功 | 1 个 ComposeWindow/JUnit 测试成功 |
+| Android API 35 x86_64 模拟器 | 5 个 host 测试成功 | adb 驱动实际 APK 的完整流程成功，无应用崩溃 |
+| iOS Arm64 模拟器 | 5 个原生测试成功 | 1 个 XCTest UI 测试成功 |
+
+四端均覆盖初始状态、标题编辑、追加分镜、时长/缓冲统计、清空后按钮禁用与重置，均为 0 失败、0 跳过。Android 默认 ActionBar 导致重复标题，已修复并通过标题唯一性检查；最终截图确认修复。完整 [报告清单](evidence/ui-38759747810.json)、四端截图及复现命令见 [CI.md](CI.md)。
+
+当前云实例没有 `/dev/kvm`、Android 设备或 Apple SDK，因此移动端冒烟由对应 GitHub 托管主机执行。没有把本地 Linux 结果等同于四端验证。Linux 自身新增的桌面 UI 测试为 1 执行、1 成功；Android 修改后 APK 构建成功。
+
+## 原始 Linux 验证
 
 | 检查 | 实际结果 |
 | --- | --- |
@@ -23,7 +42,7 @@
 
 五个领域测试覆盖：转场缓冲不侵蚀可见时长；空/单场景无边界缓冲；无效时长和重复 ID 拒绝；新增分镜保持原草稿不变且避免 ID 冲突；包含多语言文本的 JSON 往返。
 
-## 产物与证据
+## 原始 Linux 产物与证据
 
 - APK：`kmp/build/tasks/_android-app_buildAndroidDebug/gradle-project-debug.apk`（约 12 MB）。
 - APK SHA-256：`52b9bbe2f99a0b183eae67c0d07355053d897de8890ada2bbe7192c20fbc3714`。
@@ -32,7 +51,7 @@
 - [新增场景的实际运行截图](evidence/desktop-add-scene.png)。
 - 构建任务日志：`kmp/build/logs/`；依赖图已用 `./kotlin show dependencies -m desktop-app` 检查，解析的 Kotlin stdlib 为 2.4.21。
 
-构建产物/日志被忽略，不纳入源码提交。保留截图作为界面冒烟证据；它不证明原生平台集成或完整视频生成。
+构建产物/日志被忽略，不纳入源码提交。上述原始 Linux 截图不替代对应平台的运行验证；本次四端报告与截图见文首。完整视频生成仍未实现和验证。
 
 ## 已诊断并解决的初次失败
 
@@ -46,13 +65,11 @@
 
 ## 未验证 / 不在本次实现内
 
-- **远端 CI（10 月 15 日补充）**：已提交并推送。修复 iOS Swift 类型重名后，运行 38729383572 的 Windows/macOS 桌面编译和测试、Android APK 和 host 测试、iOS 应用编译和模拟器 core 测试全部成功。证据与限制见 [CI.md](CI.md)。本记录上方的 Linux 实测结果保留。
-
-- **Windows/macOS 原生运行与分发**：已通过 Windows x64/macOS Arm64 CI 编译与 core 测试，但没有验证桌面 UI 启动；Windows x64、macOS x64/Arm64 的 Skiko 运行、菜单/键盘/权限、MSI/DMG、签名、公证需对应主机。
-- **iOS 编译/链接/运行/签名**：Linux 没有 Xcode/Apple SDK；远端 macOS CI 已通过 Swift/Kotlin 应用编译和 core 模拟器测试，但未验证应用 UI 启动或签名；首次 Mac 构建生成的 Xcode 工程、bundle ID、最低 iOS 版本和 Team 需检查。不可据 JVM 成功推断 iOS 已通过。
-- **Android 设备 UI**：APK 生成成功，但未安装到模拟器/真机，未做 instrumentation、旋转、权限或生命周期测试。
+- **桌面发行与扩展平台矩阵**：Windows x64/macOS Arm64 已通过真实窗口 UI 冒烟；macOS Intel、Windows Arm64、全面原生菜单/键盘/权限回归、MSI/DMG、签名和公证尚未验证。
+- **iOS 真机与发行**：应用编译/链接、共享逻辑及模拟器 UI 已通过，Xcode 工程已审查；Team、真机签名、真机 UI、最低 iOS 15 的实际运行及发行仍未验证。
+- **Android 扩展设备回归**：实际 APK 已安装到 API 35 模拟器并完成 UI 流程；真机、其他系统版本、旋转、权限及生命周期全面回归仍未验证。
 - **云端全流程**：ADK/MCP 实际连接、身份验证、Google Search、Gemini/Veo/Omni/Lyria/TTS、GCS 与签名下载、FFmpeg/字幕/对齐均未运行。骨架没有伪造成功响应。
-- **原版运行时测试**：未安装全部 Python/模型权重或启动三服务；当前仓库没有 README 所称 tests/ 套件。环境中存在 GOOGLE_APPLICATION_CREDENTIALS 绑定，但没有检查/泄露其值，也没有声称 GCP 授权可用。
+- **原版运行时测试**：未安装全部 Python/模型权重或启动三服务；当前仓库没有 README 所称 tests/ 套件。原实例曾配置 GOOGLE_APPLICATION_CREDENTIALS 绑定，但没有检查/泄露其值，也没有声称 GCP 授权可用。
 - **功能迁移**：仅内存草稿预览可用；持久化、上传、播放、分享、登录、聊天/任务/生成均是明确后续任务，不是最终范围删减。
 - **发行审计**：传递依赖 SBOM、FFmpeg 构建许可证、MMS_FA 权重和远程演示素材授权未完成。
 
@@ -75,4 +92,4 @@
 
 ## 环境配置持久化
 
-`install_script` 与 `start_skill` 已保存到云环境配置草稿，包含上述已执行的构建/测试、缓存/代理/CA 初始化与可选 Xorg/CMP 启动及界面检查步骤。网络域名配置也已保存并验证实际下载成功。保存草稿不代表发布环境；尚未执行新任务恢复验证。当前图形冒烟进程已停止，后续按启动说明重启。
+`install_script` 与 `start_skill` 已保存到云环境配置草稿，包含上述已执行的构建/测试、缓存/代理/CA 初始化与可选 Xorg/CMP 启动及界面检查步骤。本次已在新任务恢复现有 `rewrite/kmp` checkout，实际执行 Linux 桌面 UI 测试与 Android APK 构建，并通过连接的 GitHub 工具取回 CI 证据。没有再次修改配置草稿。此前启动的本地图形进程已停止，后续按启动说明重启。
