@@ -21,7 +21,15 @@ import kotlin.math.*
 
 @OptIn(ExperimentalForeignApi::class)
 class IosVideoPreview : VideoPreviewProvider {
-    override fun open(asset: VideoAsset): VideoPreviewController = IosPlayer(asset)
+    private val previewDirectory = NSTemporaryDirectory().trimEnd('/') + "/ProjectMontagePreview"
+    init {
+        // A process termination can leave an alias; only this private derived cache is swept.
+        val manager = NSFileManager.defaultManager
+        val names = manager.contentsOfDirectoryAtPath(previewDirectory, null) ?: emptyList<Any>()
+        names.filterIsInstance<String>().filter { it.matches(Regex("[0-9a-fA-F-]{36}\\.[a-z0-9]{2,4}")) }
+            .forEach { manager.removeItemAtPath("$previewDirectory/$it", null) }
+    }
+    override fun open(asset: VideoAsset): VideoPreviewController = IosPlayer(asset, previewDirectory)
     @Composable override fun Surface(controller: VideoPreviewController, modifier: Modifier) {
         UIKitView(factory = { (controller as IosPlayer).view }, modifier = modifier)
     }
@@ -43,31 +51,52 @@ private class PlayerView(player: AVPlayer) : UIView(frame = CGRectMake(0.0, 0.0,
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class IosPlayer(asset: VideoAsset) : VideoPreviewController {
+private class IosPlayer(asset: VideoAsset, private val previewDirectory: String) : VideoPreviewController {
     override val state = MutableStateFlow(VideoPreviewState())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val player = AVPlayer()
     val view = PlayerView(player)
     private var closed = false
+    private var previewAlias: String? = null
+    private var stage = "file"
     private val inactiveObserver = NSNotificationCenter.defaultCenter.addObserverForName(
         UIApplicationWillResignActiveNotification, null, NSOperationQueue.mainQueue,
     ) { pause() }
 
     private fun fail() {
         if (!closed) {
+            NSLog("Montage video preview: failed at $stage")
             player.pause()
+            player.replaceCurrentItemWithPlayerItem(null)
+            removeAlias()
             state.update { it.copy(status = PlaybackStatus.Error) }
         }
+    }
+    private fun removeAlias() {
+        previewAlias?.let { NSFileManager.defaultManager.removeItemAtPath(it, null) }
+        previewAlias = null
     }
     init {
         scope.launch {
             try {
                 val root = (NSFileManager.defaultManager.URLsForDirectory(NSApplicationSupportDirectory, NSUserDomainMask).first() as NSURL).path!!
                 val path = "$root/ProjectMontage/media/${asset.id}.media"
+                val manager = NSFileManager.defaultManager
+                val attributes = manager.attributesOfItemAtPath(path, null)
+                check((attributes?.get(NSFileSize) as? NSNumber)?.longLongValue == asset.byteSize)
+                val extension = asset.name.substringAfterLast('.', "").lowercase()
+                val sourcePath = if (extension in setOf("mp4", "mov", "m4v", "3gp", "3g2", "avi", "mpg", "mpeg", "ts", "m2ts", "webm", "mkv")) {
+                    check(manager.createDirectoryAtPath(previewDirectory, true, null, null))
+                    val alias = "$previewDirectory/${NSUUID().UUIDString}.$extension"
+                    // AVFoundation uses the container suffix. This adds no second copy of the media bytes.
+                    check(manager.linkItemAtPath(path, alias, null))
+                    previewAlias = alias
+                    alias
+                } else path
+                stage = "metadata"
+                NSLog("Montage video preview: reading metadata")
                 val result = withContext(Dispatchers.Default) {
-                    val attributes = NSFileManager.defaultManager.attributesOfItemAtPath(path, null)
-                    check((attributes?.get(NSFileSize) as? NSNumber)?.longLongValue == asset.byteSize)
-                    val source = AVURLAsset(uRL = NSURL.fileURLWithPath(path), options = null)
+                    val source = AVURLAsset(uRL = NSURL.fileURLWithPath(sourcePath), options = null)
                     val track = source.tracksWithMediaType(AVMediaTypeVideo).firstOrNull() as? AVAssetTrack
                         ?: error("No video track")
                     val size = track.naturalSize.useContents { abs(width).toInt() to abs(height).toInt() }
@@ -91,6 +120,8 @@ private class IosPlayer(asset: VideoAsset) : VideoPreviewController {
                     } finally { CGImageRelease(cgImage) }
                     Triple(source, metadata, thumbnail)
                 }
+                stage = "player readiness"
+                NSLog("Montage video preview: metadata and thumbnail ready")
                 player.replaceCurrentItemWithPlayerItem(AVPlayerItem(asset = result.first))
                 withTimeout(15_000) {
                     while (player.currentItem?.status != AVPlayerItemStatusReadyToPlay) {
@@ -99,6 +130,8 @@ private class IosPlayer(asset: VideoAsset) : VideoPreviewController {
                     }
                 }
                 state.value = VideoPreviewState(result.second, result.third, PlaybackStatus.Paused)
+                stage = "playback"
+                NSLog("Montage video preview: player ready")
             } catch (_: TimeoutCancellationException) { fail() }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { fail() }
@@ -145,6 +178,7 @@ private class IosPlayer(asset: VideoAsset) : VideoPreviewController {
         player.pause()
         player.replaceCurrentItemWithPlayerItem(null)
         view.detach()
+        removeAlias()
         NSNotificationCenter.defaultCenter.removeObserver(inactiveObserver)
     }
 }

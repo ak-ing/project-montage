@@ -21,15 +21,22 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
     private val delegate = object : NSObject(), UIDocumentPickerDelegateProtocol {
         override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) {
             NSLog("Montage video import: selection callback")
-            controller.dismissViewControllerAnimated(true, null)
-            pending?.let { if (it.isActive) it.resume(didPickDocumentsAtURLs.firstOrNull() as? NSURL) }
-            pending = null
+            finishPicker(controller, didPickDocumentsAtURLs.firstOrNull() as? NSURL)
         }
 
         override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
             NSLog("Montage video import: cancellation callback")
-            pending?.let { if (it.isActive) it.resume(null) }
-            pending = null
+            finishPicker(controller, null)
+        }
+    }
+
+    private fun finishPicker(controller: UIDocumentPickerViewController, url: NSURL?) {
+        val continuation = pending ?: return
+        pending = null
+        // Keep the import busy until UIKit has completed the modal dismissal.
+        controller.dismissViewControllerAnimated(true) {
+            NSLog("Montage video import: picker dismissal completed")
+            if (continuation.isActive) continuation.resume(url)
         }
     }
 

@@ -82,6 +82,8 @@ final class DraftUiSmokeTests: XCTestCase {
         let cancel = app.buttons["Cancel"].firstMatch
         XCTAssertTrue(cancel.waitForExistence(timeout: 30), app.debugDescription)
         cancel.tap()
+        let cancelledPicker = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.collectionViews["File View"])
+        wait(for: [cancelledPicker], timeout: 15)
         XCTAssertTrue(app.staticTexts["Import cancelled"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["save-draft"].isEnabled)
 
@@ -121,6 +123,11 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertFalse(thumbnail.frame.isEmpty)
         // Activate the native file thumbnail, including Files' second-tap open behavior.
         thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+        let firstActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
+        if XCTWaiter.wait(for: [firstActivation], timeout: 4) != .completed {
+            attach(app, "picker-activation-retry-" + prefix)
+            thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
         attach(app, "picker-after-selection-" + prefix)
@@ -179,6 +186,14 @@ final class DraftUiSmokeTests: XCTestCase {
         preview.tap()
         assertPreviewReady(app)
         attach(app, "preview-restored")
+        // Termination while a preview is open must not retain its temporary alias.
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.buttons["video-tab"].tap()
+        preview.tap()
+        assertPreviewReady(app)
+        attach(app, "preview-terminated-restored")
         app.buttons["preview-back"].tap()
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
         app.buttons["save-draft"].tap()
