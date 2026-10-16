@@ -167,9 +167,12 @@ final class DraftUiSmokeTests: XCTestCase {
         app.buttons["pause-video"].tap()
         XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
         XCTAssertGreaterThan(previewPosition(app), 300)
-        let slider = app.sliders["video-seek"]
+        let slider = app.descendants(matching: .any)["video-seek"]
         XCTAssertTrue(slider.exists, app.debugDescription)
-        slider.adjust(toNormalizedSliderPosition: 0.75)
+        // Compose exposes an adjustable Other element rather than UIKit's UISlider.
+        let currentFraction = max(0.02, min(0.98, Double(previewPosition(app)) / 8000.0))
+        slider.coordinate(withNormalizedOffset: CGVector(dx: currentFraction, dy: 0.5))
+            .press(forDuration: 0.2, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5)))
         let sought = expectation(for: NSPredicate { _, _ in self.previewPosition(app) >= 5000 }, evaluatedWith: app.staticTexts["video-position"])
         wait(for: [sought], timeout: 10)
         XCTAssertLessThanOrEqual(previewPosition(app), 7500)
