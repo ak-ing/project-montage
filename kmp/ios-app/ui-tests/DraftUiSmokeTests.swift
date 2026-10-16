@@ -54,4 +54,39 @@ final class DraftUiSmokeTests: XCTestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+
+    func testImportVideoCancelSaveRestoreAndRemove() {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.buttons["import-video"].tap()
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 30), app.debugDescription)
+        cancel.tap()
+        XCTAssertTrue(app.staticTexts["Import cancelled"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["save-draft"].isEnabled)
+
+        app.buttons["import-video"].tap()
+        let file = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Montage-import-smoke")).firstMatch
+        XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
+        attach(app, "video-picker")
+        file.tap()
+        XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["Montage-import-smoke.mp4"].exists)
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.buttons["video-tab"].tap()
+        XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["Montage-import-smoke.mp4"].exists)
+        attach(app, "videos-restored")
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["No videos imported"].exists)
+        attach(app, "videos-removed")
+    }
 }

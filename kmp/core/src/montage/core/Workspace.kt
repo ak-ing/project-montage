@@ -3,7 +3,7 @@ package montage.core
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 
 @Serializable
 enum class JobStatus { Queued, Running, Interrupted, Succeeded, Failed, Cancelled }
@@ -32,11 +32,13 @@ data class JobCheckpoint(
 data class WorkspaceSnapshot(
     val draft: ProjectDraft,
     val jobs: List<JobCheckpoint> = emptyList(),
-    val schemaVersion: Int = 1,
+    val schemaVersion: Int = 2,
+    val videos: List<VideoAsset> = emptyList(),
 ) {
     init {
-        require(schemaVersion == 1) { "Unsupported workspace version" }
+        require(schemaVersion == 2) { "Unsupported workspace version" }
         require(jobs.map { it.id }.distinct().size == jobs.size) { "Job ids must be unique" }
+        require(videos.map { it.id }.distinct().size == videos.size) { "Video ids must be unique" }
     }
 
     fun recover(): WorkspaceSnapshot = copy(jobs = jobs.map { it.recover() })
@@ -56,10 +58,16 @@ class WorkspaceRepository(private val storage: WorkspaceStorage) {
     fun load(): WorkspaceSnapshot {
         loaded = false
         val document = storage.read()
-        val saved = document?.let { json.decodeFromString<WorkspaceSnapshot>(it) }
-            ?: WorkspaceSnapshot(sampleProject())
+        var migrated = false
+        val saved = if (document == null) WorkspaceSnapshot(sampleProject()) else {
+            val fields = json.parseToJsonElement(document).jsonObject
+            val version = fields["schemaVersion"]?.jsonPrimitive?.int ?: 1
+            require(version == 1 || version == 2) { "Unsupported workspace version" }
+            migrated = version == 1
+            json.decodeFromJsonElement<WorkspaceSnapshot>(JsonObject(fields + ("schemaVersion" to JsonPrimitive(2))))
+        }
         val recovered = saved.recover()
-        if (saved != recovered) storage.writeAtomically(json.encodeToString(recovered))
+        if (migrated || saved != recovered) storage.writeAtomically(json.encodeToString(recovered))
         loaded = true
         return recovered
     }

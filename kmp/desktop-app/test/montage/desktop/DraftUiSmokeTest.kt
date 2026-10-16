@@ -6,6 +6,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.graphics.toAwtImage
 import montage.ui.MontageApp
 import montage.core.WorkspaceRepository
+import montage.core.VideoAsset
+import montage.core.VideoLibrary
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -94,5 +96,48 @@ class DraftUiSmokeTest {
         val output = File("../build/ui-smoke/desktop/$stage.png")
         output.parentFile.mkdirs()
         check(ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", output))
+    }
+
+    @Test fun importsVideoWithCancelFailureAndMissingFileRecovery() {
+        val directory = Files.createTempDirectory("montage-import-ui-")
+        try {
+            val files = DesktopVideoLibrary(directory.resolve("media").toFile())
+            var calls = 0
+            val library = object : VideoLibrary {
+                override suspend fun pickAndImport(): VideoAsset? = when (++calls) {
+                    1 -> null
+                    2 -> error("Unreadable selection")
+                    else -> files.importStream("Montage-import-smoke.mp4") {
+                        File("../test-data/import-smoke.mp4").inputStream()
+                    }
+                }
+                override fun isAvailable(asset: VideoAsset) = files.isAvailable(asset)
+                override fun removeUnreferenced(retained: List<VideoAsset>) = files.removeUnreferenced(retained)
+            }
+            val storage = FileWorkspaceStorage(directory.resolve("workspace.json"))
+            compose.setContent { MontageApp(System.getProperty("os.name"), storage, library) }
+            waitUntilReady()
+            compose.onNodeWithTag("import-video").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Import cancelled").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("save-draft").assertIsNotEnabled()
+            compose.onNodeWithTag("import-video").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Could not import video. Check file access and available storage, then retry.").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("video-tab").assertTextContains("Videos 0")
+            compose.onNodeWithTag("import-video").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Available on this device").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Montage-import-smoke.mp4").assertExists()
+            compose.onNodeWithTag("save-draft").performClick()
+            waitUntilReady()
+            val asset = WorkspaceRepository(storage).load().videos.single()
+            capture("videos")
+            directory.resolve("media/${asset.id}.media").toFile().delete()
+            compose.onNodeWithTag("reload-draft").performClick()
+            waitUntilReady()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Video file unavailable · remove and import again").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("remove-video-${asset.id}").performClick()
+            compose.onNodeWithTag("save-draft").performClick()
+            waitUntilReady()
+            check(WorkspaceRepository(storage).load().videos.isEmpty())
+        } finally { directory.toFile().deleteRecursively() }
     }
 }

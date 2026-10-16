@@ -12,9 +12,11 @@
 
 界面支持编辑标题、追加分镜、重置样例、**Save draft** 保存和 **Reload saved** 重载。编辑后必须点击保存，等待 **No unsaved changes** 再关闭；未保存编辑可通过 **Discard edits & reload** 丢弃。读取损坏/未知版本文档时禁用编辑并保留原文件，可修复文件后重试读取；保存失败时保留界面编辑以供重试。
 
-目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。当前实现单个本地工作区与任务检查点的存储基础；恢复时将 Running 标记为 Interrupted，保留提供商 operation ID，不自动运行任务。模型 API、任务执行器、凭据接入、素材选择、播放和导出均尚未实现。
+**Import video** 打开系统文件选择器并复制一个视频到应用自己的 `media/` 目录。**Videos** 显示文件名、大小与可用状态；取消不改动项目，复制失败可重试，缺失的副本可移除后重新导入。导入和移除后也需 **Save draft**；移除后成功保存，或明确丢弃编辑并重载时，才清理不再引用的应用内副本，不删除原素材。进程在保存前退出所留下的副本，会在下一次成功保存或明确重载时清理。当前仅导入文件并检查存在/大小，尚未分析编码、时长或播放兼容性。
 
-项目文档为 UTF-8 `workspace.json`（schemaVersion 1），只存草稿和检查点，不存媒体字节或凭据。Windows 存于 `%LOCALAPPDATA%/ProjectMontage`，macOS 存于 `~/Library/Application Support/ProjectMontage`，Linux 存于 `$XDG_DATA_HOME/project-montage`（默认 `~/.local/share/project-montage`）；桌面测试可用 JVM 属性 `montage.dataDir` 指定独立目录。Android 使用应用内部 files 目录的 AtomicFile，iOS 使用沙盒 Application Support/ProjectMontage 的原子文件写入。桌面在同目录写临时文件、同步并原子替换；文件系统不支持原子替换时报告保存失败。当前不支持多个应用实例同时编辑同一文档。
+目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。当前实现单个本地工作区、视频素材导入与任务检查点的存储基础；恢复时将 Running 标记为 Interrupted，保留提供商 operation ID，不自动运行任务。模型 API、任务执行器、凭据接入、播放、拼接和导出均尚未实现。
+
+项目文档为 UTF-8 `workspace.json`（schemaVersion 2），保存草稿、检查点和素材元数据，不存媒体字节或凭据；schema 1 自动原子迁移，未来版本或损坏文档保留并拒绝覆盖。Windows 存于 `%LOCALAPPDATA%/ProjectMontage`，macOS 存于 `~/Library/Application Support/ProjectMontage`，Linux 存于 `$XDG_DATA_HOME/project-montage`（默认 `~/.local/share/project-montage`）；桌面测试可用 JVM 属性 `montage.dataDir` 指定独立目录。Android 使用应用内部 files 目录的 AtomicFile，iOS 使用沙盒 Application Support/ProjectMontage 的原子文件写入；iOS Documents 另开放给系统“文件”App，可放入待导入的视频，工作区和已管理副本仍保留在 Application Support。桌面在同目录写临时文件、同步并原子替换；文件系统不支持原子替换时报告保存失败。当前不支持多个应用实例同时编辑同一文档。
 
 ## 构建与运行
 

@@ -16,8 +16,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val storage = AndroidWorkspaceStorage(applicationContext)
+        val videos = AndroidVideoLibrary(this)
         setContent {
-            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage) }
+            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage, videos) }
         }
     }
 }

@@ -3,3 +3,4 @@ apply:
   - ../compose.module-template.yaml
 dependencies:
   - ../shared-ui
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0

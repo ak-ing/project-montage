@@ -7,9 +7,10 @@ import montage.ui.MontageApp
 
 fun main() {
     val storage = FileWorkspaceStorage(defaultWorkspaceFile())
+    val videos = DesktopVideoLibrary(defaultWorkspaceFile().parent.resolve("media").toFile())
     application {
         Window(onCloseRequest = ::exitApplication, title = "Project Montage") {
-            MontageApp(System.getProperty("os.name"), storage)
+            MontageApp(System.getProperty("os.name"), storage, videos)
         }
     }
 }

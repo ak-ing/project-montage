@@ -49,11 +49,11 @@ jobs:
       - name: Test shared logic on JVM
         run: ${{ matrix.cli }} test -m core --platform jvm
       - name: Require executed tests
-        run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/core/jvm --min-tests 12
+        run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/core/jvm --min-tests 16
       - name: Exercise desktop Compose UI
         run: ${{ matrix.cli }} test -m desktop-app --platform jvm
       - name: Require desktop UI test
-        run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 4
+        run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 10
       - name: Upload desktop artifacts and reports
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -90,7 +90,7 @@ jobs:
       - name: Test shared logic for Android
         run: ./kotlin test -m core --platform android
       - name: Require executed tests
-        run: python3 scripts/verify-ci-tests.py --xml-dir build/reports/core/android --min-tests 12
+        run: python3 scripts/verify-ci-tests.py --xml-dir build/reports/core/android --min-tests 16
       - name: Free unused hosted toolchains for emulator
         run: |
           # This isolated job has finished building the APK and host tests.
@@ -143,7 +143,7 @@ jobs:
           set -o pipefail
           ./kotlin test -m core --platform iosSimulatorArm64 --format teamcity 2>&1 | tee ios-tests.log
       - name: Require executed native tests
-        run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log --min-tests 12
+        run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log --min-tests 16
       - name: Exercise iOS app UI on simulator
         timeout-minutes: 12
         run: ./scripts/ios-ui-smoke.sh

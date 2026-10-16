@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Drive the installed Android app through adb; choose coordinates from UI XML."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -30,20 +31,21 @@ def tree():
     return ET.fromstring(xml)
 
 
-def find(tag, text=None):
+def find(tag=None, text=None, description=None):
     deadline = time.monotonic() + 30
     while time.monotonic() < deadline:
         root = tree()
         nodes = [n for n in root.iter('node') if
-                 (n.get('resource-id', '').split('/')[-1] == tag if tag else n.get('text') == text)]
+                 (n.get('resource-id', '').split('/')[-1] == tag if tag else
+                  n.get('content-desc') == description if description else n.get('text') == text)]
         if nodes:
             return nodes[0]
         time.sleep(1)
-    raise AssertionError(f'Missing UI node tag={tag!r}, text={text!r}')
+    raise AssertionError(f'Missing UI node tag={tag!r}, text={text!r}, description={description!r}')
 
 
-def tap(tag):
-    node = find(tag)
+def tap(tag=None, text=None, description=None):
+    node = find(tag, text, description)
     assert node.get('enabled') == 'true', node.attrib
     x1, y1, x2, y2 = map(int, re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.get('bounds')).groups())
     adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
@@ -78,6 +80,44 @@ try:
     screenshot('added')
     tap('save-draft')
     find(None, 'No unsaved changes')
+    fixture = Path('test-data/import-smoke.mp4')
+    remote_fixture = '/sdcard/Download/Montage-import-smoke.mp4'
+    adb('push', str(fixture), remote_fixture)
+    adb('shell', 'am', 'broadcast', '-a', 'android.intent.action.MEDIA_SCANNER_SCAN_FILE', '-d', 'file://' + remote_fixture)
+    tap('import-video')
+    find(description='Show roots')
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+    find(text='Import cancelled')
+    assert find('save-draft').get('enabled') == 'false'
+    tap('import-video')
+    tap(description='Show roots')
+    tap(text='Downloads')
+    tap(text='Montage-import-smoke.mp4')
+    find(text='Available on this device')
+    find(text='Montage-import-smoke.mp4')
+    tap('save-draft')
+    find(text='No unsaved changes')
+    screenshot('videos')
+    # The managed copy must survive deletion of the selected source, and process death.
+    adb('shell', 'rm', remote_fixture)
+    adb('shell', 'am', 'force-stop', 'dev.montage.app')
+    adb('shell', 'am', 'start', '-W', '-n', resolved)
+    find(text='No unsaved changes')
+    tap('video-tab')
+    find(text='Available on this device')
+    find(text='Montage-import-smoke.mp4')
+    screenshot('videos-restored')
+    document = json.loads(adb('exec-out', 'run-as', 'dev.montage.app', 'cat', 'files/workspace.json'))
+    asset = document['videos'][0]
+    imported = adb('exec-out', 'run-as', 'dev.montage.app', 'cat', f"files/media/{asset['id']}.media", binary=True)
+    assert imported == fixture.read_bytes(), 'Imported video bytes changed'
+    tap('remove-video-' + asset['id'])
+    tap('save-draft')
+    find(text='No unsaved changes')
+    find(text='No videos imported')
+    assert not json.loads(adb('exec-out', 'run-as', 'dev.montage.app', 'cat', 'files/workspace.json'))['videos']
+    assert not adb('exec-out', 'run-as', 'dev.montage.app', 'ls', 'files/media').strip()
+    screenshot('videos-removed')
     adb('shell', 'am', 'force-stop', 'dev.montage.app')
     adb('shell', 'am', 'start', '-W', '-n', resolved)
     find(None, 'No unsaved changes')
@@ -94,7 +134,7 @@ try:
     assert adb('shell', 'pidof', 'dev.montage.app').strip()
     crashes = adb('logcat', '-d', '-b', 'crash')
     assert 'dev.montage.app' not in crashes, crashes
-    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'initial, edit title, append scene, save, force-stop/relaunch, restore, reset/save', 'serial': args.serial}, indent=2))
-    print('Android UI smoke passed: edit, append, save, process restart, restore, reset/save; no app crash')
+    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'draft edit/save/restart; native picker cancel/import; source deletion; byte-exact copy/restart; remove/save/cleanup', 'serial': args.serial, 'fixture_sha256': hashlib.sha256(imported).hexdigest(), 'imported_bytes': len(imported), 'managed_cleanup_empty': True}, indent=2))
+    print('Android UI smoke passed: draft recovery; native picker cancel/import, independent copy, restart and removal')
 finally:
     (out / 'logcat.txt').write_text(adb('logcat', '-d'))

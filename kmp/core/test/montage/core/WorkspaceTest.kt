@@ -48,7 +48,7 @@ class WorkspaceTest {
     }
 
     @Test fun unreadableOrFutureDocumentsAreNeverReplacedWithSample() {
-        for (document in listOf("broken JSON", "", """{"schemaVersion":2,"draft":{"title":"Future"}}""")) {
+        for (document in listOf("broken JSON", "", """{"schemaVersion":3,"draft":{"title":"Future"}}""")) {
             val storage = Storage(document)
             val repository = WorkspaceRepository(storage)
             assertFails { repository.load() }
@@ -90,5 +90,46 @@ class WorkspaceTest {
         assertFailsWith<IllegalArgumentException> { job.copy(id = " ") }
         assertFailsWith<IllegalArgumentException> { job.copy(stage = "") }
         assertFailsWith<IllegalArgumentException> { job.copy(providerOperationId = " ") }
+    }
+
+    @Test fun migratesVersionOneWithoutLosingDraftOrProviderCheckpoint() {
+        val storage = Storage("""{"schemaVersion":1,"draft":{"title":"旧项目"},"jobs":[{"id":"video-1","tool":"GenerateVideos","status":"Interrupted","stage":"polling","providerOperationId":"op-123"}]}""")
+        val restored = WorkspaceRepository(storage).load()
+        assertEquals(2, restored.schemaVersion)
+        assertEquals("旧项目", restored.draft.title)
+        assertEquals("op-123", restored.jobs.single().providerOperationId)
+        assertTrue(restored.videos.isEmpty())
+        assertEquals(1, storage.writes)
+        assertEquals(restored, WorkspaceRepository(storage).load())
+        assertEquals(1, storage.writes)
+    }
+
+    @Test fun migrationWriteFailureKeepsOldDocumentAndDisablesSave() {
+        val old = """{"schemaVersion":1,"draft":{"title":"Old"}}"""
+        val storage = Storage(old).apply { failWrite = true }
+        val repository = WorkspaceRepository(storage)
+        assertFails { repository.load() }
+        assertEquals(old, storage.document)
+        assertFailsWith<IllegalStateException> { repository.save(WorkspaceSnapshot(sampleProject())) }
+        storage.failWrite = false
+        assertEquals("Old", repository.load().draft.title)
+    }
+
+    @Test fun savesOpaqueVideoReferencesAndRejectsDuplicateIdentity() {
+        val storage = Storage()
+        val repository = WorkspaceRepository(storage)
+        val asset = VideoAsset("video-123", "中文 movie.mp4", 1234)
+        val snapshot = repository.load().copy(videos = listOf(asset))
+        repository.save(snapshot)
+        assertEquals(snapshot, WorkspaceRepository(storage).load())
+        assertFailsWith<IllegalArgumentException> { snapshot.copy(videos = listOf(asset, asset)) }
+    }
+
+    @Test fun rejectsUnsafeHandlesAndEmptyVideoMetadata() {
+        for (id in listOf("", "../escape", "/file", "a\\b", "x".repeat(81))) {
+            assertFailsWith<IllegalArgumentException> { VideoAsset(id, "Video.mp4", 1) }
+        }
+        assertFailsWith<IllegalArgumentException> { VideoAsset("video", " ", 1) }
+        assertFailsWith<IllegalArgumentException> { VideoAsset("video", "Movie.mp4", 0) }
     }
 }
