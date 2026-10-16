@@ -2,17 +2,19 @@
 
 ## 本地视频导入验证（本次）
 
+2026-10-16 仓库改名并公开后，[iOS 定向复检 38877487547](https://github.com/ak-ing/project-montage/actions/runs/38877487547)（源码 `68e3006`）全部成功：16 个原生领域测试与 2 个 XCTest，无失败、无跳过。已下载并校验主报告及完整 xcresult ZIP 的 SHA-256，审阅恢复后的素材页；实际日志记录了取消、选择回调和受管理副本提交，存储断言确认原素材未改动、移除保存后副本清理完成。前三端沿用源码未变化的 `38852177157`，合计 64 次领域测试、20 次桌面测试和两条移动端 UI 流程全部成功。[完整证据清单](evidence/video-import-38877487547.json)逐项记录报告来源，未将本轮跳过的作业视为通过。
+
 当前工作流要求每端至少 16 个领域测试、每个桌面至少 10 个存储/导入/UI 测试，以及 iOS 恰好 2 个 XCTest 用例。桌面新增原生 FileDialog 打开/关闭、分块复制/失败清理/保留引用和共享素材 UI 验证；桌面选择成功路径通过注入选择结果调用真实文件适配器，尚未自动驱动原生对话框选中文件。Android/iOS 直接操作系统文档选择器，覆盖取消、导入、保存、重启恢复和移除；Android 另删除外部源并逐字节核对内部副本及清理结果。测试素材为 [自生成一秒蓝色视频](../../kmp/test-data/README.md)。
 
 复检运行 [38852177157](https://github.com/ak-ing/project-montage/actions/runs/38852177157)（源码 `a212a16`）的 Windows/macOS 各 16 个领域测试、10 个存储/导入/UI 测试全部成功，Android 的 16 个 host 测试与系统选择器流程成功；三份 ZIP 已校验摘要，素材页截图已检查。Android 内部副本与源测试片 SHA-256 一致，删除外部源后可恢复，移除保存后受管理目录为空；这轮没有触发 Launcher 恢复。
 
 iOS 这轮失败点为缩略图可见但不支持 XCTest 的直接点击（命中点 `-1,-1`）。`3f73e2c` 改为依据无障碍边界计算中心坐标点击，在 [38853815667](https://github.com/ak-ing/project-montage/actions/runs/38853815667) 定向复检：16 个领域测试成功，XCTest 草稿用例成功、视频导入用例失败，选择器没有返回，界面停留在 Working。此结果不算 iOS 导入通过。
 
-`0107eed` 将 iOS 选择器改为复制导入、从顶层控制器呈现并补充回调日志。2026-10-16 的定向运行 [38856216880](https://github.com/ak-ing/project-montage/actions/runs/38856216880) 被 Actions 计费限制阻止，作业无执行步骤，最新 iOS 修正尚未编译或运行。已核对 `a212a16..0107eed` 仅改动工作流、iOS 适配器及其测试，前三端相关源码完全相同，因此保留前三端实际通过的报告。分平台跳过的整个作业不作为测试通过计数。状态与摘要见 [video-import-status.json](evidence/video-import-status.json)。
+`0107eed` 将 iOS 选择器改为复制导入、从顶层控制器呈现并补充回调日志。2026-10-16 的定向运行 [38856216880](https://github.com/ak-ing/project-montage/actions/runs/38856216880) 曾被 Actions 计费限制阻止，作业无执行步骤；该修正现已在 `38877487547` 编译并验证通过。已核对 `a212a16..68e3006` 的非 iOS KMP 源码未变化，因此保留前三端实际通过的报告。状态与历史失败记录见 [video-import-status.json](evidence/video-import-status.json)。
 
 | Windows | macOS | Android | iOS |
 | --- | --- | --- | --- |
-| [素材页](evidence/video-import-windows.png) | [素材页](evidence/video-import-macos.png) | [素材页](evidence/video-import-android.png) | 导入失败；最新修正因计费阻塞 |
+| [素材页](evidence/video-import-windows.png) | [素材页](evidence/video-import-macos.png) | [素材页](evidence/video-import-android.png) | [重启恢复后的素材页](evidence/video-import-ios-restored.png) |
 
 首轮 [38849878968](https://github.com/ak-ing/project-montage/actions/runs/38849878968) 定位了测试环境/交互问题：macOS 的 Robot Escape 未关闭文件框，现使用应用取消时的原生关闭路径；Android 冷启动被 Pixel Launcher ANR 弹窗遮挡，脚本仅允许记录并关闭该确切系统弹窗一次，Montage 崩溃/ANR 仍失败；iOS 文件网格中心点击后未返回，现按无障碍树选择文件缩略图，系统出现 Open 确认时完成该操作。两条 XCTest 的构建与执行共用 16 分钟步骤上限，单例执行仍由 Xcode 的 120/180 秒限制保护。
 

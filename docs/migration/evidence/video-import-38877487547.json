@@ -1,0 +1,182 @@
+{
+  "run_id": 38877487547,
+  "commit": "68e3006bd052fd7fc7e69489dd5f0a2c06807982",
+  "run_url": "https://github.com/ak-ing/project-montage/actions/runs/38877487547",
+  "artifacts": [
+    {
+      "name": "desktop-windows-2025",
+      "id": 12026105417,
+      "digest": "sha256:1bc68611ad964a8166a2eb58f42f9abdfb77102a1a5ae0cc6161c7fc89c38c51",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "desktop_storage_and_ui_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted"
+      ],
+      "ui_status": "passed"
+    },
+    {
+      "name": "desktop-macos-26",
+      "id": 12024923428,
+      "digest": "sha256:80d54818f29a9cc60fdaf8c428b4e4f9a396723a067680795ae51a0c038157bd",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "desktop_storage_and_ui_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted"
+      ],
+      "ui_status": "passed"
+    },
+    {
+      "name": "android-debug",
+      "id": 12025418836,
+      "digest": "sha256:fdfb88be4cf825f801de03aca656afd21ad894eda02880cbe097bfc55ed81617",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "ui_status": "passed",
+      "ui_flow": "draft edit/save/restart; native picker cancel/import; source deletion; byte-exact copy/restart; remove/save/cleanup",
+      "video_import": {
+        "fixture_sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+        "imported_bytes": 1666,
+        "managed_cleanup_empty": true,
+        "system_launcher_recoveries": 0
+      }
+    },
+    {
+      "name": "ios-ui-xcresult",
+      "id": 12036268122,
+      "digest": "sha256:7e4416d39760fcca3828ed9be28d09f43f6189d0107ba38b76b002e9ae98d2a2",
+      "source_run_id": 38877487547,
+      "source_commit": "68e3006bd052fd7fc7e69489dd5f0a2c06807982",
+      "checksum_verified": true
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 12035964127,
+      "digest": "sha256:ce583c0d2404ac4bc821b7dff7edd4825f4a7a0b11353fe2c747b868d0b933a4",
+      "source_run_id": 38877487547,
+      "source_commit": "68e3006bd052fd7fc7e69489dd5f0a2c06807982",
+      "checksum_verified": true,
+      "core_tests": [
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration",
+        "noBoundaryNeedsNoBuffer",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity",
+        "appendPreservesSourceAndAvoidsIdentityCollisions",
+        "draftSurvivesJsonRoundTrip",
+        "newWorkspaceDoesNotWriteUntilSaved",
+        "newRepositoryRestoresDraftAndCheckpoint",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata"
+      ],
+      "ui_status": "passed",
+      "ui_tests": [
+        "DraftUiSmokeTests.testEditAppendAndResetDraft",
+        "DraftUiSmokeTests.testImportVideoCancelSaveRestoreAndRemove"
+      ],
+      "xcode_review": "dev.montage.app, iOS 15.0, shared app scheme with MontageUITests"
+    }
+  ],
+  "source_runs": {
+    "windows": 38852177157,
+    "macos": 38852177157,
+    "android": 38852177157,
+    "ios": 38877487547
+  },
+  "source_equivalence": {
+    "reference_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+    "tested_revision": "68e3006bd052fd7fc7e69489dd5f0a2c06807982",
+    "non_ios_kmp_changes": [],
+    "reused_platform_sources_unchanged": true
+  },
+  "executed_test_failures": 0,
+  "executed_test_skips": 0,
+  "scope": "Device video import, managed-copy persistence, cancellation/failure handling, schema migration and removal; no model API, video analysis/playback/composition/export or physical-device validation",
+  "reviewed_on": "2026-10-16",
+  "status": "passed",
+  "ios_storage_result": {
+    "source_preserved": true,
+    "managed_cleanup_empty": true,
+    "fixture_sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086"
+  },
+  "desktop_native_picker_success_selection": "Injected selection result with real copier; native opening/cancellation tested"
+}
