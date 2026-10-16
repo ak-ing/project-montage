@@ -2,7 +2,15 @@
 
 ## 当前设备工作区验证
 
-工作流现要求每端至少 12 个领域测试、桌面至少 4 个存储/UI 测试。桌面流程新增保存→重置编辑→重载，并通过新建 repository 验证磁盘结果；另覆盖损坏文件保护与修复后重试。Android/iOS 新增保存→终止进程→重新启动→恢复标题及分镜→重置并保存，增加 restored 截图。最新源码的远端验证结果待本次运行完成后记录；以下是先前骨架的已验证基线。
+运行 [38846483748](https://github.com/ak-ing/project-montage-private/actions/runs/38846483748)（源码 `b70eb47`）四个作业全部成功。四份主报告 ZIP 已下载并校验 SHA-256，实际报告确认每端 12 个领域测试（共 48 次执行）、每个桌面 4 个存储/UI 测试（共 8 次执行）、Android adb 流程及 iOS 1 个 XCTest 流程均成功，无失败、无跳过。完整清单见 [workspace-38846483748.json](evidence/workspace-38846483748.json)。完整 iOS xcresult 由 Actions 另行保存，本次审阅主报告中的汇总、日志和截图附件。
+
+桌面流程覆盖保存→重置编辑→重载，并通过新建 repository 验证磁盘结果；另覆盖损坏文件保护与修复后重试。Android/iOS 覆盖保存→终止进程→重新启动→恢复标题及分镜→重置并保存。四端恢复截图已逐张审阅并纳入仓库：
+
+| Windows | macOS | Android 模拟器 | iOS 模拟器 |
+| --- | --- | --- | --- |
+| [恢复后](evidence/workspace-windows-restored.png) | [恢复后](evidence/workspace-macos-restored.png) | [恢复后](evidence/workspace-android-restored.png) | [恢复后](evidence/workspace-ios-restored.png) |
+
+测试仅验证本地草稿和检查点基础，没有模型 API、任务执行或媒体处理。以下保留先前骨架的验证基线。
 
 ## 已验证的原始骨架基线
 
@@ -63,5 +71,7 @@ Windows 使用 `kotlin.bat`，桌面需要图形会话。无 GPU 云端使用 `S
 Android：`./kotlin build -m android-app` 后，在有 KVM、已接受 SDK 许可的 Linux 主机运行 `./scripts/boot-android-smoke.sh`。已有设备可在安装 APK 后执行 `python3 scripts/android-ui-smoke.py --serial <serial>`，并确保 adb 在 PATH。
 
 iOS：在 macOS/Xcode 上先 `./kotlin build -m ios-app --platform iosSimulatorArm64`，再 `./scripts/ios-ui-smoke.sh`。
+
+移动端 UI 流程使用独立、初始为空的测试安装，会修改并保存草稿；不要将日常项目目录作为测试数据。桌面测试自建临时目录，不使用默认项目目录。
 
 当前验证对象是设备端草稿工作区与任务检查点基础。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。

@@ -1,0 +1,139 @@
+{
+  "run_id": 38846483748,
+  "commit": "b70eb47a682768a914fc148894278d9081f6deca",
+  "run_url": "https://github.com/ak-ing/project-montage-private/actions/runs/38846483748",
+  "artifacts": [
+    {
+      "name": "desktop-macos-26",
+      "id": 12023935251,
+      "digest": "sha256:25878ac3f3d348e77348b37cb5870a227a14090997672dec61275199c9cc05a7",
+      "checksum_verified": true,
+      "core_tests": [
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "newRepositoryRestoresDraftAndCheckpoint()"
+      ],
+      "desktop_storage_and_ui_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "damagedFileIsKeptForRecovery",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile"
+      ],
+      "ui_status": "passed"
+    },
+    {
+      "name": "desktop-windows-2025",
+      "id": 12023497019,
+      "digest": "sha256:d37816d3b408d61300c970bea122edf6e6a58dc244d6cf3cfa828f6b49bcc19e",
+      "checksum_verified": true,
+      "core_tests": [
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "newRepositoryRestoresDraftAndCheckpoint()"
+      ],
+      "desktop_storage_and_ui_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "damagedFileIsKeptForRecovery",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile"
+      ],
+      "ui_status": "passed"
+    },
+    {
+      "name": "android-debug",
+      "id": 12024000998,
+      "digest": "sha256:69a037ae991e76817fc8fdce2f509672612e8432f0708db7f5d00b371391be4a",
+      "checksum_verified": true,
+      "core_tests": [
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "newRepositoryRestoresDraftAndCheckpoint()"
+      ],
+      "ui_status": "passed",
+      "ui_flow": "initial, edit title, append scene, save, force-stop/relaunch, restore, reset/save"
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 12024261826,
+      "digest": "sha256:6e6c6a6eea6c6fefc571600c47ec06896aa75d201606618a3c4484bc8a62f74d",
+      "checksum_verified": true,
+      "core_tests": [
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration",
+        "noBoundaryNeedsNoBuffer",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity",
+        "appendPreservesSourceAndAvoidsIdentityCollisions",
+        "draftSurvivesJsonRoundTrip",
+        "newWorkspaceDoesNotWriteUntilSaved",
+        "newRepositoryRestoresDraftAndCheckpoint",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields"
+      ],
+      "ui_status": "passed",
+      "ui_tests": [
+        "DraftUiSmokeTests.testEditAppendAndResetDraft"
+      ],
+      "xcode_review": "dev.montage.app, iOS 15.0, shared app scheme with MontageUITests"
+    }
+  ],
+  "failed": 0,
+  "skipped": 0,
+  "scope": "Device workspace explicit save/reload and checkpoint recovery foundation; no provider API, task execution, media processing or physical-device validation",
+  "core_test_executions": 48,
+  "desktop_storage_and_ui_test_executions": 8,
+  "mobile_restart_flows": {
+    "android": "force-stop/relaunch",
+    "ios": "terminate/launch"
+  },
+  "jobs": [
+    {
+      "name": "Desktop (macos-26)",
+      "id": 116798074784,
+      "conclusion": "success"
+    },
+    {
+      "name": "Android APK and host unit tests",
+      "id": 116798074929,
+      "conclusion": "success"
+    },
+    {
+      "name": "iOS Arm64 simulator",
+      "id": 116798074953,
+      "conclusion": "success"
+    },
+    {
+      "name": "Desktop (windows-2025)",
+      "id": 116798075054,
+      "conclusion": "success"
+    }
+  ]
+}
