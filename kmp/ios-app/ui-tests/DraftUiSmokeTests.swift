@@ -18,12 +18,13 @@ final class DraftUiSmokeTests: XCTestCase {
         let title = app.textViews["project-title"]
         XCTAssertTrue(title.exists, app.debugDescription)
         title.tap()
-        title.typeText(" UI smoke title")
-        XCTAssertTrue((title.value as? String)?.contains("UI smoke title") == true)
+        dismissKeyboardIntroduction(app)
+        typeSlowly(title, " UI smoke title")
+        XCTAssertTrue((title.value as? String)?.contains("UI smoke title") == true, app.debugDescription)
         let description = app.textViews["scene-description"]
         XCTAssertTrue(description.exists, app.debugDescription)
         description.tap()
-        description.typeText("Smoke scene")
+        typeSlowly(description, "Smoke scene")
         XCTAssertTrue(add.isEnabled)
         add.tap()
         XCTAssertTrue(app.staticTexts["3 scenes · 14s visible · 2s transition buffer"].waitForExistence(timeout: 10))
@@ -54,6 +55,22 @@ final class DraftUiSmokeTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    private func dismissKeyboardIntroduction(_ app: XCUIApplication) {
+        // A fresh simulator may present Apple's first-use QuickPath introduction.
+        let intro = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Speed up your typing")).firstMatch
+        if intro.waitForExistence(timeout: 3) {
+            app.buttons["Continue"].tap()
+        }
+    }
+
+    private func typeSlowly(_ field: XCUIElement, _ value: String) {
+        // Hosted simulators can drop a burst of synthetic keystrokes while composing.
+        for character in value {
+            field.typeText(String(character))
+            Thread.sleep(forTimeInterval: 0.1)
+        }
     }
 
     func testImportVideoCancelSaveRestoreAndRemove() {
@@ -106,9 +123,13 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(file.isEnabled)
         if capture { attach(app, "video-picker") }
         XCTAssertTrue(file.isHittable, app.debugDescription)
-        file.tap()
+        // Keep the native touch down across several frames on a busy simulator.
+        file.press(forDuration: 0.2)
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
+        attach(app, "picker-after-selection-" + prefix)
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: more)
+        wait(for: [dismissed], timeout: 15)
     }
 
     private func assertPreviewReady(_ app: XCUIApplication) {
