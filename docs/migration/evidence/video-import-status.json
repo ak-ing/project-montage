@@ -1,0 +1,165 @@
+{
+  "reviewed_on": "2026-10-16",
+  "status": "blocked",
+  "revision": "0107eeda26ded9007e500ba6fb809af02540de49",
+  "passed_platform_artifacts": [
+    {
+      "name": "desktop-windows-2025",
+      "id": 12026105417,
+      "digest": "sha256:1bc68611ad964a8166a2eb58f42f9abdfb77102a1a5ae0cc6161c7fc89c38c51",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "status": "passed",
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "desktop_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted"
+      ],
+      "native_picker_success_selection": "injected; real adapter copy; native open/close tested"
+    },
+    {
+      "name": "desktop-macos-26",
+      "id": 12024923428,
+      "digest": "sha256:80d54818f29a9cc60fdaf8c428b4e4f9a396723a067680795ae51a0c038157bd",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "status": "passed",
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "desktop_tests": [
+        "editAppendAndResetDraft",
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted"
+      ],
+      "native_picker_success_selection": "injected; real adapter copy; native open/close tested"
+    },
+    {
+      "name": "android-debug",
+      "id": 12025418836,
+      "digest": "sha256:fdfb88be4cf825f801de03aca656afd21ad894eda02880cbe097bfc55ed81617",
+      "source_run_id": 38852177157,
+      "source_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+      "checksum_verified": true,
+      "status": "passed",
+      "core_tests": [
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()"
+      ],
+      "ui_result": {
+        "status": "passed",
+        "flow": "draft edit/save/restart; native picker cancel/import; source deletion; byte-exact copy/restart; remove/save/cleanup",
+        "fixture_sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+        "imported_bytes": 1666,
+        "managed_cleanup_empty": true,
+        "system_launcher_recoveries": 0
+      }
+    }
+  ],
+  "source_equivalence": {
+    "reference_commit": "a212a168664e97c0bd4b0b4d0ba9a0b5c82ae66c",
+    "tested_revision": "0107eeda26ded9007e500ba6fb809af02540de49",
+    "changed_paths": [
+      ".github/workflows/kmp.yml",
+      "kmp/ios-app/src/IosVideoLibrary.kt",
+      "kmp/ios-app/src/ViewController.kt",
+      "kmp/ios-app/ui-tests/DraftUiSmokeTests.swift",
+      "kmp/scripts/ios-ui-smoke.sh"
+    ],
+    "reused_platform_sources_unchanged": true,
+    "reused_platforms": [
+      "windows",
+      "macos",
+      "android"
+    ],
+    "reused_platform_runs": {
+      "windows": 38852177157,
+      "macos": 38852177157,
+      "android": 38852177157
+    }
+  },
+  "ios_last_executed": {
+    "run_id": 38853815667,
+    "commit": "3f73e2cff21dfbb89c2031414c919cb845a39721",
+    "artifact_id": 12026697413,
+    "digest": "sha256:12037950b77b39ac429a5fd7b0608f06307140ba10ff8d7daaadb871598e8d2c",
+    "checksum_verified": true,
+    "core_tests_passed": 16,
+    "xctest_passed": 1,
+    "xctest_failed": 1,
+    "xctest_skipped": 0,
+    "failed_flow": "video import: picker did not return to app"
+  },
+  "ios_latest_attempt": {
+    "run_id": 38856216880,
+    "job_id": 116828156681,
+    "status": "blocked_before_start",
+    "executed_steps": 0,
+    "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings",
+    "latest_ios_changes_compiled": false
+  },
+  "scope": "Local video import, managed copies, schema migration and workspace recovery. No model API or media analysis/playback/composition/export."
+}
