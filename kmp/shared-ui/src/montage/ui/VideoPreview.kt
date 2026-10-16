@@ -67,7 +67,9 @@ fun VideoPreview(asset: VideoAsset, provider: VideoPreviewProvider, onBack: () -
                 state.thumbnail?.let {
                     Image(it, contentDescription = "Video thumbnail", modifier = Modifier.size(128.dp, 72.dp).testTag("video-thumbnail"))
                 }
-                provider.Surface(player, Modifier.fillMaxWidth().height(220.dp).testTag("video-surface"))
+                key(player) {
+                    provider.Surface(player, Modifier.fillMaxWidth().height(220.dp).testTag("video-surface"))
+                }
                 if (metadata != null && state.status != PlaybackStatus.Error) {
                     val enabled = state.status != PlaybackStatus.Loading
                     Text("${state.positionMillis} / ${metadata.durationMillis} ms", modifier = Modifier.testTag("video-position"))

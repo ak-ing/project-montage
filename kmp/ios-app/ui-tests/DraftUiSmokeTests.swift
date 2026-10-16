@@ -69,16 +69,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertFalse(app.buttons["save-draft"].isEnabled)
 
         app.buttons["import-video"].tap()
-        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage-import-smoke")).firstMatch
-        XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
-        XCTAssertTrue(file.isEnabled, app.debugDescription)
-        attach(app, "video-picker")
-        let filename = file.staticTexts["Montage-import-smoke"]
-        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertTrue(filename.isHittable, app.debugDescription)
-        filename.tap()
-        let open = app.buttons["Open"].firstMatch
-        if open.waitForExistence(timeout: 3) { open.tap() }
+        selectDocument(app, "Montage-import-smoke", capture: true)
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(app.staticTexts["Montage-import-smoke.mp4"].exists)
         app.buttons["save-draft"].tap()
@@ -99,16 +90,25 @@ final class DraftUiSmokeTests: XCTestCase {
 
     private func importVideo(_ app: XCUIApplication, _ prefix: String) {
         app.buttons["import-video"].tap()
+        selectDocument(app, prefix)
+        XCTAssertTrue(app.staticTexts[prefix + ".mp4"].waitForExistence(timeout: 30), app.debugDescription)
+    }
+
+    private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
+        let more = app.buttons["More"].firstMatch
+        XCTAssertTrue(more.waitForExistence(timeout: 10), app.debugDescription)
+        more.tap()
+        let list = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "List")).firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 10), app.debugDescription)
+        list.tap()
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
-        let filename = file.staticTexts[prefix]
-        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertTrue(filename.isHittable, app.debugDescription)
-        filename.tap()
+        if capture { attach(app, "video-picker") }
+        XCTAssertTrue(file.isHittable, app.debugDescription)
+        file.tap()
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }
-        XCTAssertTrue(app.staticTexts[prefix + ".mp4"].waitForExistence(timeout: 30), app.debugDescription)
     }
 
     private func assertPreviewReady(_ app: XCUIApplication) {

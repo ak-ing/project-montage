@@ -16,7 +16,7 @@
 
 新增 **Preview** 页读取真实时长、编码尺寸、旋转信息和音轨存在状态，解码缩略图并提供播放、暂停、进度跳转和重播。返回素材页保留未保存编辑；退出/重试会释放播放器，移动端进入非活动状态时暂停。损坏/缺失或本机不支持的视频显示可重试错误，不删除素材。信息和缩略图在打开时读取，不写入 schema 2；重新启动后可从已保存引用再次打开，播放位置暂不持久化。实现正在验证，实际通过范围见验证记录。
 
-Android 使用系统 MediaMetadataRetriever/MediaPlayer，iOS 使用 AVFoundation，桌面使用 JavaFX 27（运行需要 JDK 25，由 wrapper 提供）。桌面预览帧限制为最大 640×360、15 fps，音频和播放时钟由本地播放器处理，不改变原素材。当前显式携带 Windows x64、macOS Arm64 和 Linux x64 的 JavaFX 原生依赖，Intel Mac/Windows Arm64 预览尚不支持；安装包与原生依赖裁剪/许可材料在发行阶段完成。具体编码支持取决于设备媒体组件，导入成功不代表一定可解码。
+Android 使用系统 MediaMetadataRetriever/MediaPlayer，iOS 使用 AVFoundation，桌面使用固定的 JavaCV/JavaCPP 1.5.14 与 FFmpeg 8.1.2 默认 LGPL 构建。桌面预览帧最大 640×360、15 fps，原始视频像素数限制为 3840×2160；本地 PCM 输出设备不可用时提示并继续视频预览，不修改原素材。已配置 Windows x64、macOS Arm64/x64、Linux x64 的原生资源；Intel Mac 尚未验证，Windows Arm64 未配置。安装包裁剪、签名和完整许可材料在发行阶段完成。编码兼容性仍须按实际平台验证，导入成功不代表一定可解码。
 
 目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。当前实现单个本地工作区、视频素材导入/预览与任务检查点的存储基础；恢复时将 Running 标记为 Interrupted，保留提供商 operation ID，不自动运行任务。模型 API、任务执行器、凭据接入、拼接和导出均尚未实现。
 

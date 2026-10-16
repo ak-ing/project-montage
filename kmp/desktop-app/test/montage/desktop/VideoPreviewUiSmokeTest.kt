@@ -8,24 +8,21 @@ import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import javafx.application.Platform
 import montage.core.*
 import montage.ui.*
-import org.junit.AfterClass
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.test.*
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_configuration
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_license
+import org.bytedeco.ffmpeg.global.avutil.av_version_info
+import kotlinx.serialization.json.*
 
 class VideoPreviewUiSmokeTest {
     @get:Rule val compose = createComposeRule()
-    companion object {
-        @BeforeClass @JvmStatic fun decoderDiagnostics() { System.setProperty("jfxmedia.loglevel", "DEBUG") }
-        @AfterClass @JvmStatic fun stopToolkit() { Platform.exit() }
-    }
     private class ObservedProvider(directory: File) : VideoPreviewProvider {
         private val real = DesktopVideoPreview(directory)
         lateinit var current: VideoPreviewController
@@ -57,6 +54,18 @@ class VideoPreviewUiSmokeTest {
         assertEquals(90, metadata.height)
         assertEquals(0, metadata.rotationDegrees)
         assertTrue(metadata.hasAudio)
+        val license = avcodec_license().string
+        val configuration = avcodec_configuration().string
+        assertTrue(license.contains("LGPL"), license)
+        assertFalse(configuration.contains("--enable-gpl"), configuration)
+        assertFalse(configuration.contains("--enable-nonfree"), configuration)
+        File("../build/ui-smoke/desktop").mkdirs()
+        File("../build/ui-smoke/desktop/preview-runtime.json").writeText(buildJsonObject {
+            put("ffmpeg_version", av_version_info().string)
+            put("avcodec_license", license)
+            put("configuration", configuration)
+            put("physical_audio_verified", false)
+        }.toString())
         val pixels = provider.current.state.value.thumbnail!!.toPixelMap()
         File("../build/ui-smoke/desktop").mkdirs()
         ImageIO.write(provider.current.state.value.thumbnail!!.toAwtImage(), "png", File("../build/ui-smoke/desktop/preview-thumbnail.png"))

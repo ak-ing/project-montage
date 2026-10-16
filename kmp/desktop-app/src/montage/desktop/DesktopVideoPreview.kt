@@ -4,207 +4,221 @@ package montage.desktop
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import javafx.animation.Animation
-import javafx.animation.KeyFrame
-import javafx.animation.PauseTransition
-import javafx.animation.Timeline
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
-import javafx.embed.swing.SwingFXUtils
-import javafx.event.EventHandler
-import javafx.scene.Group
-import javafx.scene.Scene
-import javafx.scene.SnapshotParameters
-import javafx.scene.image.WritableImage
-import javafx.scene.media.AudioTrack
-import javafx.scene.media.Media
-import javafx.scene.media.MediaPlayer
-import javafx.scene.media.MediaView
-import javafx.scene.media.VideoTrack
-import javafx.util.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import montage.core.VideoAsset
 import montage.core.VideoMetadata
 import montage.ui.*
-import java.awt.EventQueue
+import org.bytedeco.javacv.FFmpegFrameGrabber
+import org.bytedeco.javacv.Frame
+import org.bytedeco.javacv.FrameGrabber
+import org.bytedeco.javacv.Java2DFrameConverter
+import org.bytedeco.ffmpeg.global.avutil.*
+import java.awt.image.BufferedImage
 import java.io.File
-import java.nio.file.Files
-import java.util.UUID
-import kotlin.math.min
-import kotlin.math.roundToInt
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.ShortBuffer
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.Semaphore
+import javax.sound.sampled.*
+import kotlin.math.*
 
 class DesktopVideoPreview(private val directory: File) : VideoPreviewProvider {
-    init {
-        // A workspace supports one running app instance. Remove only our stale hard-link names after a crash.
-        File(directory.parentFile, "preview-cache").listFiles()?.filter {
-            Files.isRegularFile(it.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS) &&
-                it.name.matches(Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.(mp4|m4v|mov|mp3|wav|aif|aiff)"))
-        }?.forEach { it.delete() }
-    }
     override fun open(asset: VideoAsset): VideoPreviewController = DesktopPlayer(directory, asset)
     @Composable override fun Surface(controller: VideoPreviewController, modifier: Modifier) {
-        val frame by (controller as DesktopPlayer).frame.collectAsState()
+        val player = controller as DesktopPlayer
+        val frame by player.frame.collectAsState()
+        val silent by player.audioUnavailable.collectAsState()
         Box(modifier.background(Color.Black)) {
-            frame?.let { Image(it, contentDescription = "Video playback", modifier = Modifier.matchParentSize()) }
+            frame?.let { Image(it, "Video playback", modifier = Modifier.matchParentSize()) }
+            if (silent) Text("Audio output unavailable on this device", color = Color.White,
+                modifier = Modifier.align(Alignment.BottomCenter).background(Color.Black))
         }
     }
 }
 
-/** Native decoding/audio clock; bounded CPU preview frames keep rendering inside Compose. */
+/** One bounded worker owns FFmpeg. Native frame timestamps are paced by a monotonic clock, never by decode speed. */
 private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewController {
+    companion object { private val decoderGate = Semaphore(1) }
     override val state = MutableStateFlow(VideoPreviewState())
     val frame = MutableStateFlow<ImageBitmap?>(null)
+    val audioUnavailable = MutableStateFlow(false)
     @Volatile private var closed = false
-    private var player: MediaPlayer? = null
-    @Volatile private var fxPanel: JFXPanel? = null
-    private var priming = true
-    private var deadline: PauseTransition? = null
-    private var frameClock: Timeline? = null
-    private var captureUntil = 0L
-    private var failed = false
-    private var decoderAlias: File? = null
+    @Volatile private var playing = false
+    @Volatile private var audioLine: SourceDataLine? = null
+    private val seek = AtomicLong(-1)
+    private val released = CountDownLatch(1)
+    private val worker = Thread({ decode(File(directory, "${asset.id}.media"), asset) }, "montage-video-preview").apply {
+        isDaemon = true
+        start()
+    }
 
-    private fun fail(cause: Throwable? = null) {
-        cause?.let { System.err.println("Video preview decoder: $it") }
-        if (!closed && !failed) {
-            failed = true
-            frameClock?.stop()
-            val native = player
-            player = null
-            native?.dispose()
-            decoderAlias?.delete()
-            state.update { it.copy(status = PlaybackStatus.Error) }
-        }
-    }
-    init {
-        EventQueue.invokeLater {
-            if (!closed) try {
-                if (System.getProperty("os.name").contains("Linux")) System.setProperty("prism.order", "sw")
-                val surface = JFXPanel() // Initializes the platform toolkit once; no Swing component is embedded in Compose.
-                fxPanel = surface
-                Platform.setImplicitExit(false)
-                Platform.runLater {
-                    if (!closed) try {
-                        val file = File(directory, "${asset.id}.media")
-                        check(file.isFile && file.canRead() && file.length() == asset.byteSize)
-                        val geometry = checkNotNull(Mp4VideoGeometry.read(file)) { "No supported local ISO-BMFF video track" }
-                        // AVFoundation uses filename hints. A same-volume hard link supplies an extension without copying a large video.
-                        val extension = asset.name.substringAfterLast('.', "mp4").lowercase().takeIf {
-                            it in setOf("mp4", "m4v", "mov", "mp3", "wav", "aif", "aiff")
-                        } ?: "mp4"
-                        val cache = File(directory.parentFile, "preview-cache")
-                        check(cache.isDirectory || cache.mkdirs())
-                        val alias = File(cache, "${UUID.randomUUID()}.$extension")
-                        Files.createLink(alias.toPath(), file.toPath())
-                        decoderAlias = alias
-                        val media = Media(alias.toURI().toString())
-                        val native = MediaPlayer(media)
-                        native.isMute = true // Priming a thumbnail must not play sound before the user presses Play.
-                        player = native
-                        val view = MediaView(native)
-                        surface.scene = Scene(Group(view))
-                        media.setOnError { fail(media.error) }
-                        native.setOnError { fail(native.error) }
-                        native.setOnHalted { fail(native.error ?: IllegalStateException("Native player halted")) }
-                        native.setOnReady {
-                            if (!closed && state.value.status != PlaybackStatus.Error) try {
-                                val video = checkNotNull(media.tracks.filterIsInstance<VideoTrack>().firstOrNull())
-                                val metadata = VideoMetadata(native.totalDuration.toMillis().toLong(),
-                                    video.width, video.height, geometry.rotation, media.tracks.any { it is AudioTrack })
-                                val scale = min(1.0, min(640.0 / metadata.displayWidth, 360.0 / metadata.displayHeight))
-                                view.fitWidth = metadata.width * scale
-                                view.fitHeight = metadata.height * scale
-                                view.rotate = (metadata.rotationDegrees ?: 0).toDouble()
-                                val pixels = WritableImage((metadata.displayWidth * scale).roundToInt().coerceAtLeast(1),
-                                    (metadata.displayHeight * scale).roundToInt().coerceAtLeast(1))
-                                state.update { it.copy(metadata = metadata) }
-                                fun capture() {
-                                    if (!closed && state.value.status != PlaybackStatus.Error) {
-                                        val snapshot = view.snapshot(SnapshotParameters(), pixels)
-                                        frame.value = SwingFXUtils.fromFXImage(snapshot, null).toComposeImageBitmap()
-                                    }
-                                }
-                                capture() // Attach the rendering peer before starting native frame delivery.
-                                frameClock = Timeline(KeyFrame(Duration.millis(1000.0 / 15), EventHandler {
-                                    if (state.value.status == PlaybackStatus.Playing || System.nanoTime() < captureUntil) {
-                                        try { capture() } catch (failure: Exception) { fail(failure) }
-                                    }
-                                })).apply { cycleCount = Animation.INDEFINITE; play() }
-                                native.setOnPlaying {
-                                    if (priming && !closed && state.value.status != PlaybackStatus.Error) {
-                                        PauseTransition(Duration.millis(200.0)).apply {
-                                            setOnFinished {
-                                                if (!closed && state.value.status != PlaybackStatus.Error) try {
-                                                    native.pause()
-                                                    native.isMute = false
-                                                    capture()
-                                                    System.err.println("Video preview primed at ${native.currentTime.toMillis().toLong()} ms")
-                                                    val thumbnail = checkNotNull(frame.value)
-                                                    native.seek(Duration.ZERO)
-                                                    captureUntil = System.nanoTime() + 1_000_000_000
-                                                    priming = false
-                                                    deadline?.stop()
-                                                    state.update { it.copy(thumbnail = thumbnail, positionMillis = 0, status = PlaybackStatus.Paused) }
-                                                } catch (failure: Exception) { fail(failure) }
-                                            }
-                                            play()
-                                        }
-                                    }
-                                }
-                                native.play() // Decode a frame before reporting a ready preview.
-                            } catch (failure: Exception) { fail(failure) }
-                        }
-                        native.currentTimeProperty().addListener { _, _, position ->
-                            if (!closed && !priming) state.update {
-                                it.copy(positionMillis = it.metadata?.constrainPosition(position.toMillis().toLong()) ?: 0)
-                            }
-                        }
-                        native.setOnPaused { if (!closed && !priming && state.value.status != PlaybackStatus.Error) state.update { it.copy(status = PlaybackStatus.Paused) } }
-                        native.setOnEndOfMedia { if (!closed && !priming && state.value.status != PlaybackStatus.Error) state.update { it.copy(status = PlaybackStatus.Ended, positionMillis = it.metadata?.durationMillis ?: 0) } }
-                        deadline = PauseTransition(Duration.seconds(15.0)).apply {
-                            setOnFinished { if (state.value.status == PlaybackStatus.Loading)
-                                fail(IllegalStateException("Readiness timed out: ${native.status}, ${media.width}x${media.height}, ${native.error?.type}")) }
-                            play()
-                        }
-                    } catch (failure: Exception) { fail(failure) }
-                }
-            } catch (failure: Throwable) {
-                if (failure !is Exception && failure !is LinkageError) throw failure
-                System.err.println("Video preview runtime: ${failure.javaClass.simpleName}")
-                if (!closed) state.update { it.copy(status = PlaybackStatus.Error) }
+    private fun decode(file: File, asset: VideoAsset) {
+        var grabber: FFmpegFrameGrabber? = null
+        var failure: Throwable? = null
+        var acquired = false
+        try {
+            decoderGate.acquire()
+            acquired = true
+            if (closed) return
+            check(file.isFile && file.canRead() && file.length() == asset.byteSize)
+            av_log_set_level(AV_LOG_ERROR)
+            val source = FFmpegFrameGrabber(file).also { grabber = it }
+            source.imageWidth = 640; source.imageHeight = 360 // Bound RGB allocation even before stream metadata is available.
+            source.sampleMode = FrameGrabber.SampleMode.SHORT
+            source.sampleFormat = AV_SAMPLE_FMT_S16
+            source.timeout = 10_000
+            source.setOption("protocol_whitelist", "file,pipe")
+            source.setOption("format_whitelist", "mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg")
+            source.setVideoOption("threads", "2")
+            source.setAudioOption("threads", "1")
+            source.start()
+            val context = source.formatContext
+            val video = (0 until context.nb_streams()).map { context.streams(it).codecpar() }
+                .firstOrNull { it.codec_type() == AVMEDIA_TYPE_VIDEO } ?: error("No video track")
+            check(video.width() > 0 && video.height() > 0 && video.width().toLong() * video.height() <= 3840L * 2160)
+            val geometry = Mp4VideoGeometry.read(file)
+            val rotation = if (geometry != null) geometry.rotation else {
+                val angle = source.displayRotation
+                if (angle.isFinite()) ((-angle.roundToInt() % 360 + 360) % 360).takeIf { it in setOf(0, 90, 180, 270) } else null
             }
+            val metadata = VideoMetadata(source.lengthInTime / 1000, video.width(), video.height(), rotation, source.audioChannels > 0)
+            val scale = min(1.0, min(640.0 / metadata.displayWidth, 360.0 / metadata.displayHeight))
+            source.imageWidth = (metadata.width * scale).roundToInt().coerceAtLeast(1)
+            source.imageHeight = (metadata.height * scale).roundToInt().coerceAtLeast(1)
+            if (metadata.hasAudio) {
+                source.audioChannels = min(source.audioChannels, 2)
+                source.sampleRate = 48_000
+                try {
+                    val format = AudioFormat(48_000f, 16, source.audioChannels, true, false)
+                    audioLine = (AudioSystem.getLine(DataLine.Info(SourceDataLine::class.java, format)) as SourceDataLine).apply {
+                        open(format, 48_000 * source.audioChannels * 2 / 10)
+                    }
+                } catch (_: Exception) { audioUnavailable.value = true }
+            }
+            val converter = Java2DFrameConverter()
+            fun render(input: Frame) {
+                val image = checkNotNull(converter.convert(input))
+                frame.value = rotate(image, metadata.rotationDegrees).toComposeImageBitmap()
+            }
+            render(checkNotNull(source.grabImage()))
+            source.setVideoTimestamp(0)
+            if (closed) return
+            state.value = VideoPreviewState(metadata, frame.value, PlaybackStatus.Paused)
+            var lastPositionUs = 0L
+            var lastRenderedUs = Long.MIN_VALUE / 2
+            var lastReportedUs = 0L
+            var anchorUs = 0L
+            var anchorNanos = 0L
+            var active = false
+            var pending: Frame? = null
+            while (!closed) {
+                val requested = seek.getAndSet(-1)
+                if (requested >= 0) {
+                    audioLine?.stop(); audioLine?.flush()
+                    val lastFrameUs = (metadata.durationMillis * 1000 - (1_000_000 / source.frameRate.coerceAtLeast(1.0)).toLong()).coerceAtLeast(0)
+                    source.setVideoTimestamp(min(requested * 1000, lastFrameUs))
+                    val selected = checkNotNull(source.grabImage())
+                    render(selected)
+                    pending = null
+                    lastPositionUs = selected.timestamp.coerceAtLeast(0)
+                    lastRenderedUs = lastPositionUs
+                    anchorUs = lastPositionUs; anchorNanos = System.nanoTime()
+                    if (playing) audioLine?.start()
+                    state.update { it.copy(positionMillis = metadata.constrainPosition(lastPositionUs / 1000),
+                        status = if (playing) PlaybackStatus.Playing else PlaybackStatus.Paused) }
+                }
+                if (!playing) {
+                    if (active) { audioLine?.stop(); active = false }
+                    if (state.value.status == PlaybackStatus.Playing) state.update { it.copy(status = PlaybackStatus.Paused) }
+                    Thread.sleep(10)
+                    continue
+                }
+                if (!active) {
+                    active = true
+                    anchorUs = lastPositionUs; anchorNanos = System.nanoTime()
+                    audioLine?.start()
+                    state.update { it.copy(status = PlaybackStatus.Playing) }
+                }
+                val next = pending ?: source.grab()
+                pending = null
+                if (next == null) {
+                    audioLine?.drain(); audioLine?.stop()
+                    playing = false; active = false
+                    state.update { it.copy(status = PlaybackStatus.Ended, positionMillis = metadata.durationMillis) }
+                    continue
+                }
+                val timestamp = next.timestamp.coerceAtLeast(0)
+                while (!closed && playing && seek.get() < 0 && (System.nanoTime() - anchorNanos) / 1000 < timestamp - anchorUs)
+                    Thread.sleep(5)
+                if (closed) break
+                if (seek.get() >= 0) continue
+                if (!playing) { pending = next; continue }
+                if (next.image != null && timestamp - lastRenderedUs >= 1_000_000 / 15) {
+                    render(next); lastRenderedUs = timestamp
+                }
+                val samples = next.samples?.firstOrNull() as? ShortBuffer
+                if (samples != null) audioLine?.let { line ->
+                    val input = samples.duplicate()
+                    check(input.remaining() <= 48_000 * source.audioChannels)
+                    val pcm = ByteBuffer.allocate(input.remaining() * 2).order(ByteOrder.LITTLE_ENDIAN)
+                    while (input.hasRemaining()) pcm.putShort(input.get())
+                    line.write(pcm.array(), 0, pcm.position())
+                }
+                lastPositionUs = timestamp
+                if (timestamp - lastReportedUs >= 100_000) {
+                    state.update { it.copy(positionMillis = metadata.constrainPosition(timestamp / 1000)) }
+                    lastReportedUs = timestamp
+                }
+            }
+        } catch (problem: Throwable) {
+            if (problem !is Exception && problem !is LinkageError) throw problem
+            if (!closed) failure = problem
+        } finally {
+            runCatching { audioLine?.close() }; audioLine = null
+            runCatching { grabber?.close() }
+            if (acquired) decoderGate.release()
+            if (failure != null && !closed) {
+                System.err.println("Video preview decoder: ${failure.javaClass.simpleName}")
+                state.update { it.copy(status = PlaybackStatus.Error) }
+            }
+            released.countDown()
         }
     }
-    private fun onFx(action: (MediaPlayer) -> Unit) {
-        if (!closed && fxPanel != null) Platform.runLater {
-            if (!closed && !failed && !priming && state.value.status != PlaybackStatus.Error) try { player?.let(action) }
-            catch (failure: Exception) { fail(failure) }
-        }
-    }
-    override fun play() = onFx { it.play(); state.update { s -> s.copy(status = PlaybackStatus.Playing) } }
-    override fun pause() = onFx { it.pause(); state.update { s -> s.copy(status = PlaybackStatus.Paused) } }
-    override fun seekTo(positionMillis: Long) = onFx { native ->
-        state.value.metadata?.let { native.seek(Duration.millis(it.constrainPosition(positionMillis).toDouble())) }
-        captureUntil = System.nanoTime() + 1_000_000_000
-        state.update { it.copy(status = if (it.status == PlaybackStatus.Playing) PlaybackStatus.Playing else PlaybackStatus.Paused) }
-    }
+    override fun play() { if (!closed && state.value.metadata != null && state.value.status != PlaybackStatus.Error) playing = true }
+    override fun pause() { playing = false }
+    override fun seekTo(positionMillis: Long) { state.value.metadata?.let { seek.set(it.constrainPosition(positionMillis)) } }
     override fun close() {
         if (closed) return
-        closed = true
-        if (fxPanel != null) Platform.runLater {
-            deadline?.stop()
-            frameClock?.stop()
-            player?.dispose()
-            player = null
-            decoderAlias?.delete()
-            fxPanel?.scene = null
-            frame.value = null
-        }
+        closed = true; playing = false
+        runCatching { audioLine?.close() }
+        worker.interrupt()
+        released.await(1, TimeUnit.SECONDS)
+        frame.value = null
+    }
+    private fun rotate(image: BufferedImage, angle: Int?): BufferedImage {
+        if (angle == null || angle == 0) return image
+        val result = BufferedImage(if (angle == 180) image.width else image.height,
+            if (angle == 180) image.height else image.width, BufferedImage.TYPE_INT_RGB)
+        val graphics = result.createGraphics()
+        try {
+            when (angle) {
+                90 -> { graphics.translate(result.width.toDouble(), 0.0); graphics.rotate(PI / 2) }
+                180 -> { graphics.translate(result.width.toDouble(), result.height.toDouble()); graphics.rotate(PI) }
+                270 -> { graphics.translate(0.0, result.height.toDouble()); graphics.rotate(-PI / 2) }
+            }
+            graphics.drawImage(image, 0, 0, null)
+        } finally { graphics.dispose() }
+        return result
     }
 }

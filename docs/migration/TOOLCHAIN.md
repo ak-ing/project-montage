@@ -2,9 +2,11 @@
 
 ## 2026-10-16：桌面媒体预览
 
-新增 OpenJFX `javafx-base/graphics/swing/media` **27**，由 [Maven Central 官方发布元数据](https://repo.maven.apache.org/maven2/org/openjfx/javafx-media/maven-metadata.xml)核实为最新稳定版，未选 28-ea。运行使用既有 JDK 25。当前 Toolchain 未激活 OpenJFX 父 POM 的 OS profile（无 classifier 的 JAR 仅含 manifest），故 YAML 显式列出 `win`、`mac-aarch64`、`linux` 原生 classifier；每种系统的原生文件后缀不同。Intel Mac 与 Windows Arm64 不在该预览组合中，不能宣称覆盖。依赖仍由官方 Kotlin CLI 解析，没有引入 Gradle 脚本。
+最终实现采用 JavaCV/JavaCPP **1.5.14** 与 FFmpeg **8.1.2-1.5.14**，由各 [Maven Central 发布元数据](https://repo.maven.apache.org/maven2/org/bytedeco/ffmpeg/maven-metadata.xml)核实并固定。仅引入 FFmpeg/JavaCPP 的 Windows x64、macOS Arm64/x64、Linux x64 默认 native classifier，未引入 `-gpl` 变体或全预设 platform 包。JavaCV 会传递引入其他预设的 Java API JAR，发行时仍须裁剪未用依赖并生成完整清单。Intel Mac 原生资源已列入，尚未运行该架构验证；Windows Arm64 未配置。
 
-使用公开 JavaFX MediaPlayer/MediaView API 解码和处理音频时钟，CPU 截帧以最大 640×360、15 fps 绘入 Compose，规避混合 Swing 控件在测试容器中的不可用问题。Android/iOS 使用系统媒体 API，不新增播放器 Maven 库；Maven 上存在的 Media3 新版不构成引入依赖的理由。
+先前的 JavaFX 27 验证在 macOS/Linux 通过，但 Windows Server 2025 即使启用 Media Foundation 仍缺少其依赖的旧 AAC DirectShow 组件，因此改为内置解码，而不将旧系统 codec 作为客户端前置条件。CPU 预览限制为最大 640×360、15 fps，视频原始像素数限制为 3840×2160；单个解码工作线程串行拥有播放器，视频/音频解码线程数分别限制为 2/1。音频以 PCM 输出到本地设备，硬件输出不可用时明确提示并继续视频预览。未修改素材，未添加应用后端或 Gradle 构建。
+
+Android/iOS 使用系统媒体 API，无新增媒体 Maven 依赖。数据读取、平台视图重建、释放和中断均纳入验证；真实硬件听音与性能不是 UI 冒烟结论。
 
 核实日期：2026-10-13。用户明确要求 JetBrains **Kotlin Toolchain CLI**，不是 Kotlin Gradle 插件的 JVM toolchain DSL。工程使用 `project.yaml` / `module.yaml` / module templates；不包含 Gradle wrapper、settings.gradle 或 build.gradle。
 

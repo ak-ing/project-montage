@@ -58,32 +58,18 @@ jobs:
         run: ${{ matrix.cli }} test -m core --platform jvm
       - name: Require executed tests
         run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/core/jvm --min-tests 19
-      - name: Enable hosted Windows media components
+      - name: Enable hosted Windows audio services
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $montageFeature = Get-WindowsFeature Server-Media-Foundation
-          if (-not $montageFeature.Installed) {
-            $montageInstall = Install-WindowsFeature Server-Media-Foundation
-            if (-not $montageInstall.Success) { throw 'Could not install hosted Media Foundation codecs' }
-            Write-Output $montageInstall
+          foreach ($montageService in @('AudioEndpointBuilder', 'Audiosrv')) {
+            try {
+              Set-Service $montageService -StartupType Manual -ErrorAction Stop
+              Start-Service $montageService -ErrorAction Stop
+            } catch {
+              Write-Output "Hosted sound output unavailable: $montageService"
+            }
           }
-          Set-Service Audiosrv -StartupType Manual
-          Set-Service AudioEndpointBuilder -StartupType Manual
-          Start-Service AudioEndpointBuilder
-          Start-Service Audiosrv
-          # Server images can install Media Foundation without registering the DirectShow filters JavaFX uses.
-          foreach ($montageDll in @('msmpeg2adec.dll', 'msmpeg2vdec.dll')) {
-            $montageCodecPath = Join-Path $env:WINDIR "System32\$montageDll"
-            if (-not (Test-Path $montageCodecPath)) { throw "Missing hosted system codec: $montageDll" }
-            & "$env:WINDIR\System32\regsvr32.exe" /s $montageCodecPath
-            Write-Output "$montageDll registration exit: $LASTEXITCODE"
-          }
-          $montageAacClsid = [guid]'{E1F1A0B8-BEEE-490d-BA7C-066C40B5E2B9}'
-          $montageAacDecoder = [Activator]::CreateInstance([Type]::GetTypeFromCLSID($montageAacClsid))
-          Write-Output "Microsoft AAC decoder activated: $($montageAacDecoder.GetType().FullName)"
-          [void][Runtime.InteropServices.Marshal]::ReleaseComObject($montageAacDecoder)
-          $global:LASTEXITCODE = 0
       - name: Exercise desktop Compose UI
         run: ${{ matrix.cli }} test -m desktop-app --platform jvm
       - name: Require desktop UI test
