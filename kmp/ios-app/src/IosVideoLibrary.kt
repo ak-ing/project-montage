@@ -2,6 +2,12 @@
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import montage.core.VideoAsset
@@ -11,6 +17,7 @@ import platform.UIKit.*
 import platform.UniformTypeIdentifiers.UTTypeMovie
 import platform.darwin.NSObject
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalForeignApi::class)
 class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLibrary {
@@ -33,10 +40,19 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
     private fun finishPicker(controller: UIDocumentPickerViewController, url: NSURL?) {
         val continuation = pending ?: return
         pending = null
-        // Keep the import busy until UIKit has completed the modal dismissal.
+        // UIKit can invoke completion before the remote picker view leaves its window.
         controller.dismissViewControllerAnimated(true) {
-            NSLog("Montage video import: picker dismissal completed")
-            if (continuation.isActive) continuation.resume(url)
+            CoroutineScope(continuation.context).launch {
+                try {
+                    withTimeout(5_000) {
+                        while (controller.view.window != null) delay(16)
+                    }
+                    NSLog("Montage video import: picker view detached")
+                    if (continuation.isActive) continuation.resume(url)
+                } catch (_: TimeoutCancellationException) {
+                    if (continuation.isActive) continuation.resumeWithException(IllegalStateException("Video picker did not close"))
+                } catch (cancelled: CancellationException) { throw cancelled }
+            }
         }
     }
 

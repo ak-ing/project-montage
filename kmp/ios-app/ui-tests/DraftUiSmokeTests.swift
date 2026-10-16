@@ -118,15 +118,17 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
         if capture { attach(app, "video-picker") }
-        let thumbnail = file.images.firstMatch
-        XCTAssertTrue(thumbnail.waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertFalse(thumbnail.frame.isEmpty)
-        // Activate the native file thumbnail, including Files' second-tap open behavior.
-        thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+        let filename = file.staticTexts[prefix]
+        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(filename.frame.isEmpty)
+        // Select the document through its caption, outside the video thumbnail's gesture area.
+        filename.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let firstActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
         if XCTWaiter.wait(for: [firstActivation], timeout: 4) != .completed {
             attach(app, "picker-activation-retry-" + prefix)
-            thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            let thumbnail = file.images.firstMatch
+            XCTAssertTrue(thumbnail.exists, app.debugDescription)
+            thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
         }
         let open = app.buttons["Open"].firstMatch
         if open.waitForExistence(timeout: 3) { open.tap() }

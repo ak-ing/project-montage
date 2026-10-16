@@ -39,6 +39,9 @@ xcrun simctl spawn "$simulator_id" log show --last 30m --style compact \
 xcrun simctl spawn "$simulator_id" log show --last 30m --style compact \
   --predicate 'process == "ios-app" AND eventMessage BEGINSWITH "Montage video preview:"' \
   > build/ui-smoke/ios/preview-stages.log || true
+xcrun simctl spawn "$simulator_id" log show --last 20m --style compact \
+  --predicate '(process == "ios-app" OR subsystem CONTAINS[c] "DocumentManager" OR subsystem CONTAINS[c] "FileProvider") AND (messageType == 16 OR messageType == 17)' \
+  > build/ui-smoke/ios/file-provider-errors.log || true
 xcrun xcresulttool get test-results summary --path build/ui-smoke/ios/DraftUiSmoke.xcresult > build/ui-smoke/ios/result.json
 xcrun xcresulttool export attachments --path build/ui-smoke/ios/DraftUiSmoke.xcresult --output-path build/ui-smoke/ios/attachments
 test "$xcode_status" -eq 0
