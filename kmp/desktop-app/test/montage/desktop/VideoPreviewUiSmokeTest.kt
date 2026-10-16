@@ -12,6 +12,7 @@ import javafx.application.Platform
 import montage.core.*
 import montage.ui.*
 import org.junit.AfterClass
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -22,6 +23,7 @@ import kotlin.test.*
 class VideoPreviewUiSmokeTest {
     @get:Rule val compose = createComposeRule()
     companion object {
+        @BeforeClass @JvmStatic fun decoderDiagnostics() { System.setProperty("jfxmedia.loglevel", "DEBUG") }
         @AfterClass @JvmStatic fun stopToolkit() { Platform.exit() }
     }
     private class ObservedProvider(directory: File) : VideoPreviewProvider {

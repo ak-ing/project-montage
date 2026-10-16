@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
@@ -100,26 +99,28 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                     modifier = Modifier.fillMaxWidth().testTag("project-title"),
                 )
                 Text("${draft.scenes.size} scenes · ${draft.visibleDurationSeconds}s visible · ${draft.transitionBufferSeconds}s transition buffer", modifier = Modifier.testTag("draft-summary"))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    enabled = editable,
-                    label = { Text("New scene description") },
-                    modifier = Modifier.fillMaxWidth().testTag("scene-description"),
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(modifier = Modifier.testTag("add-scene"), enabled = editable && description.isNotBlank(), onClick = {
-                        workspace = workspace.copy(draft = draft.appendScene(description))
-                        failure = null
-                        description = ""
-                        focus.clearFocus()
-                    }) { Text("Add scene") }
-                    TextButton(modifier = Modifier.testTag("reset-sample"), enabled = editable, onClick = {
-                        workspace = workspace.copy(draft = sampleProject())
-                        failure = null
-                        description = ""
-                        focus.clearFocus()
-                    }) { Text("Reset sample") }
+                if (!showVideos) {
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        enabled = editable,
+                        label = { Text("New scene description") },
+                        modifier = Modifier.fillMaxWidth().testTag("scene-description"),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(modifier = Modifier.testTag("add-scene"), enabled = editable && description.isNotBlank(), onClick = {
+                            workspace = workspace.copy(draft = draft.appendScene(description))
+                            failure = null
+                            description = ""
+                            focus.clearFocus()
+                        }) { Text("Add scene") }
+                        TextButton(modifier = Modifier.testTag("reset-sample"), enabled = editable, onClick = {
+                            workspace = workspace.copy(draft = sampleProject())
+                            failure = null
+                            description = ""
+                            focus.clearFocus()
+                        }) { Text("Reset sample") }
+                    }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(modifier = Modifier.testTag("save-draft"), enabled = editable && dirty, onClick = {
@@ -175,8 +176,8 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                             }
                         }
                     }) { Text("Import video") }
-                    TextButton(modifier = Modifier.testTag("scene-tab"), onClick = { showVideos = false }) { Text("Scenes ${draft.scenes.size}") }
-                    TextButton(modifier = Modifier.testTag("video-tab"), onClick = { showVideos = true }) { Text("Videos ${workspace.videos.size}") }
+                    TextButton(modifier = Modifier.testTag("scene-tab"), onClick = { focus.clearFocus(); showVideos = false }) { Text("Scenes ${draft.scenes.size}") }
+                    TextButton(modifier = Modifier.testTag("video-tab"), onClick = { focus.clearFocus(); showVideos = true }) { Text("Videos ${workspace.videos.size}") }
                 }
                 importNotice?.let { Text(it, modifier = Modifier.testTag("import-status")) }
                 if (workspace.jobs.isNotEmpty()) {
@@ -187,8 +188,8 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                         if (workspace.videos.isEmpty()) item { Text("No videos imported") }
                         items(workspace.videos, key = { "video-${it.id}" }) { asset ->
                             Card(Modifier.fillMaxWidth()) {
-                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
+                                Column(Modifier.padding(12.dp)) {
+                                    Column {
                                         Text(asset.name, maxLines = 2)
                                         Text("${asset.byteSize} bytes", style = MaterialTheme.typography.bodySmall)
                                         Text(when (availability[asset.id]) {
@@ -197,14 +198,16 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                             null -> "Checking video file…"
                                         })
                                     }
-                                    if (previews != null) TextButton(modifier = Modifier.testTag("preview-video-${asset.id}"), enabled = editable && availability[asset.id] == true, onClick = {
-                                        previewAsset = asset
-                                    }) { Text("Preview") }
-                                    TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable, onClick = {
-                                        workspace = workspace.copy(videos = workspace.videos.filterNot { it.id == asset.id })
-                                        failure = null
-                                        importNotice = "Save draft to remove the video copy"
-                                    }) { Text("Remove") }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        if (previews != null) TextButton(modifier = Modifier.testTag("preview-video-${asset.id}"), enabled = editable && availability[asset.id] == true, onClick = {
+                                            previewAsset = asset
+                                        }) { Text("Preview") }
+                                        TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable, onClick = {
+                                            workspace = workspace.copy(videos = workspace.videos.filterNot { it.id == asset.id })
+                                            failure = null
+                                            importNotice = "Save draft to remove the video copy"
+                                        }) { Text("Remove") }
+                                    }
                                 }
                             }
                         }

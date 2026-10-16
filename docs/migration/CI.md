@@ -4,7 +4,9 @@
 
 当前工作流要求每端至少 19 个领域测试、每桌面至少 14 个存储/媒体/UI 测试，iOS 恰好 3 个 XCTest。新增八秒蓝→红画面及合成音轨的 [测试素材](../../kmp/test-data/README.md)，覆盖真实时长/尺寸/旋转/音轨、解码缩略图、播放/暂停/seek、重启后重新读取和损坏文件错误/重试。桌面测试检查解码颜色和播放器真实位置；移动端经系统选择器导入后操作共享预览页。远端结果待记录，不将配置完成视为测试通过。
 
-## 本地视频导入验证（本次）
+首轮 [38883686667](https://github.com/ak-ing/project-montage/actions/runs/38883686667)（`9b273ba`）暴露 Windows 托管机缺少 AAC 解码能力、错误后播放器持有文件，以及 macOS 就绪超时和手机素材卡片被拥挤布局裁切的问题。已补 Windows 媒体组件、错误时立即 dispose、为桌面解码器创建同卷带扩展名硬链接（不复制大文件），并为素材页腾出空间。macOS 不再强制软件 Prism 管线，新增原生就绪诊断。修正后的 Linux 14 个测试通过，远端复检待记录。桌面 UI 截图来自 Compose 离屏测试场景，播放器使用真实本机解码器；不将其描述为实际系统窗口鼠标操作。
+
+## 本地视频导入验证（已完成基线）
 
 2026-10-16 仓库改名并公开后，[iOS 定向复检 38877487547](https://github.com/ak-ing/project-montage/actions/runs/38877487547)（源码 `68e3006`）全部成功：16 个原生领域测试与 2 个 XCTest，无失败、无跳过。已下载并校验主报告及完整 xcresult ZIP 的 SHA-256，审阅恢复后的素材页；实际日志记录了取消、选择回调和受管理副本提交，存储断言确认原素材未改动、移除保存后副本清理完成。前三端沿用源码未变化的 `38852177157`，合计 64 次领域测试、20 次桌面测试和两条移动端 UI 流程全部成功。[完整证据清单](evidence/video-import-38877487547.json)逐项记录报告来源，未将本轮跳过的作业视为通过。
 
@@ -40,7 +42,7 @@ iOS 这轮失败点为缩略图可见但不支持 XCTest 的直接点击（命�
 
 | 平台 | 托管主机 | 构建与共享测试 | UI 流程 |
 | --- | --- | --- | --- |
-| Windows | windows-2025，x64 | 桌面 JVM 构建、5 个 core 测试 | JUnit/Compose UI，真实 ComposeWindow 与本机 Skiko |
+| Windows | windows-2025，x64 | 桌面 JVM 构建、5 个 core 测试 | JUnit/Compose UI，Compose 测试场景与本机 Skiko（离屏渲染） |
 | macOS | macos-26，Arm64 | 桌面 JVM 构建、5 个 core 测试 | 同上，在 macOS 主机执行 |
 | Android | ubuntu-latest | Debug APK、5 个 core host 测试 | API 35 x86_64 模拟器，安装 APK，adb/UIAutomator |
 | iOS | macos-26，Arm64 | Swift/Kotlin 应用构建、5 个 core 模拟器测试 | XCTest 启动实际应用，经系统无障碍界面交互 |

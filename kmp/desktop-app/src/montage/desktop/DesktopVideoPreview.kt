@@ -25,6 +25,7 @@ import javafx.scene.media.AudioTrack
 import javafx.scene.media.Media
 import javafx.scene.media.MediaPlayer
 import javafx.scene.media.MediaView
+import javafx.scene.media.VideoTrack
 import javafx.util.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -33,10 +34,19 @@ import montage.core.VideoMetadata
 import montage.ui.*
 import java.awt.EventQueue
 import java.io.File
+import java.nio.file.Files
+import java.util.UUID
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 class DesktopVideoPreview(private val directory: File) : VideoPreviewProvider {
+    init {
+        // A workspace supports one running app instance. Remove only our stale hard-link names after a crash.
+        File(directory.parentFile, "preview-cache").listFiles()?.filter {
+            Files.isRegularFile(it.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS) &&
+                it.name.matches(Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.(mp4|m4v|mov|mp3|wav|aif|aiff)"))
+        }?.forEach { it.delete() }
+    }
     override fun open(asset: VideoAsset): VideoPreviewController = DesktopPlayer(directory, asset)
     @Composable override fun Surface(controller: VideoPreviewController, modifier: Modifier) {
         val frame by (controller as DesktopPlayer).frame.collectAsState()
@@ -57,19 +67,25 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
     private var deadline: PauseTransition? = null
     private var frameClock: Timeline? = null
     private var captureUntil = 0L
+    private var failed = false
+    private var decoderAlias: File? = null
 
     private fun fail(cause: Throwable? = null) {
         cause?.let { System.err.println("Video preview decoder: $it") }
-        if (!closed) {
-            state.update { it.copy(status = PlaybackStatus.Error) }
+        if (!closed && !failed) {
+            failed = true
             frameClock?.stop()
-            player?.stop()
+            val native = player
+            player = null
+            native?.dispose()
+            decoderAlias?.delete()
+            state.update { it.copy(status = PlaybackStatus.Error) }
         }
     }
     init {
         EventQueue.invokeLater {
             if (!closed) try {
-                System.setProperty("prism.order", "sw")
+                if (System.getProperty("os.name").contains("Linux")) System.setProperty("prism.order", "sw")
                 val surface = JFXPanel() // Initializes the platform toolkit once; no Swing component is embedded in Compose.
                 fxPanel = surface
                 Platform.setImplicitExit(false)
@@ -77,8 +93,17 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
                     if (!closed) try {
                         val file = File(directory, "${asset.id}.media")
                         check(file.isFile && file.canRead() && file.length() == asset.byteSize)
-                        val geometry = Mp4VideoGeometry.read(file)
-                        val media = Media(file.toURI().toString())
+                        val geometry = checkNotNull(Mp4VideoGeometry.read(file)) { "No supported local ISO-BMFF video track" }
+                        // AVFoundation uses filename hints. A same-volume hard link supplies an extension without copying a large video.
+                        val extension = asset.name.substringAfterLast('.', "mp4").lowercase().takeIf {
+                            it in setOf("mp4", "m4v", "mov", "mp3", "wav", "aif", "aiff")
+                        } ?: "mp4"
+                        val cache = File(directory.parentFile, "preview-cache")
+                        check(cache.isDirectory || cache.mkdirs())
+                        val alias = File(cache, "${UUID.randomUUID()}.$extension")
+                        Files.createLink(alias.toPath(), file.toPath())
+                        decoderAlias = alias
+                        val media = Media(alias.toURI().toString())
                         val native = MediaPlayer(media)
                         native.isMute = true // Priming a thumbnail must not play sound before the user presses Play.
                         player = native
@@ -86,11 +111,12 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
                         surface.scene = Scene(Group(view))
                         media.setOnError { fail(media.error) }
                         native.setOnError { fail(native.error) }
+                        native.setOnHalted { fail(native.error ?: IllegalStateException("Native player halted")) }
                         native.setOnReady {
                             if (!closed && state.value.status != PlaybackStatus.Error) try {
+                                val video = checkNotNull(media.tracks.filterIsInstance<VideoTrack>().firstOrNull())
                                 val metadata = VideoMetadata(native.totalDuration.toMillis().toLong(),
-                                    geometry?.width ?: media.width, geometry?.height ?: media.height,
-                                    geometry?.rotation, media.tracks.any { it is AudioTrack })
+                                    video.width, video.height, geometry.rotation, media.tracks.any { it is AudioTrack })
                                 val scale = min(1.0, min(640.0 / metadata.displayWidth, 360.0 / metadata.displayHeight))
                                 view.fitWidth = metadata.width * scale
                                 view.fitHeight = metadata.height * scale
@@ -142,7 +168,8 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
                         native.setOnPaused { if (!closed && !priming && state.value.status != PlaybackStatus.Error) state.update { it.copy(status = PlaybackStatus.Paused) } }
                         native.setOnEndOfMedia { if (!closed && !priming && state.value.status != PlaybackStatus.Error) state.update { it.copy(status = PlaybackStatus.Ended, positionMillis = it.metadata?.durationMillis ?: 0) } }
                         deadline = PauseTransition(Duration.seconds(15.0)).apply {
-                            setOnFinished { if (state.value.status == PlaybackStatus.Loading) fail() }
+                            setOnFinished { if (state.value.status == PlaybackStatus.Loading)
+                                fail(IllegalStateException("Readiness timed out: ${native.status}, ${media.width}x${media.height}, ${native.error?.type}")) }
                             play()
                         }
                     } catch (failure: Exception) { fail(failure) }
@@ -156,7 +183,7 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
     }
     private fun onFx(action: (MediaPlayer) -> Unit) {
         if (!closed && fxPanel != null) Platform.runLater {
-            if (!closed && !priming && state.value.status != PlaybackStatus.Error) try { player?.let(action) }
+            if (!closed && !failed && !priming && state.value.status != PlaybackStatus.Error) try { player?.let(action) }
             catch (failure: Exception) { fail(failure) }
         }
     }
@@ -175,6 +202,7 @@ private class DesktopPlayer(directory: File, asset: VideoAsset) : VideoPreviewCo
             frameClock?.stop()
             player?.dispose()
             player = null
+            decoderAlias?.delete()
             fxPanel?.scene = null
             frame.value = null
         }

@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: kmp-${{ github.workflow }}-${{ github.ref }}
+  group: kmp-${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform || 'all' }}
   cancel-in-progress: true
 
 jobs:
@@ -58,6 +58,20 @@ jobs:
         run: ${{ matrix.cli }} test -m core --platform jvm
       - name: Require executed tests
         run: ${{ matrix.python }} scripts/verify-ci-tests.py --xml-dir build/reports/core/jvm --min-tests 19
+      - name: Enable hosted Windows media components
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $montageFeature = Get-WindowsFeature Server-Media-Foundation
+          if (-not $montageFeature.Installed) {
+            $montageInstall = Install-WindowsFeature Server-Media-Foundation
+            if (-not $montageInstall.Success) { throw 'Could not install hosted Media Foundation codecs' }
+            Write-Output $montageInstall
+          }
+          Set-Service Audiosrv -StartupType Manual
+          Set-Service AudioEndpointBuilder -StartupType Manual
+          Start-Service AudioEndpointBuilder
+          Start-Service Audiosrv
       - name: Exercise desktop Compose UI
         run: ${{ matrix.cli }} test -m desktop-app --platform jvm
       - name: Require desktop UI test

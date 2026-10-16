@@ -47,8 +47,8 @@ Android APK 构建成功，12 个 core host 测试全部成功、无失败/跳�
 
 | 平台 | 共享逻辑 | UI 冒烟 |
 | --- | --- | --- |
-| Windows x64 | 5 成功 | 1 个 ComposeWindow/JUnit 测试成功 |
-| macOS Arm64 | 5 成功 | 1 个 ComposeWindow/JUnit 测试成功 |
+| Windows x64 | 5 成功 | 1 个 Compose 场景/JUnit 测试成功（离屏渲染） |
+| macOS Arm64 | 5 成功 | 1 个 Compose 场景/JUnit 测试成功（离屏渲染） |
 | Android API 35 x86_64 模拟器 | 5 个 host 测试成功 | adb 驱动实际 APK 的完整流程成功，无应用崩溃 |
 | iOS Arm64 模拟器 | 5 个原生测试成功 | 1 个 XCTest UI 测试成功 |
 

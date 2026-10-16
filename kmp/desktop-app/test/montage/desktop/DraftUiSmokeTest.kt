@@ -14,7 +14,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import java.nio.file.Files
 
-/** Runs a real ComposeWindow on the host, including its native Skiko renderer. */
+/** Exercises a Compose test scene with the host's Skiko renderer; snapshots are rendered offscreen. */
 class DraftUiSmokeTest {
     @get:Rule val compose = createComposeRule()
 
