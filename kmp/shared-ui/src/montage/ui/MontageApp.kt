@@ -24,7 +24,7 @@ import montage.core.appendScene
 import montage.core.sampleProject
 
 @Composable
-fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLibrary? = null) {
+fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLibrary? = null, previews: VideoPreviewProvider? = null) {
     val repository = remember(storage) { WorkspaceRepository(storage) }
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
@@ -37,6 +37,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
     var showVideos by remember { mutableStateOf(false) }
     var importNotice by remember { mutableStateOf<String?>(null) }
     var availability by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+    var previewAsset by remember { mutableStateOf<VideoAsset?>(null) }
 
     suspend fun cleanVideos(retained: List<VideoAsset>): Boolean = try {
         withContext(Dispatchers.Default) { videos?.removeUnreferenced(retained) }
@@ -57,6 +58,11 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
             description = ""
             importNotice = null
             if (discardImports && !cleanVideos(workspace.videos)) failure = "Draft loaded; some unused video copies could not be removed."
+            // A fast reload can coalesce busy=true/false into one composition; refresh even when refs are unchanged.
+            val assets = workspace.videos
+            availability = withContext(Dispatchers.Default) {
+                assets.associate { it.id to runCatching { videos?.isAvailable(it) == true }.getOrDefault(false) }
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -72,6 +78,10 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
         if (!busy) availability = withContext(Dispatchers.Default) {
             workspace.videos.associate { it.id to runCatching { videos?.isAvailable(it) == true }.getOrDefault(false) }
         }
+    }
+    if (previewAsset != null && previews != null) {
+        VideoPreview(previewAsset!!, previews) { previewAsset = null }
+        return
     }
     val draft = workspace.draft
     val editable = loaded && !busy
@@ -180,13 +190,16 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(asset.name, maxLines = 2)
-                                        Text("${asset.byteSize} bytes · not yet analyzed", style = MaterialTheme.typography.bodySmall)
+                                        Text("${asset.byteSize} bytes", style = MaterialTheme.typography.bodySmall)
                                         Text(when (availability[asset.id]) {
                                             true -> "Available on this device"
                                             false -> "Video file unavailable · remove and import again"
                                             null -> "Checking video file…"
                                         })
                                     }
+                                    if (previews != null) TextButton(modifier = Modifier.testTag("preview-video-${asset.id}"), enabled = editable && availability[asset.id] == true, onClick = {
+                                        previewAsset = asset
+                                    }) { Text("Preview") }
                                     TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable, onClick = {
                                         workspace = workspace.copy(videos = workspace.videos.filterNot { it.id == asset.id })
                                         failure = null

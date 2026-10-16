@@ -97,4 +97,87 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["No videos imported"].exists)
         attach(app, "videos-removed")
     }
+
+    private func importVideo(_ app: XCUIApplication, _ prefix: String) {
+        app.buttons["import-video"].tap()
+        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
+        XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
+        XCTAssertTrue(file.isEnabled)
+        let image = file.images.firstMatch
+        XCTAssertTrue(image.waitForExistence(timeout: 10))
+        image.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let open = app.buttons["Open"].firstMatch
+        if open.waitForExistence(timeout: 3) { open.tap() }
+        XCTAssertTrue(app.staticTexts[prefix + ".mp4"].waitForExistence(timeout: 30), app.debugDescription)
+    }
+
+    private func assertPreviewReady(_ app: XCUIApplication) {
+        let metadata = app.staticTexts["video-metadata"]
+        XCTAssertTrue(metadata.waitForExistence(timeout: 30), app.debugDescription)
+        XCTAssertTrue(metadata.label.contains("8000 ms"), metadata.label)
+        XCTAssertTrue(metadata.label.contains("160 × 90"), metadata.label)
+        XCTAssertTrue(metadata.label.contains("0°"), metadata.label)
+        XCTAssertTrue(metadata.label.contains("Audio"), metadata.label)
+        XCTAssertTrue(app.descendants(matching: .any)["video-thumbnail"].exists)
+        XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 10))
+    }
+
+    private func previewPosition(_ app: XCUIApplication) -> Int {
+        Int(app.staticTexts["video-position"].label.components(separatedBy: "/")[0].trimmingCharacters(in: .whitespaces)) ?? -1
+    }
+
+    func testVideoPreviewPlaybackSeekAndRestart() {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        importVideo(app, "Montage-preview-smoke")
+        let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "preview-video-")).firstMatch
+        XCTAssertTrue(preview.waitForExistence(timeout: 10))
+        preview.tap()
+        assertPreviewReady(app)
+        attach(app, "preview-ready")
+        app.buttons["play-video"].tap()
+        XCTAssertTrue(app.staticTexts["Playing"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 1)
+        app.buttons["pause-video"].tap()
+        XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(previewPosition(app), 300)
+        let slider = app.sliders["video-seek"]
+        XCTAssertTrue(slider.exists, app.debugDescription)
+        slider.adjust(toNormalizedSliderPosition: 0.75)
+        let sought = expectation(for: NSPredicate { _, _ in self.previewPosition(app) >= 5000 }, evaluatedWith: app.staticTexts["video-position"])
+        wait(for: [sought], timeout: 10)
+        XCTAssertLessThanOrEqual(previewPosition(app), 7500)
+        attach(app, "preview-seek")
+        app.buttons["preview-back"].tap()
+        XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Montage-preview-smoke.mp4"].exists)
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.buttons["video-tab"].tap()
+        preview.tap()
+        assertPreviewReady(app)
+        attach(app, "preview-restored")
+        app.buttons["preview-back"].tap()
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+
+        importVideo(app, "Montage-preview-invalid")
+        preview.tap()
+        XCTAssertTrue(app.staticTexts["preview-error"].waitForExistence(timeout: 30), app.debugDescription)
+        attach(app, "preview-error")
+        app.buttons["preview-retry"].tap()
+        XCTAssertTrue(app.staticTexts["preview-error"].waitForExistence(timeout: 30))
+        app.buttons["preview-back"].tap()
+        XCTAssertTrue(app.staticTexts["Montage-preview-invalid.mp4"].exists)
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["No videos imported"].exists)
+    }
 }

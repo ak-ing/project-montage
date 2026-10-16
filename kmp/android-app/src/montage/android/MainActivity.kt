@@ -12,13 +12,19 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import montage.ui.MontageApp
 
 class MainActivity : ComponentActivity() {
+    private lateinit var previews: AndroidVideoPreview
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val storage = AndroidWorkspaceStorage(applicationContext)
         val videos = AndroidVideoLibrary(this)
+        previews = AndroidVideoPreview(this)
         setContent {
-            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage, videos) }
+            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage, videos, previews) }
         }
+    }
+    override fun onPause() {
+        if (::previews.isInitialized) previews.pause()
+        super.onPause()
     }
 }

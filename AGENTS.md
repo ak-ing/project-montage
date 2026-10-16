@@ -5,7 +5,7 @@
 - Work in the existing checkout on `rewrite/kmp`. Cloud tasks are already isolated; do not create a worktree unless explicitly requested. Inspect `git status` before switching or editing; preserve user changes.
 - `origin` is `https://github.com/ak-ing/project-montage.git` (renamed from `project-montage-private` and made public on 2026-10-16); `upstream` is `https://github.com/google/project-montage.git`. Baseline: `19de972cadefabfc18920a95b873b3cfb6f9a3a6` (2026-10-13 inspection).
 - Keep `mcp_client/`, `mcp_montage/`, `sign_server/`, `deploy/`, `third_party/` and their licenses as the runnable/reference upstream implementation. Do not move, delete, simplify or rewrite them during scaffold work.
-- The current milestone is local video import through platform pickers, managed copies and workspace recovery on the KMP/CMP implementation in `kmp/`. Every product capability in `docs/migration/PLAN.md` remains in final scope. Unimplemented is not removed.
+- The current milestone is local video metadata, decoded thumbnails and playback/seek/recovery on the KMP/CMP implementation in `kmp/`. Local video import is the preceding validated baseline. Every product capability in `docs/migration/PLAN.md` remains in final scope. Unimplemented is not removed.
 - Follow the user's Kotlin Toolchain requirement: use the pinned official `kotlin` / `kotlin.bat` wrapper and YAML modules. Do not add Gradle scripts or a Gradle wrapper. Toolchain currently uses AGP/Gradle internally for Android; document that upstream limitation, do not hide it or implement a second build.
 
 ## Architecture
@@ -19,6 +19,7 @@
 - Execute composition, mixing, subtitles and encoding through device media adapters. Desktop FFmpeg and mobile native/library integrations need capability, performance and license validation; do not assume mobile Python/subprocess support. Bound concurrency and support cancellation/recovery within device resources.
 - Shared logic must not assume a local file path for a picked image. Use opaque handles and explicit platform adapters.
 - Workspace schema 2 adds opaque video identifiers; schema 1 migrates atomically without dropping drafts or checkpoints. Media lives in a dedicated platform-owned directory, never inside JSON. Import with bounded buffers/platform file-copy APIs; do not read whole videos into memory. Remove unreferenced managed copies only after successful save or explicit discard/reload, and never clear media after a failed document load.
+- Read metadata and thumbnails from managed media when opening a preview; they are derived data, not new workspace fields. Preview navigation must preserve unsaved edits. Dispose players on leaving/retrying and pause mobile playback when inactive. Bound decoded thumbnail/frame sizes and verify actual frame colors and player positions, not just successful player construction.
 - Preserve product behavior including session forks, all 13 MCP tool capabilities, buffered transitions, optional audio/subtitles, multilingual rendering and both orchestration profiles. Server deployment/auth/storage mechanisms are reference implementations, not mandatory target infrastructure. See the feature matrix before changing scope.
 
 ## Versions, validation and licensing

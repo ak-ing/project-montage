@@ -1,5 +1,11 @@
 # 许可证与外部依赖盘点
 
+## 2026-10-16：新增媒体预览依赖
+
+桌面新增 OpenJFX 27 的 base/graphics/swing/media，主体 GPLv2 with Classpath Exception；保留 [LICENSE](https://github.com/openjdk/jfx/blob/jfx27/LICENSE)、[ADDITIONAL_LICENSE_INFO](https://github.com/openjdk/jfx/blob/jfx27/ADDITIONAL_LICENSE_INFO) 及相应源码获取信息。Classpath Exception 允许与独立模块结合，不代表可以删除组件许可或第三方声明。JavaFX Media 另含 [GStreamer、GLib、libffi、DirectShow 声明](https://github.com/openjdk/jfx/tree/jfx27/modules/javafx.media/src/main/legal)，包含 LGPL 等不同条款；发行包须按所选原生二进制保留材料、源码及替换/重链接要求。当前未交付安装包，也未宣称原生播放器完整发行审计完成。
+
+Android MediaPlayer/MediaMetadataRetriever 与 iOS AVFoundation 为系统 API，没有复制原版 FFmpeg/Torch 实现。八秒蓝/红视频与低音量正弦音轨为自行生成的测试数据，无第三方影片/音乐；生成工具 FFmpeg 本身不被打包进应用。
+
 检查基线：`19de972cadefabfc18920a95b873b3cfb6f9a3a6`。本文件是源码与直接依赖盘点，不是完整 SBOM 或法律意见；实际发行前须对锁定的所有传递依赖、原生二进制、模型权重和素材逐项留档。
 
 ## 原工程

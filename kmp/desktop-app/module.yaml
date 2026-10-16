@@ -5,6 +5,20 @@ dependencies:
   - ../shared-ui
   - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
   - $compose.desktop.currentOs
+  # Toolchain does not activate OpenJFX's Maven OS profiles. Include explicit native artifacts.
+  # These three targets have distinct native filenames (.dll/.dylib/.so); Intel macOS is not bundled.
+  - org.openjfx:javafx-base:27:linux
+  - org.openjfx:javafx-graphics:27:linux
+  - org.openjfx:javafx-swing:27:linux
+  - org.openjfx:javafx-media:27:linux
+  - org.openjfx:javafx-base:27:win
+  - org.openjfx:javafx-graphics:27:win
+  - org.openjfx:javafx-swing:27:win
+  - org.openjfx:javafx-media:27:win
+  - org.openjfx:javafx-base:27:mac-aarch64
+  - org.openjfx:javafx-graphics:27:mac-aarch64
+  - org.openjfx:javafx-swing:27:mac-aarch64
+  - org.openjfx:javafx-media:27:mac-aarch64
 test-dependencies:
   - org.jetbrains.compose.ui:ui-test-junit4:1.12.1
 settings:

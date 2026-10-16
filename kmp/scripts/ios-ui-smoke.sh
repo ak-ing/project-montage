@@ -22,11 +22,13 @@ xcrun simctl install "$simulator_id" "$app_path"
 app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
 mkdir -p "$app_data/Documents"
 cp test-data/import-smoke.mp4 "$app_data/Documents/Montage-import-smoke.mp4"
+cp test-data/preview-smoke.mp4 "$app_data/Documents/Montage-preview-smoke.mp4"
+printf 'Invalid video fixture\n' > "$app_data/Documents/Montage-preview-invalid.mp4"
 xcode_status=0
 xcodebuild test-without-building -project ios-app/module.xcodeproj -scheme app \
   -destination "platform=iOS Simulator,id=$simulator_id" \
   -destination-timeout 120 -test-timeouts-enabled YES \
-  -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 \
+  -default-test-execution-time-allowance 180 -maximum-test-execution-time-allowance 240 \
   -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 \
   -resultBundlePath build/ui-smoke/ios/DraftUiSmoke.xcresult \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
@@ -45,15 +47,18 @@ root=Path(sys.argv[1])
 original=root/'Documents/Montage-import-smoke.mp4'
 fixture=Path('test-data/import-smoke.mp4')
 assert original.read_bytes()==fixture.read_bytes(), 'Import/removal changed the original test video'
+preview=Path('test-data/preview-smoke.mp4')
+assert (root/'Documents/Montage-preview-smoke.mp4').read_bytes()==preview.read_bytes()
+assert (root/'Documents/Montage-preview-invalid.mp4').read_bytes()==b'Invalid video fixture\n'
 workspace=root/'Library/Application Support/ProjectMontage/workspace.json'
 assert not json.loads(workspace.read_text())['videos']
 media=workspace.parent/'media'
 assert not list(media.iterdir()), 'Managed media was not removed after successful save'
-Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps({'source_preserved':True,'managed_cleanup_empty':True,'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest()},indent=2)+'\n')
+Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps({'source_preserved':True,'managed_cleanup_empty':True,'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'preview_fixture_sha256':hashlib.sha256(preview.read_bytes()).hexdigest()},indent=2)+'\n')
 PY
 python3 - <<'PY'
 import json
 p=json.load(open('build/ui-smoke/ios/result.json'))
-assert p['passedTests'] == p['totalTestCount'] == 2 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
-print('iOS UI smoke passed: draft recovery and native video import/cancel/recovery/removal')
+assert p['passedTests'] == p['totalTestCount'] == 3 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
+print('iOS UI smoke passed: draft/import recovery, real video metadata/thumbnail/play/pause/seek/restart and corrupt-file handling')
 PY

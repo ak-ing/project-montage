@@ -11,6 +11,7 @@ fun ViewController(): platform.UIKit.UIViewController {
         while (presenter.presentedViewController != null) presenter = presenter.presentedViewController!!
         presenter.presentViewController(picker, true, null)
     }
-    controller = ComposeUIViewController { MontageApp("iOS", storage, videos) }
+    val previews = IosVideoPreview()
+    controller = ComposeUIViewController { MontageApp("iOS", storage, videos, previews) }
     return controller
 }

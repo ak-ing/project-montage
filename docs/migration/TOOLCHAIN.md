@@ -1,5 +1,11 @@
 # Kotlin Toolchain 与版本决策
 
+## 2026-10-16：桌面媒体预览
+
+新增 OpenJFX `javafx-base/graphics/swing/media` **27**，由 [Maven Central 官方发布元数据](https://repo.maven.apache.org/maven2/org/openjfx/javafx-media/maven-metadata.xml)核实为最新稳定版，未选 28-ea。运行使用既有 JDK 25。当前 Toolchain 未激活 OpenJFX 父 POM 的 OS profile（无 classifier 的 JAR 仅含 manifest），故 YAML 显式列出 `win`、`mac-aarch64`、`linux` 原生 classifier；每种系统的原生文件后缀不同。Intel Mac 与 Windows Arm64 不在该预览组合中，不能宣称覆盖。依赖仍由官方 Kotlin CLI 解析，没有引入 Gradle 脚本。
+
+使用公开 JavaFX MediaPlayer/MediaView API 解码和处理音频时钟，CPU 截帧以最大 640×360、15 fps 绘入 Compose，规避混合 Swing 控件在测试容器中的不可用问题。Android/iOS 使用系统媒体 API，不新增播放器 Maven 库；Maven 上存在的 Media3 新版不构成引入依赖的理由。
+
 核实日期：2026-10-13。用户明确要求 JetBrains **Kotlin Toolchain CLI**，不是 Kotlin Gradle 插件的 JVM toolchain DSL。工程使用 `project.yaml` / `module.yaml` / module templates；不包含 Gradle wrapper、settings.gradle 或 build.gradle。
 
 ## 官方来源
