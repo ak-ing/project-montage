@@ -34,7 +34,7 @@ xcodebuild test-without-building -project ios-app/module.xcodeproj -scheme app \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee -a build/ui-smoke/ios/xcodebuild.log || xcode_status=$?
 xcrun simctl spawn "$simulator_id" log show --last 30m --style compact \
-  --predicate 'process == "ios-app" AND eventMessage BEGINSWITH "Montage video import:"' \
+  --predicate 'process == "ios-app" AND (eventMessage BEGINSWITH "Montage video import:" OR eventMessage BEGINSWITH "Montage video cleanup:")' \
   > build/ui-smoke/ios/import-stages.log || true
 xcrun simctl spawn "$simulator_id" log show --last 30m --style compact \
   --predicate 'process == "ios-app" AND eventMessage BEGINSWITH "Montage video preview:"' \
@@ -52,16 +52,25 @@ import hashlib, json, sys
 root=Path(sys.argv[1])
 original=root/'Documents/Montage-import-smoke.mp4'
 fixture=Path('test-data/import-smoke.mp4')
-assert original.read_bytes()==fixture.read_bytes(), 'Import/removal changed the original test video'
 preview=Path('test-data/preview-smoke.mp4')
-assert (root/'Documents/Montage-preview-smoke.mp4').read_bytes()==preview.read_bytes()
-assert (root/'Documents/Montage-preview-invalid.mp4').read_bytes()==b'Invalid video fixture\n'
+source_preserved=(original.read_bytes()==fixture.read_bytes() and
+    (root/'Documents/Montage-preview-smoke.mp4').read_bytes()==preview.read_bytes() and
+    (root/'Documents/Montage-preview-invalid.mp4').read_bytes()==b'Invalid video fixture\n')
 workspace=root/'Library/Application Support/ProjectMontage/workspace.json'
-assert not json.loads(workspace.read_text())['videos']
 media=workspace.parent/'media'
-assert not list(media.iterdir()), 'Managed media was not removed after successful save'
-assert not list((root/'tmp/ProjectMontagePreview').glob('*')), 'Preview aliases were not released'
-Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps({'source_preserved':True,'managed_cleanup_empty':True,'preview_cache_cleanup_empty':True,'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'preview_fixture_sha256':hashlib.sha256(preview.read_bytes()).hexdigest()},indent=2)+'\n')
+def listing(folder):
+    return [{'name':p.name,'is_file':p.is_file(),'is_symlink':p.is_symlink(),'bytes':p.lstat().st_size,'links':p.lstat().st_nlink} for p in folder.glob('*')]
+remaining=listing(media)
+aliases=listing(root/'tmp/ProjectMontagePreview')
+retained=json.loads(workspace.read_text())['videos']
+result={'source_preserved':source_preserved,'managed_cleanup_empty':not remaining,'preview_cache_cleanup_empty':not aliases,
+    'managed_remaining':remaining,'preview_cache_remaining':aliases,'retained_video_count':len(retained),
+    'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'preview_fixture_sha256':hashlib.sha256(preview.read_bytes()).hexdigest()}
+Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps(result,indent=2)+'\n')
+assert source_preserved, 'Import/removal changed an original test video'
+assert not retained
+assert not remaining, f'Managed media was not removed after successful save: {remaining}'
+assert not aliases, f'Preview aliases were not released: {aliases}'
 PY
 python3 - <<'PY'
 import json

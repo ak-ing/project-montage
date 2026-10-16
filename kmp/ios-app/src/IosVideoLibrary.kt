@@ -113,11 +113,28 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
     override fun removeUnreferenced(retained: List<VideoAsset>) {
         if (!manager.fileExistsAtPath(directory)) return
         val keep = retained.map { "${it.id}.media" }.toSet()
-        val names = checkNotNull(manager.contentsOfDirectoryAtPath(directory, null)) { "Cannot read video directory" }
-        names.filterIsInstance<String>().filter {
-            it.matches(Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.(media|part)")) &&
-                it !in keep && byteSize("$directory/$it") >= 0
+        val managedName = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.(media|part)")
+        fun entries(): List<NSURL> = checkNotNull(manager.contentsOfDirectoryAtURL(
+            NSURL.fileURLWithPath(directory), null, 0u, null,
+        )) { "Cannot read video directory" }.map { it as NSURL }
+        var removed = 0
+        for (url in entries()) {
+            val name = url.lastPathComponent ?: continue
+            if (!managedName.matches(name) || name in keep) continue
+            val attributes = checkNotNull(manager.attributesOfItemAtPath(checkNotNull(url.path), null)) {
+                "Cannot inspect unused video"
+            }
+            val type = attributes[NSFileType]
+            // Remove a managed link itself, never its destination; preserve unexpected directories.
+            check(type == NSFileTypeRegular || type == NSFileTypeSymbolicLink) { "Unexpected managed video entry" }
+            check(manager.removeItemAtURL(url, null)) { "Cannot remove unused video" }
+            removed++
         }
-            .forEach { check(manager.removeItemAtPath("$directory/$it", null)) { "Cannot remove unused video" } }
+        val remaining = entries().count { url ->
+            val name = url.lastPathComponent ?: ""
+            managedName.matches(name) && name !in keep
+        }
+        NSLog("Montage video cleanup: removed=$removed retained=${keep.size} unreferenced=$remaining")
+        check(remaining == 0) { "Unused video copies remain" }
     }
 }
