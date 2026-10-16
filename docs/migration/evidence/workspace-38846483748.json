@@ -1,7 +1,7 @@
 {
   "run_id": 38846483748,
   "commit": "b70eb47a682768a914fc148894278d9081f6deca",
-  "run_url": "https://github.com/ak-ing/project-montage-private/actions/runs/38846483748",
+  "run_url": "https://github.com/ak-ing/project-montage/actions/runs/38846483748",
   "artifacts": [
     {
       "name": "desktop-macos-26",

@@ -2,7 +2,7 @@
 
 ## 基线与本次交付
 
-2026-10-13 检查的私有仓库为 `ak-ing/project-montage-private`。初始分支 `work`，远端 `rewrite/kmp` 指向 `dc1fc90af071af6ae24242a5b3a2b54831320387`；工作区干净后切换并设置跟踪。
+2026-10-13 检查的私有仓库当时名为 `ak-ing/project-montage-private`。2026-10-16 用户将其改名为 `ak-ing/project-montage` 并公开，仓库 ID `1349344394`、分支和历史 CI 均保留，本地 origin 已同步。初始分支 `work`，远端 `rewrite/kmp` 指向 `dc1fc90af071af6ae24242a5b3a2b54831320387`；工作区干净后切换并设置跟踪。
 从 `https://github.com/google/project-montage.git` 获取 `upstream/main`，以 fast-forward 合入 3 个提交，基线为 **`19de972cadefabfc18920a95b873b3cfb6f9a3a6`**。没有强制重置、改写历史或推送远端。
 
 原版目录原地保留；相对该同步基线的新增实现位于 `kmp/`。上游同步本身包含删除旧 App Engine YAML 等变更，属于 Google 提交，不是迁移删减。今后用 `git diff 19de972 -- mcp_client mcp_montage sign_server deploy third_party` 检查保留情况。

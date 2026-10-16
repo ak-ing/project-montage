@@ -3,7 +3,7 @@
 ## Scope and source of truth
 
 - Work in the existing checkout on `rewrite/kmp`. Cloud tasks are already isolated; do not create a worktree unless explicitly requested. Inspect `git status` before switching or editing; preserve user changes.
-- `origin` is `https://github.com/ak-ing/project-montage-private.git`; `upstream` is `https://github.com/google/project-montage.git`. Baseline: `19de972cadefabfc18920a95b873b3cfb6f9a3a6` (2026-10-13 inspection).
+- `origin` is `https://github.com/ak-ing/project-montage.git` (renamed from `project-montage-private` and made public on 2026-10-16); `upstream` is `https://github.com/google/project-montage.git`. Baseline: `19de972cadefabfc18920a95b873b3cfb6f9a3a6` (2026-10-13 inspection).
 - Keep `mcp_client/`, `mcp_montage/`, `sign_server/`, `deploy/`, `third_party/` and their licenses as the runnable/reference upstream implementation. Do not move, delete, simplify or rewrite them during scaffold work.
 - The current milestone is local video import through platform pickers, managed copies and workspace recovery on the KMP/CMP implementation in `kmp/`. Every product capability in `docs/migration/PLAN.md` remains in final scope. Unimplemented is not removed.
 - Follow the user's Kotlin Toolchain requirement: use the pinned official `kotlin` / `kotlin.bat` wrapper and YAML modules. Do not add Gradle scripts or a Gradle wrapper. Toolchain currently uses AGP/Gradle internally for Android; document that upstream limitation, do not hide it or implement a second build.

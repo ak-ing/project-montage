@@ -18,7 +18,7 @@ iOS `38853815667` 的 16 个领域测试与草稿 UI 用例成功，但视频导
 
 Android APK 构建成功，12 个 core host 测试全部成功、无失败/跳过。测试数量检查与 actionlint 通过，原版服务目录相对上游基线仍无改动。
 
-远端 [38846483748](https://github.com/ak-ing/project-montage-private/actions/runs/38846483748)（源码 `b70eb47`）四个作业全部成功。四份主报告 ZIP 的 SHA-256、XML/TeamCity、Android result.json、XCTest 汇总与截图附件已核对：
+远端 [38846483748](https://github.com/ak-ing/project-montage/actions/runs/38846483748)（源码 `b70eb47`）四个作业全部成功。四份主报告 ZIP 的 SHA-256、XML/TeamCity、Android result.json、XCTest 汇总与截图附件已核对：
 
 | 平台 | 领域测试 | 存储/UI 验证 |
 | --- | --- | --- |
@@ -37,7 +37,7 @@ Android APK 构建成功，12 个 core host 测试全部成功、无失败/跳�
 
 生成的 Xcode 工程已审查并纳入版本管理，补齐 `dev.montage.app`、iOS 15.0 和 XCTest UI target。
 
-最终运行 [38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)（源码 `75f1f04`）四个作业全部成功。五份 ZIP 已逐份校验 SHA-256，实际 XML、TeamCity、Android result.json 与 XCTest 汇总已核对：
+最终运行 [38759747810](https://github.com/ak-ing/project-montage/actions/runs/38759747810)（源码 `75f1f04`）四个作业全部成功。五份 ZIP 已逐份校验 SHA-256，实际 XML、TeamCity、Android result.json 与 XCTest 汇总已核对：
 
 | 平台 | 共享逻辑 | UI 冒烟 |
 | --- | --- | --- |

@@ -4,21 +4,21 @@
 
 当前工作流要求每端至少 16 个领域测试、每个桌面至少 10 个存储/导入/UI 测试，以及 iOS 恰好 2 个 XCTest 用例。桌面新增原生 FileDialog 打开/关闭、分块复制/失败清理/保留引用和共享素材 UI 验证；桌面选择成功路径通过注入选择结果调用真实文件适配器，尚未自动驱动原生对话框选中文件。Android/iOS 直接操作系统文档选择器，覆盖取消、导入、保存、重启恢复和移除；Android 另删除外部源并逐字节核对内部副本及清理结果。测试素材为 [自生成一秒蓝色视频](../../kmp/test-data/README.md)。
 
-复检运行 [38852177157](https://github.com/ak-ing/project-montage-private/actions/runs/38852177157)（源码 `a212a16`）的 Windows/macOS 各 16 个领域测试、10 个存储/导入/UI 测试全部成功，Android 的 16 个 host 测试与系统选择器流程成功；三份 ZIP 已校验摘要，素材页截图已检查。Android 内部副本与源测试片 SHA-256 一致，删除外部源后可恢复，移除保存后受管理目录为空；这轮没有触发 Launcher 恢复。
+复检运行 [38852177157](https://github.com/ak-ing/project-montage/actions/runs/38852177157)（源码 `a212a16`）的 Windows/macOS 各 16 个领域测试、10 个存储/导入/UI 测试全部成功，Android 的 16 个 host 测试与系统选择器流程成功；三份 ZIP 已校验摘要，素材页截图已检查。Android 内部副本与源测试片 SHA-256 一致，删除外部源后可恢复，移除保存后受管理目录为空；这轮没有触发 Launcher 恢复。
 
-iOS 这轮失败点为缩略图可见但不支持 XCTest 的直接点击（命中点 `-1,-1`）。`3f73e2c` 改为依据无障碍边界计算中心坐标点击，在 [38853815667](https://github.com/ak-ing/project-montage-private/actions/runs/38853815667) 定向复检：16 个领域测试成功，XCTest 草稿用例成功、视频导入用例失败，选择器没有返回，界面停留在 Working。此结果不算 iOS 导入通过。
+iOS 这轮失败点为缩略图可见但不支持 XCTest 的直接点击（命中点 `-1,-1`）。`3f73e2c` 改为依据无障碍边界计算中心坐标点击，在 [38853815667](https://github.com/ak-ing/project-montage/actions/runs/38853815667) 定向复检：16 个领域测试成功，XCTest 草稿用例成功、视频导入用例失败，选择器没有返回，界面停留在 Working。此结果不算 iOS 导入通过。
 
-`0107eed` 将 iOS 选择器改为复制导入、从顶层控制器呈现并补充回调日志。2026-10-16 的定向运行 [38856216880](https://github.com/ak-ing/project-montage-private/actions/runs/38856216880) 被 Actions 计费限制阻止，作业无执行步骤，最新 iOS 修正尚未编译或运行。已核对 `a212a16..0107eed` 仅改动工作流、iOS 适配器及其测试，前三端相关源码完全相同，因此保留前三端实际通过的报告。分平台跳过的整个作业不作为测试通过计数。状态与摘要见 [video-import-status.json](evidence/video-import-status.json)。
+`0107eed` 将 iOS 选择器改为复制导入、从顶层控制器呈现并补充回调日志。2026-10-16 的定向运行 [38856216880](https://github.com/ak-ing/project-montage/actions/runs/38856216880) 被 Actions 计费限制阻止，作业无执行步骤，最新 iOS 修正尚未编译或运行。已核对 `a212a16..0107eed` 仅改动工作流、iOS 适配器及其测试，前三端相关源码完全相同，因此保留前三端实际通过的报告。分平台跳过的整个作业不作为测试通过计数。状态与摘要见 [video-import-status.json](evidence/video-import-status.json)。
 
 | Windows | macOS | Android | iOS |
 | --- | --- | --- | --- |
 | [素材页](evidence/video-import-windows.png) | [素材页](evidence/video-import-macos.png) | [素材页](evidence/video-import-android.png) | 导入失败；最新修正因计费阻塞 |
 
-首轮 [38849878968](https://github.com/ak-ing/project-montage-private/actions/runs/38849878968) 定位了测试环境/交互问题：macOS 的 Robot Escape 未关闭文件框，现使用应用取消时的原生关闭路径；Android 冷启动被 Pixel Launcher ANR 弹窗遮挡，脚本仅允许记录并关闭该确切系统弹窗一次，Montage 崩溃/ANR 仍失败；iOS 文件网格中心点击后未返回，现按无障碍树选择文件缩略图，系统出现 Open 确认时完成该操作。两条 XCTest 的构建与执行共用 16 分钟步骤上限，单例执行仍由 Xcode 的 120/180 秒限制保护。
+首轮 [38849878968](https://github.com/ak-ing/project-montage/actions/runs/38849878968) 定位了测试环境/交互问题：macOS 的 Robot Escape 未关闭文件框，现使用应用取消时的原生关闭路径；Android 冷启动被 Pixel Launcher ANR 弹窗遮挡，脚本仅允许记录并关闭该确切系统弹窗一次，Montage 崩溃/ANR 仍失败；iOS 文件网格中心点击后未返回，现按无障碍树选择文件缩略图，系统出现 Open 确认时完成该操作。两条 XCTest 的构建与执行共用 16 分钟步骤上限，单例执行仍由 Xcode 的 120/180 秒限制保护。
 
 ## 设备工作区验证基线
 
-运行 [38846483748](https://github.com/ak-ing/project-montage-private/actions/runs/38846483748)（源码 `b70eb47`）四个作业全部成功。四份主报告 ZIP 已下载并校验 SHA-256，实际报告确认每端 12 个领域测试（共 48 次执行）、每个桌面 4 个存储/UI 测试（共 8 次执行）、Android adb 流程及 iOS 1 个 XCTest 流程均成功，无失败、无跳过。完整清单见 [workspace-38846483748.json](evidence/workspace-38846483748.json)。完整 iOS xcresult 由 Actions 另行保存，本次审阅主报告中的汇总、日志和截图附件。
+运行 [38846483748](https://github.com/ak-ing/project-montage/actions/runs/38846483748)（源码 `b70eb47`）四个作业全部成功。四份主报告 ZIP 已下载并校验 SHA-256，实际报告确认每端 12 个领域测试（共 48 次执行）、每个桌面 4 个存储/UI 测试（共 8 次执行）、Android adb 流程及 iOS 1 个 XCTest 流程均成功，无失败、无跳过。完整清单见 [workspace-38846483748.json](evidence/workspace-38846483748.json)。完整 iOS xcresult 由 Actions 另行保存，本次审阅主报告中的汇总、日志和截图附件。
 
 桌面流程覆盖保存→重置编辑→重载，并通过新建 repository 验证磁盘结果；另覆盖损坏文件保护与修复后重试。Android/iOS 覆盖保存→终止进程→重新启动→恢复标题及分镜→重置并保存。四端恢复截图已逐张审阅并纳入仓库：
 
@@ -30,7 +30,7 @@ iOS 这轮失败点为缩略图可见但不支持 XCTest 的直接点击（命�
 
 ## 已验证的原始骨架基线
 
-运行：[38759747810](https://github.com/ak-ing/project-montage-private/actions/runs/38759747810)，源码 `75f1f04`，**四个作业全部成功**。已下载并逐份校验五个产物包，审阅实际报告：20 次 core 测试执行与四条 UI 流程均成功，无失败、无跳过。移动端 UI 结果来自模拟器。完整摘要见 [验证清单](evidence/ui-38759747810.json)。
+运行：[38759747810](https://github.com/ak-ing/project-montage/actions/runs/38759747810)，源码 `75f1f04`，**四个作业全部成功**。已下载并逐份校验五个产物包，审阅实际报告：20 次 core 测试执行与四条 UI 流程均成功，无失败、无跳过。移动端 UI 结果来自模拟器。完整摘要见 [验证清单](evidence/ui-38759747810.json)。
 
 | 平台 | 托管主机 | 构建与共享测试 | UI 流程 |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；�
 
 ## 指定 CI 产物与 Xcode 审查
 
-2026-10-15 已下载指定运行 [38729383572](https://github.com/ak-ing/project-montage-private/actions/runs/38729383572)（`6bdfc0d`）全部四份 ZIP，在本地按 GitHub 提供的 SHA-256 逐份校验。Windows/macOS/Android 的 JUnit 报告各 5 成功、0 失败、0 跳过；iOS TeamCity 日志也为 5 开始、5 完成、0 失败、0 跳过。额外的空测试引擎没有计入执行数量。[产物校验清单](evidence/ci-38729383572.json)包含提交、产物 ID、摘要和测试名。这些旧报告只覆盖共享逻辑。
+2026-10-15 已下载指定运行 [38729383572](https://github.com/ak-ing/project-montage/actions/runs/38729383572)（`6bdfc0d`）全部四份 ZIP，在本地按 GitHub 提供的 SHA-256 逐份校验。Windows/macOS/Android 的 JUnit 报告各 5 成功、0 失败、0 跳过；iOS TeamCity 日志也为 5 开始、5 完成、0 失败、0 跳过。额外的空测试引擎没有计入执行数量。[产物校验清单](evidence/ci-38729383572.json)包含提交、产物 ID、摘要和测试名。这些旧报告只覆盖共享逻辑。
 
 旧 Xcode 产物含 `project.pbxproj` 与共享 `app.xcscheme`，但 bundle ID 为默认 `ios-app`、没有明确最低 iOS 版本、scheme 的 Testables 为空。已将审查后的工程纳入版本管理，设置 `dev.montage.app`、iOS 15.0，保留 Toolchain 管理的 Kotlin 集成阶段，新增独立 `MontageUITests` 目标。UI 测试源码位于 `ios-app/ui-tests/`，不参与生产 app 的同步源码组。模拟器不需要开发团队或真机签名。
 
@@ -61,7 +61,7 @@ Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；�
 
 ## 检查与产物规则
 
-工作流是 [kmp.yml](../../.github/workflows/kmp.yml)。推送 `rewrite/kmp` 或提交 PR 时，修改 `kmp/**` 或工作流会触发完整四端构建；手动运行可用 `platform=all/desktop/android/ios` 定向验证，例如 `gh workflow run 385462765 -R ak-ing/project-montage-private --ref rewrite/kmp -f platform=ios`。复用其他平台报告前须证明相关源码未变化，并记录实际来源提交/作业，不将未执行作业当成成功。仅 `docs/**` 修改不触发构建。所有构建与测试由固定版本的 Kotlin Toolchain wrapper 发起，没有新增 Gradle 工程。
+工作流是 [kmp.yml](../../.github/workflows/kmp.yml)。推送 `rewrite/kmp` 或提交 PR 时，修改 `kmp/**` 或工作流会触发完整四端构建；手动运行可用 `platform=all/desktop/android/ios` 定向验证，例如 `gh workflow run 385462765 -R ak-ing/project-montage --ref rewrite/kmp -f platform=ios`。复用其他平台报告前须证明相关源码未变化，并记录实际来源提交/作业，不将未执行作业当成成功。仅 `docs/**` 修改不触发构建。所有构建与测试由固定版本的 Kotlin Toolchain wrapper 发起，没有新增 Gradle 工程。
 
 `scripts/verify-ci-tests.py` 检查 JVM/Android JUnit XML 与 iOS TeamCity 事件，工作流显式要求每端至少 16 个领域测试，全部完成、无失败、无跳过。桌面存储/导入/UI 要求至少 10 个成功测试；Android 脚本断言失败与 iOS 两个 XCTest/汇总失败都会使作业失败。构建成功、配置了测试或零测试均不能替代 UI 验证。
 
@@ -77,7 +77,7 @@ iOS 优先复用已启动的 iPhone 模拟器，先用 `build-for-testing` 构�
 
 ### Actions 额度与 CNB 分流（2026-10-16 调研）
 
-当前 Actions 额度耗尽；等待账户额度重置、购买额外用量或使用自有构建机均可恢复执行。本次没有更改付费设置。定向重跑只需 iOS，前三端相关源码未变，不必重复完整矩阵。
+此前私有仓库 Actions 额度耗尽。2026-10-16 用户将原仓库改名为 `ak-ing/project-montage` 并设为 Public，仓库 ID `1349344394` 与历史运行保留，本地 origin 已更新。标准托管 runner 的公开仓库运行不消耗私有仓库分钟额度；大型 runner 仍收费，详见 [GitHub 官方计费文档](https://docs.github.com/en/billing/concepts/product-billing/github-actions)。本次没有更改付费设置。定向重跑只需 iOS，前三端相关源码未变，不必重复完整矩阵。
 
 CNB [定价文档](https://docs.cnb.cool/en/pricing.md)列出 Events-CPU 免费额度为每月 160 核时，月末重置；4 核累计约 40 小时、默认 8 核约 20 小时，不能按单核分钟理解。实际以组织「用量管理」为准，Workspaces 的额度不是流水线 Events 额度。
 

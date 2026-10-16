@@ -1,7 +1,7 @@
 {
   "run_id": 38759747810,
   "commit": "75f1f04ed4b5b50eb29c027e93f6c4da5829d6b8",
-  "run_url": "https://github.com/ak-ing/project-montage-private/actions/runs/38759747810",
+  "run_url": "https://github.com/ak-ing/project-montage/actions/runs/38759747810",
   "artifacts": [
     {
       "name": "ios-ui-xcresult",
