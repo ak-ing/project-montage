@@ -45,7 +45,11 @@ class VideoPreviewUiSmokeTest {
         compose.onAllNodesWithText("No unsaved changes").fetchSemanticsNodes().isNotEmpty()
     }
     private fun waitPreview(provider: ObservedProvider, expectedOpen: Int = 1) {
-        compose.waitUntil(30_000) { provider.opened >= expectedOpen && provider.current.state.value.status != PlaybackStatus.Loading }
+        compose.waitUntil(30_000) {
+            provider.opened >= expectedOpen && (provider.current.state.value.status == PlaybackStatus.Error ||
+                (provider.current.state.value.status == PlaybackStatus.Paused &&
+                    compose.onAllNodesWithTag("video-thumbnail").fetchSemanticsNodes().isNotEmpty()))
+        }
         assertEquals(PlaybackStatus.Paused, provider.current.state.value.status)
         compose.onNodeWithTag("video-thumbnail").assertExists()
         val metadata = provider.current.state.value.metadata!!
@@ -151,7 +155,10 @@ class VideoPreviewUiSmokeTest {
             compose.onNodeWithTag("video-tab").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Available on this device").fetchSemanticsNodes().isNotEmpty() }
             compose.onNode(hasTestTagStartingWith("preview-video-")).performClick()
-            compose.waitUntil(30_000) { provider.opened > 0 && provider.current.state.value.status == PlaybackStatus.Error }
+            compose.waitUntil(30_000) {
+                provider.opened > 0 && provider.current.state.value.status == PlaybackStatus.Error &&
+                    compose.onAllNodesWithTag("preview-error").fetchSemanticsNodes().isNotEmpty()
+            }
             compose.onNodeWithTag("preview-error").assertExists()
             assertEquals(asset.byteSize, managed.length())
             File("../test-data/preview-smoke.mp4").copyTo(managed, overwrite = true)
