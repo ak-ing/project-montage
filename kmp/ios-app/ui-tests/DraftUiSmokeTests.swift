@@ -3,10 +3,18 @@ import XCTest
 import CoreGraphics
 
 final class DraftUiSmokeTests: XCTestCase {
+    private func openApp(_ app: XCUIApplication) {
+        if app.state == .notRunning {
+            app.launch()
+        } else {
+            app.activate()
+        }
+    }
+
     func testEditAppendAndResetDraft() {
         continueAfterFailure = false
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
-        app.launch()
+        openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30), app.debugDescription)
         let initial = app.staticTexts["2 scenes · 10s visible · 1s transition buffer"]
         XCTAssertTrue(initial.waitForExistence(timeout: 30), app.debugDescription)
@@ -34,7 +42,7 @@ final class DraftUiSmokeTests: XCTestCase {
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.terminate()
-        app.launch()
+        openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         XCTAssertTrue(app.staticTexts["3 scenes · 14s visible · 2s transition buffer"].exists)
         XCTAssertTrue((app.textViews["project-title"].value as? String)?.contains("UI smoke title") == true)
@@ -76,7 +84,7 @@ final class DraftUiSmokeTests: XCTestCase {
     func testImportVideoCancelSaveRestoreAndRemove() {
         continueAfterFailure = false
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
-        app.launch()
+        openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.buttons["import-video"].tap()
         let cancel = app.buttons["Cancel"].firstMatch
@@ -94,7 +102,7 @@ final class DraftUiSmokeTests: XCTestCase {
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.terminate()
-        app.launch()
+        openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.buttons["video-tab"].tap()
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30))
@@ -155,7 +163,7 @@ final class DraftUiSmokeTests: XCTestCase {
     func testVideoPreviewPlaybackSeekAndRestart() {
         continueAfterFailure = false
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
-        app.launch()
+        openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         importVideo(app, "Montage-preview-smoke")
         let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "preview-video-")).firstMatch

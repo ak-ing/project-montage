@@ -44,7 +44,6 @@ xcrun simctl spawn "$simulator_id" log show --last 20m --style compact \
   > build/ui-smoke/ios/file-provider-errors.log || true
 xcrun xcresulttool get test-results summary --path build/ui-smoke/ios/DraftUiSmoke.xcresult > build/ui-smoke/ios/result.json
 xcrun xcresulttool export attachments --path build/ui-smoke/ios/DraftUiSmoke.xcresult --output-path build/ui-smoke/ios/attachments
-test "$xcode_status" -eq 0
 app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
 python3 - "$app_data" <<'PY'
 from pathlib import Path
@@ -72,6 +71,7 @@ assert not retained
 assert not remaining, f'Managed media was not removed after successful save: {remaining}'
 assert not aliases, f'Preview aliases were not released: {aliases}'
 PY
+test "$xcode_status" -eq 0
 python3 - <<'PY'
 import json
 p=json.load(open('build/ui-smoke/ios/result.json'))
