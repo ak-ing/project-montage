@@ -77,7 +77,7 @@ final class DraftUiSmokeTests: XCTestCase {
         // Hosted simulators can drop a burst of synthetic keystrokes while composing.
         for character in value {
             field.typeText(String(character))
-            Thread.sleep(forTimeInterval: 0.1)
+            Thread.sleep(forTimeInterval: 0.2)
         }
     }
 
@@ -132,9 +132,13 @@ final class DraftUiSmokeTests: XCTestCase {
         // The simulator's Files grid can route a tap to either the caption or the
         // cell gesture depending on whether its remote provider has just loaded.
         // Use bounded alternatives, then require the picker to dismiss below.
-        let activation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
-        filename.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        if XCTWaiter.wait(for: [activation], timeout: 4) != .completed {
+        file.tap()
+        let firstActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
+        if XCTWaiter.wait(for: [firstActivation], timeout: 4) != .completed {
+            filename.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        let secondActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
+        if file.exists && XCTWaiter.wait(for: [secondActivation], timeout: 4) != .completed {
             let open = app.buttons["Open"].firstMatch
             if open.waitForExistence(timeout: 1) { open.tap() }
         }
