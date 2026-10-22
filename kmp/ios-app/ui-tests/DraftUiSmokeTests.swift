@@ -129,17 +129,28 @@ final class DraftUiSmokeTests: XCTestCase {
         let filename = file.staticTexts[prefix]
         XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(filename.frame.isEmpty)
-        // Select the document through its caption, outside the video thumbnail's gesture area.
+        // The simulator's Files grid can route a tap to either the caption or the
+        // cell gesture depending on whether its remote provider has just loaded.
+        // Use bounded alternatives, then require the picker to dismiss below.
+        let activation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
         filename.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        let firstActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
-        if XCTWaiter.wait(for: [firstActivation], timeout: 4) != .completed {
+        if XCTWaiter.wait(for: [activation], timeout: 4) != .completed {
+            let open = app.buttons["Open"].firstMatch
+            if open.waitForExistence(timeout: 1) { open.tap() }
+        }
+        if file.exists {
             attach(app, "picker-activation-retry-" + prefix)
+            file.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            let retry = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
+            _ = XCTWaiter.wait(for: [retry], timeout: 4)
+        }
+        if file.exists {
             let thumbnail = file.images.firstMatch
             XCTAssertTrue(thumbnail.exists, app.debugDescription)
             thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+            let open = app.buttons["Open"].firstMatch
+            if open.waitForExistence(timeout: 3) { open.tap() }
         }
-        let open = app.buttons["Open"].firstMatch
-        if open.waitForExistence(timeout: 3) { open.tap() }
         attach(app, "picker-after-selection-" + prefix)
         let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
         wait(for: [dismissed], timeout: 15)
