@@ -66,7 +66,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(status.waitForExistence(timeout: 30), source.debugDescription)
         if status.label == "Source documents exported" { return }
         source.buttons["export-fixtures"].tap()
-        navigateToFixtureFolder(source, selectBrowse: false)
+        XCTAssertTrue(source.buttons["Montage smoke fixtures, Actions Menu"].waitForExistence(timeout: 30), source.debugDescription)
         attach(source, "fixture-export-destination")
         let commit = source.buttons.matching(NSPredicate(format: "label IN %@", ["Save", "Export", "Copy"])).firstMatch
         XCTAssertTrue(commit.waitForExistence(timeout: 30), source.debugDescription)
@@ -160,37 +160,27 @@ final class DraftUiSmokeTests: XCTestCase {
         wait(for: [dismissed], timeout: 15)
     }
 
-    private func navigateToFixtureFolder(_ app: XCUIApplication, selectBrowse: Bool = true) {
-        if selectBrowse {
-            let browse = app.buttons.matching(NSPredicate(
-                format: "label == %@ AND identifier != %@", "Browse", "BackButton"
-            )).firstMatch
-            XCTAssertTrue(browse.waitForExistence(timeout: 30), app.debugDescription)
-            browse.tap()
-        }
+    private func navigateToFixtureFolder(_ app: XCUIApplication) {
+        let folderTitle = app.buttons["Montage smoke fixtures, Actions Menu"]
+        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
         let location = app.cells["DOC.sidebar.item.On My iPhone"]
         let parent = app.buttons["BackButton"].firstMatch
-        // Files remembers its last folder. Return through native parents to
-        // Locations, then enter the provider-owned fixture folder explicitly.
-        for _ in 0..<3 {
-            let navigationReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-                location.exists || parent.exists
+        let browse = app.buttons.matching(NSPredicate(
+            format: "label == %@ AND identifier != %@", "Browse", "BackButton"
+        )).firstMatch
+        // A verified restored destination is already usable. At every step,
+        // wait for current native navigation state rather than a vanished row.
+        for _ in 0..<6 {
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                folderTitle.exists || folder.exists || location.exists || parent.exists || browse.exists
             }, object: app)
-            XCTAssertEqual(XCTWaiter.wait(for: [navigationReady], timeout: 30), .completed, app.debugDescription)
-            if location.exists { break }
-            parent.tap()
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed, app.debugDescription)
+            if folderTitle.exists { return }
+            if folder.exists { folder.tap(); continue }
+            if location.exists { location.tap(); continue }
+            if parent.exists { parent.tap(); continue }
+            browse.tap()
         }
-        XCTAssertTrue(location.waitForExistence(timeout: 10), app.debugDescription)
-        location.tap()
-        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
-        let folderTitle = app.buttons["Montage smoke fixtures, Actions Menu"]
-        // Files can finish restoring its last directory while Locations is
-        // loading. Accept the verified destination title if it is already open.
-        let destinationReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            folderTitle.exists || folder.exists
-        }, object: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [destinationReady], timeout: 30), .completed, app.debugDescription)
-        if !folderTitle.exists { folder.tap() }
         XCTAssertTrue(folderTitle.waitForExistence(timeout: 30), app.debugDescription)
     }
 

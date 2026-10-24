@@ -38,6 +38,7 @@ final class FixtureSource: UIResponder, UIApplicationDelegate, UIDocumentPickerD
         let sources = names.map { Bundle.main.bundleURL.appendingPathComponent("Fixtures").appendingPathComponent($0) }
         let picker = UIDocumentPickerViewController(forExporting: sources, asCopy: true)
         picker.delegate = self
+        picker.directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         window?.rootViewController?.present(picker, animated: true)
     }
 
