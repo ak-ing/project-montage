@@ -130,14 +130,15 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout: 30), app.debugDescription)
         browse.tap()
         let location = app.cells["DOC.sidebar.item.On My iPhone"]
+        let parent = app.buttons["BackButton"].firstMatch
         // Files remembers its last folder. Return through native parents to
         // Locations, then enter the provider-owned fixture folder explicitly.
         for _ in 0..<3 {
-            if location.waitForExistence(timeout: 2) {
-                break
-            }
-            let parent = app.buttons["BackButton"].firstMatch
-            XCTAssertTrue(parent.waitForExistence(timeout: 10), app.debugDescription)
+            let navigationReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                location.exists || parent.exists
+            }, object: app)
+            XCTAssertEqual(XCTWaiter.wait(for: [navigationReady], timeout: 30), .completed, app.debugDescription)
+            if location.exists { break }
             parent.tap()
         }
         XCTAssertTrue(location.waitForExistence(timeout: 10), app.debugDescription)

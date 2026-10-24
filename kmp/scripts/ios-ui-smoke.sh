@@ -27,11 +27,22 @@ if xcrun simctl get_app_container "$simulator_id" com.apple.DocumentsApp app >/d
 fi
 fixture_sources=$(python3 - "$app_data" <<'PY'
 from pathlib import Path
-import hashlib, json, shutil, sys, time
+import hashlib, json, plistlib, shutil, sys, time
 device_data=Path(sys.argv[1]).parents[3]
 for attempt in range(30):
     roots=list((device_data/'Containers/Shared/AppGroup').glob('*/File Provider Storage'))
     if len(roots)==1: break
+    # Some simulator runtimes omit the Files app. Initialize only the already
+    # registered LocalStorage provider's own group, never an invented container.
+    if not roots:
+        for metadata in (device_data/'Containers/Shared/AppGroup').glob('*/.com.apple.mobile_container_manager.metadata.plist'):
+            with metadata.open('rb') as stream: owner=plistlib.load(stream).get('MCMMetadataIdentifier','')
+            if owner.endswith('com.apple.FileProvider.LocalStorage'):
+                storage=metadata.parent/'File Provider Storage'
+                storage.mkdir(mode=0o700,exist_ok=True)
+                roots=[storage]
+                break
+        if len(roots)==1: break
     time.sleep(1)
 assert len(roots)==1, f'Expected one initialized Files LocalStorage root, found {len(roots)}'
 folder=roots[0]/'Montage smoke fixtures'
