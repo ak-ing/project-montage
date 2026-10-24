@@ -26,10 +26,10 @@ final class FixtureSource: UIResponder, UIApplicationDelegate {
             for name in names {
                 let original = Bundle.main.bundleURL.appendingPathComponent("Fixtures").appendingPathComponent(name)
                 let bytes = try Data(contentsOf: original)
-                guard bytes.count <= 65536 else { report(error: "Fixture exceeds test-only byte limit"); return }
+                guard bytes.count <= 65536 else { report(error: "Fixture exceeds test-only byte limit"); return true }
                 let destination = documents.appendingPathComponent(name)
                 if manager.fileExists(atPath: destination.path) {
-                    guard try Data(contentsOf: destination) == bytes else { report(error: "Existing fixture differs: " + name); return }
+                    guard try Data(contentsOf: destination) == bytes else { report(error: "Existing fixture differs: " + name); return true }
                 } else {
                     try bytes.write(to: destination, options: .atomic)
                 }
