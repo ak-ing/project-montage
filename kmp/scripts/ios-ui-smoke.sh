@@ -15,8 +15,8 @@ xcodebuild build-for-testing -project ios-app/module.xcodeproj -scheme app \
   -destination-timeout 120 -parallel-testing-enabled NO \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/ui-smoke/ios/xcodebuild.log
-# Keep the source documents in a separate test-only app. Its UIDocument saves
-# run inside iOS and coordinate file creation with FileProvider. Host filesystem
+# Keep the source documents in a separate test-only app. The system export
+# picker creates its source documents through FileProvider during XCTest. Host filesystem
 # injection can leave visible entries whose document IDs cannot resolve to URLs.
 app_path="$PWD/build/ui-smoke/ios/DerivedData/Build/Products/Debug-iphonesimulator/ios-app.app"
 test -d "$app_path"
@@ -45,21 +45,17 @@ for attempt in range(120):
     time.sleep(1)
 assert ready.exists(), 'Coordinated fixture source did not produce its readiness report'
 creation=json.loads(ready.read_text())
-assert creation['status']=='ready', creation
+assert creation['status'] in ['awaiting_export','ready'], creation
 names=['Montage-import-smoke.mp4','Montage-preview-smoke.mp4','Montage-preview-invalid.mp4']
-assert creation['saved_documents']==names, creation
 folder=source_root/'Documents'
-expected={names[0]:Path('test-data/import-smoke.mp4').read_bytes(),
-          names[1]:Path('test-data/preview-smoke.mp4').read_bytes(),
-          names[2]:b'Invalid video fixture\n'}
-for name,data in expected.items(): assert (folder/name).read_bytes()==data, name
+# Actual source-byte checks follow XCTest, after native export completes.
 assert not folder.is_relative_to(Path(sys.argv[1]))
 Path('build/ui-smoke/ios/fixture-source.json').write_text(json.dumps({
     'provider':'Files LocalStorage app Documents','folder':'On My iPhone/Montage smoke fixtures',
     'fixture_app_bundle_id':'dev.montage.fixture-source',
     'creation':creation,
     'outside_target_app_container':True,
-    'files':{name:hashlib.sha256((folder/name).read_bytes()).hexdigest() for name in names},
+    'files':{},
 },indent=2)+'\n')
 print(folder)
 PYFIXTURE
@@ -94,24 +90,32 @@ sources=Path(sys.argv[2])
 original=sources/'Montage-import-smoke.mp4'
 fixture=Path('test-data/import-smoke.mp4')
 preview=Path('test-data/preview-smoke.mp4')
-source_preserved=(original.read_bytes()==fixture.read_bytes() and
-    (sources/'Montage-preview-smoke.mp4').read_bytes()==preview.read_bytes() and
-    (sources/'Montage-preview-invalid.mp4').read_bytes()==b'Invalid video fixture\n')
+expected={'Montage-import-smoke.mp4':fixture.read_bytes(),
+          'Montage-preview-smoke.mp4':preview.read_bytes(),
+          'Montage-preview-invalid.mp4':b'Invalid video fixture\n'}
+source_preserved=all((sources/name).is_file() and (sources/name).read_bytes()==data for name,data in expected.items())
+source_report=Path('build/ui-smoke/ios/fixture-source.json')
+source_record=json.loads(source_report.read_text())
+source_record['creation']=json.loads((sources.parent/'Library/Caches/montage-fixtures.json').read_text())
+source_record['files']={name:hashlib.sha256((sources/name).read_bytes()).hexdigest() for name in expected if (sources/name).is_file()}
+source_report.write_text(json.dumps(source_record,indent=2)+'\n')
 workspace=root/'Library/Application Support/ProjectMontage/workspace.json'
 media=workspace.parent/'media'
 def listing(folder):
     return [{'name':p.name,'is_file':p.is_file(),'is_symlink':p.is_symlink(),'bytes':p.lstat().st_size,'links':p.lstat().st_nlink} for p in folder.glob('*')]
 remaining=listing(media)
 aliases=listing(root/'tmp/ProjectMontagePreview')
-retained=json.loads(workspace.read_text())['videos']
+retained=json.loads(workspace.read_text())['videos'] if workspace.exists() else None
 result={'source_preserved':source_preserved,'managed_cleanup_empty':not remaining,'preview_cache_cleanup_empty':not aliases,
     'source_location':'Files/On My iPhone/Montage smoke fixtures','sources_outside_app_container':not sources.is_relative_to(root),
-    'managed_remaining':remaining,'preview_cache_remaining':aliases,'retained_video_count':len(retained),
+    'managed_remaining':remaining,'preview_cache_remaining':aliases,'retained_video_count':len(retained) if retained is not None else None,
     'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'preview_fixture_sha256':hashlib.sha256(preview.read_bytes()).hexdigest()}
 Path('build/ui-smoke/ios/storage-result.json').write_text(json.dumps(result,indent=2)+'\n')
-assert source_preserved, 'Import/removal changed an original test video'
+assert source_record['creation']['status']=='ready', source_record
+assert source_record['creation']['saved_documents']==list(expected), source_record
+assert source_preserved, 'Import/removal changed or lost an original test video'
 assert result['sources_outside_app_container']
-assert not retained
+assert retained == []
 assert not remaining, f'Managed media was not removed after successful save: {remaining}'
 assert not aliases, f'Preview aliases were not released: {aliases}'
 PY

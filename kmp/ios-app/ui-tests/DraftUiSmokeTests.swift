@@ -13,6 +13,7 @@ final class DraftUiSmokeTests: XCTestCase {
 
     func testEditAppendAndResetDraft() {
         continueAfterFailure = false
+        prepareSourceDocuments()
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
         openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30), app.debugDescription)
@@ -56,6 +57,24 @@ final class DraftUiSmokeTests: XCTestCase {
         attach(app, "reset")
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+    }
+
+    private func prepareSourceDocuments() {
+        let source = XCUIApplication(bundleIdentifier: "dev.montage.fixture-source")
+        source.activate()
+        let status = source.staticTexts["fixture-status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 30), source.debugDescription)
+        if status.label == "Source documents exported" { return }
+        source.buttons["export-fixtures"].tap()
+        navigateToFixtureFolder(source, selectBrowse: false)
+        attach(source, "fixture-export-destination")
+        let commit = source.buttons.matching(NSPredicate(format: "label IN %@", ["Save", "Export", "Copy"])).firstMatch
+        XCTAssertTrue(commit.waitForExistence(timeout: 30), source.debugDescription)
+        XCTAssertTrue(commit.isEnabled)
+        commit.tap()
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Source documents exported"), object: status)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed, source.debugDescription)
+        attach(source, "fixture-exported")
     }
 
     private func attach(_ app: XCUIApplication, _ name: String) {
@@ -122,13 +141,33 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        // Source documents are saved by a separate fixture app through UIDocument.
+        // Source documents are exported by a separate fixture app through Files.
         // Select them through the real provider; the app under test only imports.
-        let browse = app.buttons.matching(NSPredicate(
-            format: "label == %@ AND identifier != %@", "Browse", "BackButton"
-        )).firstMatch
-        XCTAssertTrue(browse.waitForExistence(timeout: 30), app.debugDescription)
-        browse.tap()
+        navigateToFixtureFolder(app)
+        attach(app, "picker-folder-resolved-" + prefix)
+        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
+        XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
+        XCTAssertTrue(file.isEnabled)
+        if capture { attach(app, "video-picker") }
+        let filename = file.staticTexts[prefix]
+        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(filename.frame.isEmpty)
+        file.tap()
+        let open = app.buttons["Open"].firstMatch
+        if open.waitForExistence(timeout: 3) { open.tap() }
+        attach(app, "picker-after-selection-" + prefix)
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
+        wait(for: [dismissed], timeout: 15)
+    }
+
+    private func navigateToFixtureFolder(_ app: XCUIApplication, selectBrowse: Bool = true) {
+        if selectBrowse {
+            let browse = app.buttons.matching(NSPredicate(
+                format: "label == %@ AND identifier != %@", "Browse", "BackButton"
+            )).firstMatch
+            XCTAssertTrue(browse.waitForExistence(timeout: 30), app.debugDescription)
+            browse.tap()
+        }
         let location = app.cells["DOC.sidebar.item.On My iPhone"]
         let parent = app.buttons["BackButton"].firstMatch
         // Files remembers its last folder. Return through native parents to
@@ -146,20 +185,6 @@ final class DraftUiSmokeTests: XCTestCase {
         let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
         XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
         folder.tap()
-        attach(app, "picker-folder-resolved-" + prefix)
-        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
-        XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
-        XCTAssertTrue(file.isEnabled)
-        if capture { attach(app, "video-picker") }
-        let filename = file.staticTexts[prefix]
-        XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertFalse(filename.frame.isEmpty)
-        file.tap()
-        let open = app.buttons["Open"].firstMatch
-        if open.waitForExistence(timeout: 3) { open.tap() }
-        attach(app, "picker-after-selection-" + prefix)
-        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
-        wait(for: [dismissed], timeout: 15)
     }
 
     private func assertPreviewReady(_ app: XCUIApplication) {

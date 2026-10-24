@@ -1,81 +1,75 @@
 // SPDX-License-Identifier: Apache-2.0
-// Test-only source app. Create documents through iOS coordination rather than
-// inserting files behind the simulator FileProvider's document-ID database.
+// Test-only source app. Let the system export picker create provider-owned
+// documents; importing through the product's picker remains a separate flow.
 import UIKit
 
-private final class FixtureDocument: UIDocument {
-    let bytes: Data
-
-    init(url: URL, bytes: Data) {
-        self.bytes = bytes
-        super.init(fileURL: url)
-    }
-
-    override func contents(forType typeName: String) throws -> Any { bytes }
-}
-
 @main
-final class FixtureSource: UIResponder, UIApplicationDelegate {
+final class FixtureSource: UIResponder, UIApplicationDelegate, UIDocumentPickerDelegate {
     var window: UIWindow?
     private let status = UILabel()
+    private let export = UIButton(type: .system)
     private let names = ["Montage-import-smoke.mp4", "Montage-preview-smoke.mp4", "Montage-preview-invalid.mp4"]
-    private var saved: [String] = []
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let controller = UIViewController()
         controller.view.backgroundColor = .systemBackground
-        status.text = "Creating coordinated test documents…"
         status.numberOfLines = 0
+        status.accessibilityIdentifier = "fixture-status"
         status.frame = CGRect(x: 20, y: 100, width: 340, height: 150)
         controller.view.addSubview(status)
+        export.setTitle("Export three fixtures", for: .normal)
+        export.accessibilityIdentifier = "export-fixtures"
+        export.frame = CGRect(x: 20, y: 260, width: 340, height: 50)
+        export.addTarget(self, action: #selector(exportDocuments), for: .touchUpInside)
+        controller.view.addSubview(export)
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = controller
         window?.makeKeyAndVisible()
-        createNext(0)
+        do {
+            let documents = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            // Make the fixture app's Documents folder visible as a destination.
+            try Data("CI source documents only.\n".utf8).write(to: documents.appendingPathComponent("Read me.txt"), options: .atomic)
+            report(state: "awaiting_export", error: nil)
+        } catch { report(state: "failed", error: String(describing: error)) }
         return true
     }
 
-    private func createNext(_ index: Int) {
-        guard index < names.count else { finish(error: nil); return }
-        do {
-            let name = names[index]
-            let manager = FileManager.default
-            let documents = try manager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let source = Bundle.main.bundleURL.appendingPathComponent("Fixtures").appendingPathComponent(name)
-            let bytes = try Data(contentsOf: source)
-            let destination = documents.appendingPathComponent(name)
-            // Reopening this fixture source must preserve the original bytes.
-            if manager.fileExists(atPath: destination.path) {
-                guard try Data(contentsOf: destination) == bytes else {
-                    finish(error: "Existing fixture differs: " + name); return
-                }
-                saved.append(name)
-                createNext(index + 1)
-                return
-            }
-            let document = FixtureDocument(url: destination, bytes: bytes)
-            document.save(to: destination, for: .forCreating) { [self, document] success in
-                guard success else { finish(error: "UIDocument save failed: " + name); return }
-                document.close { [self] closed in
-                    guard closed else { finish(error: "UIDocument close failed: " + name); return }
-                    saved.append(name)
-                    createNext(index + 1)
-                }
-            }
-        } catch { finish(error: String(describing: error)) }
+    @objc private func exportDocuments() {
+        let sources = names.map { Bundle.main.bundleURL.appendingPathComponent("Fixtures").appendingPathComponent($0) }
+        let picker = UIDocumentPickerViewController(forExporting: sources, asCopy: true)
+        picker.delegate = self
+        window?.rootViewController?.present(picker, animated: true)
     }
 
-    private func finish(error: String?) {
-        let report: [String: Any] = [
-            "status": error == nil ? "ready" : "failed",
-            "creation": "UIDocument.save(.forCreating)",
-            "saved_documents": saved,
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        do {
+            let documents = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            for name in names {
+                let original = Bundle.main.bundleURL.appendingPathComponent("Fixtures").appendingPathComponent(name)
+                guard try Data(contentsOf: documents.appendingPathComponent(name)) == Data(contentsOf: original) else {
+                    report(state: "failed", error: "Exported bytes differ: " + name); return
+                }
+            }
+            report(state: "ready", error: nil)
+            export.isEnabled = false
+        } catch { report(state: "failed", error: String(describing: error)) }
+    }
+
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        report(state: "failed", error: "Fixture export cancelled")
+    }
+
+    private func report(state: String, error: String?) {
+        let result: [String: Any] = [
+            "status": state,
+            "creation": "UIDocumentPicker.forExporting(asCopy:true)",
+            "saved_documents": state == "ready" ? names : [],
             "error": error ?? "",
         ]
-        status.text = error ?? "Three coordinated source documents ready"
+        status.text = state == "ready" ? "Source documents exported" : (error ?? "Export fixtures through Files")
         do {
             let cache = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
+            try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
                 .write(to: cache.appendingPathComponent("montage-fixtures.json"), options: .atomic)
         } catch { NSLog("Montage fixture source report failed: %@", String(describing: error)) }
     }
