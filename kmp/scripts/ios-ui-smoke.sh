@@ -2,32 +2,41 @@
 # SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 mkdir -p build/ui-smoke/ios
-# A runner image's pre-created simulator can retain FileProvider document IDs.
-# Isolate the whole suite on one new device; never reset/relaunch to bypass the
+# Isolate the whole suite from pre-created simulator state. The runtime is
+# explicit when testing compatibility; never reset/relaunch to bypass the
 # cancellation/reopen regression inside that suite.
-read -r simulator_runtime simulator_type simulator_template simulator_template_state < <(
+read -r simulator_runtime simulator_type simulator_template < <(
   xcrun simctl list devices available -j | python3 -c '
-import json,subprocess,sys
+import json,os,re,subprocess,sys
 runtimes=json.load(sys.stdin)["devices"]
 phones=[(runtime,x) for runtime in sorted(runtimes, reverse=True) if "iOS" in runtime for x in runtimes[runtime] if "iPhone" in x["name"]]
-runtime,phone=phones[0]
+requested=os.environ.get("MONTAGE_IOS_UI_RUNTIME","latest")
+assert requested=="latest" or re.fullmatch(r"[0-9]+(?:\.[0-9]+){1,2}",requested),requested
+if requested!="latest":
+    wanted="com.apple.CoreSimulator.SimRuntime.iOS-"+requested.replace(".","-")
+    candidates=[(runtime,phone) for runtime,phone in phones if runtime==wanted]
+    assert candidates, f"Requested iOS UI runtime {requested} unavailable: {list(runtimes)}"
+else: candidates=phones
+runtime,phone=candidates[0]
+# Native core tests have finished. Bound memory before booting the one UI device.
+for _,device in phones:
+    if device["state"]=="Booted":
+        subprocess.run(["xcrun","simctl","shutdown",device["udid"]],check=True,stdout=subprocess.DEVNULL,timeout=90)
 device_type=phone.get("deviceTypeIdentifier")
 if not device_type:
     types=json.loads(subprocess.check_output(["xcrun","simctl","list","devicetypes","-j"]))["devicetypes"]
     device_type=next(t["identifier"] for t in types if t["name"]==phone["name"])
-print(runtime,device_type,phone["udid"],phone["state"])'
+print(runtime,device_type,phone["udid"])'
 )
-if [ "$simulator_template_state" = Booted ]; then
-  xcrun simctl shutdown "$simulator_template"
-fi
 simulator_id=$(xcrun simctl create "Montage UI smoke ${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}" "$simulator_type" "$simulator_runtime")
 trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true' EXIT
 python3 - "$simulator_id" "$simulator_runtime" "$simulator_type" "$simulator_template" <<'PYSIMULATOR'
 from pathlib import Path
-import json,sys
+import json,os,sys
 assert sys.argv[1]!=sys.argv[4]
 Path('build/ui-smoke/ios/simulator.json').write_text(json.dumps({
     'id':sys.argv[1],'runtime':sys.argv[2],'device_type':sys.argv[3],
+    'requested_runtime':os.environ.get('MONTAGE_IOS_UI_RUNTIME','latest'),
     'template_id':sys.argv[4],'fresh_device_for_entire_suite':True,
     'app_reset_between_cancel_and_reopen':False,
 },indent=2)+'\n')
