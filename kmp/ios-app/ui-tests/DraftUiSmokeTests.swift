@@ -122,6 +122,18 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
+        // Fixtures are seeded outside the simulator before Xcode installs tests.
+        // Files can show their names from a stale LocalStorage item ID while
+        // fetchURL returns nil. Resolve the app folder through native navigation
+        // instead of repeatedly tapping a cached child of directoryURL.
+        let parent = app.navigationBars.buttons["BackButton"].firstMatch
+        if parent.waitForExistence(timeout: 10) && parent.label == "On My iPhone" {
+            parent.tap()
+            let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Project Montage")).firstMatch
+            XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
+            folder.tap()
+            attach(app, "picker-folder-resolved-" + prefix)
+        }
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
@@ -129,32 +141,9 @@ final class DraftUiSmokeTests: XCTestCase {
         let filename = file.staticTexts[prefix]
         XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(filename.frame.isEmpty)
-        // The simulator's Files grid can route a tap to either the caption or the
-        // cell gesture depending on whether its remote provider has just loaded.
-        // Use bounded alternatives, then require the picker to dismiss below.
         file.tap()
-        let firstActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
-        if XCTWaiter.wait(for: [firstActivation], timeout: 4) != .completed {
-            filename.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
-        let secondActivation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
-        if file.exists && XCTWaiter.wait(for: [secondActivation], timeout: 4) != .completed {
-            let open = app.buttons["Open"].firstMatch
-            if open.waitForExistence(timeout: 1) { open.tap() }
-        }
-        if file.exists {
-            attach(app, "picker-activation-retry-" + prefix)
-            file.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            let retry = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: file)
-            _ = XCTWaiter.wait(for: [retry], timeout: 4)
-        }
-        if file.exists {
-            let thumbnail = file.images.firstMatch
-            XCTAssertTrue(thumbnail.exists, app.debugDescription)
-            thumbnail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
-            let open = app.buttons["Open"].firstMatch
-            if open.waitForExistence(timeout: 3) { open.tap() }
-        }
+        let open = app.buttons["Open"].firstMatch
+        if open.waitForExistence(timeout: 3) { open.tap() }
         attach(app, "picker-after-selection-" + prefix)
         let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
         wait(for: [dismissed], timeout: 15)
