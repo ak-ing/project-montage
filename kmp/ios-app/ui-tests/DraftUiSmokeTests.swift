@@ -183,8 +183,15 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(location.waitForExistence(timeout: 10), app.debugDescription)
         location.tap()
         let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
-        XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
-        folder.tap()
+        let folderTitle = app.buttons["Montage smoke fixtures, Actions Menu"]
+        // Files can finish restoring its last directory while Locations is
+        // loading. Accept the verified destination title if it is already open.
+        let destinationReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            folderTitle.exists || folder.exists
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [destinationReady], timeout: 30), .completed, app.debugDescription)
+        if !folderTitle.exists { folder.tap() }
+        XCTAssertTrue(folderTitle.waitForExistence(timeout: 30), app.debugDescription)
     }
 
     private func assertPreviewReady(_ app: XCUIApplication) {
