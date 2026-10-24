@@ -64,9 +64,9 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
                 val picker = UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeMovie), asCopy = true)
                 picker.delegate = delegate
                 picker.allowsMultipleSelection = false
-                val documents = NSHomeDirectory() + "/Documents"
-                check(manager.createDirectoryAtPath(documents, true, null, null)) { "Cannot open import folder" }
-                picker.directoryURL = NSURL.fileURLWithPath(documents)
+                // Keep Files' normal location/provider selection. A raw URL into
+                // this app's own container can retain invalid provider IDs after
+                // an installation/container migration.
                 pending = continuation
                 continuation.invokeOnCancellation { pending = null }
                 try {

@@ -122,16 +122,27 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        // Fixtures are seeded outside the simulator before Xcode installs tests.
-        // Files can show their names from a stale LocalStorage item ID while
-        // fetchURL returns nil. Resolve the app folder through native navigation
-        // instead of repeatedly tapping a cached child of directoryURL.
-        let parent = app.navigationBars.buttons.matching(NSPredicate(
-            format: "identifier == %@ AND label == %@", "BackButton", "On My iPhone"
+        // Source fixtures live in Files' own storage, outside the target app's
+        // reinstallable container. Choose them through the native provider UI.
+        let browse = app.buttons.matching(NSPredicate(
+            format: "label == %@ AND identifier != %@", "Browse", "BackButton"
         )).firstMatch
-        XCTAssertTrue(parent.waitForExistence(timeout: 30), app.debugDescription)
-        parent.tap()
-        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Project Montage")).firstMatch
+        XCTAssertTrue(browse.waitForExistence(timeout: 30), app.debugDescription)
+        browse.tap()
+        let location = app.cells["DOC.sidebar.item.On My iPhone"]
+        // Files remembers its last folder. Return through native parents to
+        // Locations, then enter the provider-owned fixture folder explicitly.
+        for _ in 0..<3 {
+            if location.waitForExistence(timeout: 2) {
+                break
+            }
+            let parent = app.buttons["BackButton"].firstMatch
+            XCTAssertTrue(parent.waitForExistence(timeout: 10), app.debugDescription)
+            parent.tap()
+        }
+        XCTAssertTrue(location.waitForExistence(timeout: 10), app.debugDescription)
+        location.tap()
+        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
         XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
         folder.tap()
         attach(app, "picker-folder-resolved-" + prefix)

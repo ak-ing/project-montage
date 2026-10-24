@@ -216,6 +216,7 @@ jobs:
             kmp/build/ui-smoke/ios/preview-stages.log
             kmp/build/ui-smoke/ios/file-provider-errors.log
             kmp/build/ui-smoke/ios/storage-result.json
+            kmp/build/ui-smoke/ios/fixture-source.json
             kmp/build/ui-smoke/ios/result.json
           retention-days: 7
           if-no-files-found: warn
