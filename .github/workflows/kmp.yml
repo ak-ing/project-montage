@@ -175,6 +175,19 @@ jobs:
         with:
           distribution: temurin
           java-version: '25.0.5+8'
+      - name: Prefetch verified Toolchain Xcode log formatter
+        run: |
+          # Toolchain 0.13 uses this exact release and sha256(URL + "V1")[:10]
+          # cache name. curl accepts GitHub's long redirect headers; Ktor CIO does not.
+          export KOTLIN_SHARED_CACHE_DIR="$RUNNER_TEMP/montage-kotlin-cache"
+          printf 'KOTLIN_SHARED_CACHE_DIR=%s\n' "$KOTLIN_SHARED_CACHE_DIR" >> "$GITHUB_ENV"
+          montage_xcbeautify_url='https://github.com/cpisciotta/xcbeautify/releases/download/3.2.1/xcbeautify-3.2.1-arm64-apple-macosx.zip'
+          montage_xcbeautify_key=$(printf '%sV1' "$montage_xcbeautify_url" | shasum -a 256 | cut -c 1-10)
+          mkdir -p "$KOTLIN_SHARED_CACHE_DIR/download.cache"
+          montage_xcbeautify_archive="$KOTLIN_SHARED_CACHE_DIR/download.cache/$montage_xcbeautify_key-xcbeautify-3.2.1-arm64-apple-macosx.zip"
+          curl --fail --location --retry 3 --output "$montage_xcbeautify_archive.part" "$montage_xcbeautify_url"
+          printf '%s  %s\n' 'ed32972e41bc3aa19588f8b0f4a0209ef70c663ad60bbf4ad84a2de73355d637' "$montage_xcbeautify_archive.part" | shasum -a 256 --check
+          mv "$montage_xcbeautify_archive.part" "$montage_xcbeautify_archive"
       - name: Verify toolchain
         run: ./kotlin --version
       - name: Build simulator application
