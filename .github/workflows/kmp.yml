@@ -34,10 +34,12 @@ jobs:
             shell: cmd
             cli: call kotlin.bat
             python: python
+            jdk: '25.0.4.1+1'
           - os: macos-26
             shell: bash
             cli: ./kotlin
             python: python3
+            jdk: '25.0.5+8'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     env:
@@ -50,6 +52,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Toolchain 0.13's HTTP parser rejects current JDK download redirects.
+      # Its official auto selection accepts a matching JAVA_HOME instead.
+      - name: Set up pinned build JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.jdk }}
       - name: Verify toolchain
         run: ${{ matrix.cli }} --version
       - name: Build native-host desktop artifacts
@@ -104,6 +113,11 @@ jobs:
         run: |
           test -n "${ANDROID_HOME:-}"
           test -s "$ANDROID_HOME/licenses/android-sdk-license"
+      - name: Set up pinned build JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25.0.5+8'
       - name: Verify toolchain
         run: ./kotlin --version
       - name: Build APK
@@ -156,6 +170,11 @@ jobs:
           xcodebuild -version
           xcrun --sdk iphonesimulator --show-sdk-version
           xcrun simctl list devices available
+      - name: Set up pinned build JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25.0.5+8'
       - name: Verify toolchain
         run: ./kotlin --version
       - name: Build simulator application
