@@ -126,14 +126,15 @@ final class DraftUiSmokeTests: XCTestCase {
         // Files can show their names from a stale LocalStorage item ID while
         // fetchURL returns nil. Resolve the app folder through native navigation
         // instead of repeatedly tapping a cached child of directoryURL.
-        let parent = app.navigationBars.buttons["BackButton"].firstMatch
-        if parent.waitForExistence(timeout: 10) && parent.label == "On My iPhone" {
-            parent.tap()
-            let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Project Montage")).firstMatch
-            XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
-            folder.tap()
-            attach(app, "picker-folder-resolved-" + prefix)
-        }
+        let parent = app.navigationBars.buttons.matching(NSPredicate(
+            format: "identifier == %@ AND label == %@", "BackButton", "On My iPhone"
+        )).firstMatch
+        XCTAssertTrue(parent.waitForExistence(timeout: 30), app.debugDescription)
+        parent.tap()
+        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Project Montage")).firstMatch
+        XCTAssertTrue(folder.waitForExistence(timeout: 30), app.debugDescription)
+        folder.tap()
+        attach(app, "picker-folder-resolved-" + prefix)
         let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
