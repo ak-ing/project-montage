@@ -103,6 +103,7 @@ class DraftUiSmokeTest {
         try {
             val files = DesktopVideoLibrary(directory.resolve("media").toFile())
             var calls = 0
+            var failCleanup = false
             val library = object : VideoLibrary {
                 override suspend fun pickAndImport(): VideoAsset? = when (++calls) {
                     1 -> null
@@ -112,7 +113,13 @@ class DraftUiSmokeTest {
                     }
                 }
                 override fun isAvailable(asset: VideoAsset) = files.isAvailable(asset)
-                override fun removeUnreferenced(retained: List<VideoAsset>) = files.removeUnreferenced(retained)
+                override fun removeUnreferenced(retained: List<VideoAsset>) {
+                    if (failCleanup) {
+                        failCleanup = false
+                        error("Temporary cleanup failure")
+                    }
+                    files.removeUnreferenced(retained)
+                }
             }
             val storage = FileWorkspaceStorage(directory.resolve("workspace.json"))
             compose.setContent { MontageApp(System.getProperty("os.name"), storage, library) }
@@ -140,6 +147,23 @@ class DraftUiSmokeTest {
             compose.onNodeWithTag("remove-video-${asset.id}").performClick()
             compose.onNodeWithTag("save-draft").performClick()
             waitUntilReady()
+            check(WorkspaceRepository(storage).load().videos.isEmpty())
+            // Import then remove before saving returns to the same JSON, but still
+            // needs an explicit save/discard to release the new managed copy.
+            compose.onNodeWithTag("import-video").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Available on this device").fetchSemanticsNodes().isNotEmpty() }
+            val copy = directory.resolve("media").toFile().listFiles()!!.single()
+            val copyId = copy.name.removeSuffix(".media")
+            compose.onNodeWithTag("remove-video-$copyId").performClick()
+            compose.onNodeWithTag("save-draft").assertIsEnabled()
+            check(copy.isFile) // Removal alone must not delete media.
+            compose.runOnIdle { failCleanup = true }
+            compose.onNodeWithTag("save-draft").performClick()
+            compose.waitUntil(30_000) { compose.onAllNodesWithText("Draft saved; some unused video copies could not be removed.").fetchSemanticsNodes().isNotEmpty() }
+            check(copy.isFile)
+            compose.onNodeWithTag("save-draft").assertIsEnabled().performClick()
+            waitUntilReady()
+            check(!copy.exists())
             check(WorkspaceRepository(storage).load().videos.isEmpty())
         } finally { directory.toFile().deleteRecursively() }
     }

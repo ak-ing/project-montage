@@ -37,6 +37,9 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
     var importNotice by remember { mutableStateOf<String?>(null) }
     var availability by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     var previewAsset by remember { mutableStateOf<VideoAsset?>(null) }
+    // Import/remove can return to the same workspace JSON while leaving a new
+    // managed copy. It still needs a successful save or explicit discard.
+    var pendingVideoCleanup by remember(repository) { mutableStateOf(false) }
 
     suspend fun cleanVideos(retained: List<VideoAsset>): Boolean = try {
         withContext(Dispatchers.Default) { videos?.removeUnreferenced(retained) }
@@ -56,7 +59,10 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
             loaded = true
             description = ""
             importNotice = null
-            if (discardImports && !cleanVideos(workspace.videos)) failure = "Draft loaded; some unused video copies could not be removed."
+            if (discardImports) {
+                pendingVideoCleanup = !cleanVideos(workspace.videos)
+                if (pendingVideoCleanup) failure = "Draft loaded; some unused video copies could not be removed."
+            }
             // A fast reload can coalesce busy=true/false into one composition; refresh even when refs are unchanged.
             val assets = workspace.videos
             availability = withContext(Dispatchers.Default) {
@@ -84,7 +90,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
     }
     val draft = workspace.draft
     val editable = loaded && !busy
-    val dirty = workspace != saved
+    val dirty = workspace != saved || pendingVideoCleanup
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(Modifier.safeDrawingPadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -133,7 +139,8 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                 withContext(Dispatchers.Default) { repository.save(snapshot) }
                                 saved = snapshot
                                 importNotice = null
-                                if (!cleanVideos(snapshot.videos)) failure = "Draft saved; some unused video copies could not be removed."
+                                pendingVideoCleanup = !cleanVideos(snapshot.videos)
+                                if (pendingVideoCleanup) failure = "Draft saved; some unused video copies could not be removed."
                             } catch (cancelled: CancellationException) {
                                 throw cancelled
                             } catch (_: Exception) {
@@ -164,6 +171,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                 val asset = videos?.pickAndImport()
                                 if (asset == null) importNotice = "Import cancelled" else {
                                     workspace = workspace.copy(videos = workspace.videos + asset)
+                                    pendingVideoCleanup = true
                                     showVideos = true
                                     importNotice = "Video copied · save draft to keep it"
                                 }
@@ -204,6 +212,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                         }) { Text("Preview") }
                                         TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable, onClick = {
                                             workspace = workspace.copy(videos = workspace.videos.filterNot { it.id == asset.id })
+                                            pendingVideoCleanup = true
                                             failure = null
                                             importNotice = "Save draft to remove the video copy"
                                         }) { Text("Remove") }

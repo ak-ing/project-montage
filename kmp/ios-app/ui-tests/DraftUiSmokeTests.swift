@@ -236,6 +236,8 @@ final class DraftUiSmokeTests: XCTestCase {
         app.buttons["preview-back"].tap()
         XCTAssertTrue(app.staticTexts["Montage-preview-invalid.mp4"].exists)
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["save-draft"].isEnabled)
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         XCTAssertTrue(app.staticTexts["No videos imported"].exists)
