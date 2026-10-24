@@ -30,22 +30,22 @@ from pathlib import Path
 import hashlib, json, plistlib, shutil, sys, time
 device_data=Path(sys.argv[1]).parents[3]
 for attempt in range(30):
-    roots=list((device_data/'Containers/Shared/AppGroup').glob('*/File Provider Storage'))
-    if len(roots)==1: break
-    # Some simulator runtimes omit the Files app. Initialize only the already
-    # registered LocalStorage provider's own group, never an invented container.
-    if not roots:
-        for metadata in (device_data/'Containers/Shared/AppGroup').glob('*/.com.apple.mobile_container_manager.metadata.plist'):
-            with metadata.open('rb') as stream: owner=plistlib.load(stream).get('MCMMetadataIdentifier','')
-            if owner.endswith('com.apple.FileProvider.LocalStorage'):
-                storage=metadata.parent/'File Provider Storage'
-                storage.mkdir(mode=0o700,exist_ok=True)
-                roots=[storage]
-                break
-        if len(roots)==1: break
+    # Photos, iCloud and LocalStorage use the same directory basename. Select
+    # the registered LocalStorage owner, rather than guessing among those roots.
+    providers=[]
+    seen_owners=[]
+    for metadata in (device_data/'Containers/Shared/AppGroup').glob('*/.com.apple.mobile_container_manager.metadata.plist'):
+        with metadata.open('rb') as stream: owner=plistlib.load(stream).get('MCMMetadataIdentifier','')
+        if 'FileProvider' in owner or 'Documents' in owner: seen_owners.append(owner)
+        if owner.endswith('com.apple.FileProvider.LocalStorage'): providers.append((metadata.parent,owner))
+    if len(providers)==1:
+        group,provider_owner=providers[0]
+        storage=group/'File Provider Storage'
+        storage.mkdir(mode=0o700,exist_ok=True)
+        break
     time.sleep(1)
-assert len(roots)==1, f'Expected one initialized Files LocalStorage root, found {len(roots)}'
-folder=roots[0]/'Montage smoke fixtures'
+assert len(providers)==1, f'Expected one registered LocalStorage provider, found {len(providers)}; registered providers: {seen_owners}'
+folder=storage/'Montage smoke fixtures'
 folder.mkdir(mode=0o755, exist_ok=True)
 for name,source in [('Montage-import-smoke.mp4','test-data/import-smoke.mp4'),('Montage-preview-smoke.mp4','test-data/preview-smoke.mp4')]:
     shutil.copyfile(source,folder/name)
@@ -55,6 +55,7 @@ for name in names: (folder/name).chmod(0o644)
 assert not folder.is_relative_to(Path(sys.argv[1]))
 Path('build/ui-smoke/ios/fixture-source.json').write_text(json.dumps({
     'provider':'Files LocalStorage','folder':'On My iPhone/Montage smoke fixtures',
+    'provider_group':provider_owner,
     'outside_target_app_container':True,
     'files':{name:hashlib.sha256((folder/name).read_bytes()).hexdigest() for name in names},
 },indent=2)+'\n')
