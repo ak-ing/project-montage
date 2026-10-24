@@ -2,12 +2,37 @@
 # SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 mkdir -p build/ui-smoke/ios
-simulator_id=$(xcrun simctl list devices available -j | python3 -c '
-import json,sys
+# A runner image's pre-created simulator can retain FileProvider document IDs.
+# Isolate the whole suite on one new device; never reset/relaunch to bypass the
+# cancellation/reopen regression inside that suite.
+read -r simulator_runtime simulator_type simulator_template simulator_template_state < <(
+  xcrun simctl list devices available -j | python3 -c '
+import json,subprocess,sys
 runtimes=json.load(sys.stdin)["devices"]
-phones=[x for runtime in sorted(runtimes, reverse=True) if "iOS" in runtime for x in runtimes[runtime] if "iPhone" in x["name"]]
-print(next((x["udid"] for x in phones if x["state"] == "Booted"), phones[0]["udid"]))')
-xcrun simctl boot "$simulator_id" || true
+phones=[(runtime,x) for runtime in sorted(runtimes, reverse=True) if "iOS" in runtime for x in runtimes[runtime] if "iPhone" in x["name"]]
+runtime,phone=phones[0]
+device_type=phone.get("deviceTypeIdentifier")
+if not device_type:
+    types=json.loads(subprocess.check_output(["xcrun","simctl","list","devicetypes","-j"]))["devicetypes"]
+    device_type=next(t["identifier"] for t in types if t["name"]==phone["name"])
+print(runtime,device_type,phone["udid"],phone["state"])'
+)
+if [ "$simulator_template_state" = Booted ]; then
+  xcrun simctl shutdown "$simulator_template"
+fi
+simulator_id=$(xcrun simctl create "Montage UI smoke ${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}" "$simulator_type" "$simulator_runtime")
+trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true' EXIT
+python3 - "$simulator_id" "$simulator_runtime" "$simulator_type" "$simulator_template" <<'PYSIMULATOR'
+from pathlib import Path
+import json,sys
+assert sys.argv[1]!=sys.argv[4]
+Path('build/ui-smoke/ios/simulator.json').write_text(json.dumps({
+    'id':sys.argv[1],'runtime':sys.argv[2],'device_type':sys.argv[3],
+    'template_id':sys.argv[4],'fresh_device_for_entire_suite':True,
+    'app_reset_between_cancel_and_reopen':False,
+},indent=2)+'\n')
+PYSIMULATOR
+xcrun simctl boot "$simulator_id"
 xcrun simctl bootstatus "$simulator_id" -b
 # Build once, then prepare independent coordinated source documents before XCTest.
 xcodebuild build-for-testing -project ios-app/module.xcodeproj -scheme app \
