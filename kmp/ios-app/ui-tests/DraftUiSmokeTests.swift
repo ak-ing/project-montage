@@ -122,8 +122,8 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        // Source fixtures live in Files' own storage, outside the target app's
-        // reinstallable container. Choose them through the native provider UI.
+        // Source documents are saved by a separate fixture app through UIDocument.
+        // Select them through the real provider; the app under test only imports.
         let browse = app.buttons.matching(NSPredicate(
             format: "label == %@ AND identifier != %@", "Browse", "BackButton"
         )).firstMatch

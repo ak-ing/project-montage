@@ -9,59 +9,62 @@ phones=[x for runtime in sorted(runtimes, reverse=True) if "iOS" in runtime for 
 print(next((x["udid"] for x in phones if x["state"] == "Booted"), phones[0]["udid"]))')
 xcrun simctl boot "$simulator_id" || true
 xcrun simctl bootstatus "$simulator_id" -b
-# Build once, then seed the application sandbox before test-without-building installs/runs tests.
+# Build once, then prepare independent coordinated source documents before XCTest.
 xcodebuild build-for-testing -project ios-app/module.xcodeproj -scheme app \
   -destination "platform=iOS Simulator,id=$simulator_id" \
   -destination-timeout 120 -parallel-testing-enabled NO \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/ui-smoke/ios/xcodebuild.log
-# Install the app, but keep source fixtures in Files' provider-owned storage.
-# Xcode may reinstall/migrate the target app's container before XCTest starts;
-# its Documents URLs can otherwise retain stale FileProvider item identifiers.
+# Keep the source documents in a separate test-only app. Its UIDocument saves
+# run inside iOS and coordinate file creation with FileProvider. Host filesystem
+# injection can leave visible entries whose document IDs cannot resolve to URLs.
 app_path="$PWD/build/ui-smoke/ios/DerivedData/Build/Products/Debug-iphonesimulator/ios-app.app"
 test -d "$app_path"
 xcrun simctl install "$simulator_id" "$app_path"
 app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
-if xcrun simctl get_app_container "$simulator_id" com.apple.DocumentsApp app >/dev/null 2>&1; then
-  xcrun simctl launch "$simulator_id" com.apple.DocumentsApp
-fi
-fixture_sources=$(python3 - "$app_data" <<'PY'
+fixture_app="$PWD/build/ui-smoke/ios/MontageFixtureSource.app"
+mkdir -p "$fixture_app/Fixtures"
+cp ios-app/ui-tests/fixture-source/Info.plist "$fixture_app/Info.plist"
+cp test-data/import-smoke.mp4 "$fixture_app/Fixtures/Montage-import-smoke.mp4"
+cp test-data/preview-smoke.mp4 "$fixture_app/Fixtures/Montage-preview-smoke.mp4"
+printf 'Invalid video fixture\n' > "$fixture_app/Fixtures/Montage-preview-invalid.mp4"
+xcrun swiftc -parse-as-library -target arm64-apple-ios15.0-simulator \
+  -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -framework UIKit \
+  ios-app/ui-tests/fixture-source/FixtureSource.swift -o "$fixture_app/MontageFixtureSource"
+codesign --force --sign - --timestamp=none "$fixture_app"
+xcrun simctl install "$simulator_id" "$fixture_app"
+xcrun simctl launch "$simulator_id" dev.montage.fixture-source
+fixture_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.fixture-source data)
+fixture_sources=$(python3 - "$app_data" "$fixture_data" <<'PYFIXTURE'
 from pathlib import Path
-import hashlib, json, plistlib, shutil, sys, time
-device_data=Path(sys.argv[1]).parents[3]
-for attempt in range(30):
-    # Photos, iCloud and LocalStorage use the same directory basename. Select
-    # the registered LocalStorage owner, rather than guessing among those roots.
-    providers=[]
-    seen_owners=[]
-    for metadata in (device_data/'Containers/Shared/AppGroup').glob('*/.com.apple.mobile_container_manager.metadata.plist'):
-        with metadata.open('rb') as stream: owner=plistlib.load(stream).get('MCMMetadataIdentifier','')
-        if 'FileProvider' in owner or 'Documents' in owner: seen_owners.append(owner)
-        if owner.endswith('com.apple.FileProvider.LocalStorage'): providers.append((metadata.parent,owner))
-    if len(providers)==1:
-        group,provider_owner=providers[0]
-        storage=group/'File Provider Storage'
-        storage.mkdir(mode=0o700,exist_ok=True)
-        break
+import hashlib, json, sys, time
+source_root=Path(sys.argv[2])
+ready=source_root/'Library/Caches/montage-fixtures.json'
+for attempt in range(120):
+    if ready.exists(): break
     time.sleep(1)
-assert len(providers)==1, f'Expected one registered LocalStorage provider, found {len(providers)}; registered providers: {seen_owners}'
-folder=storage/'Montage smoke fixtures'
-folder.mkdir(mode=0o755, exist_ok=True)
-for name,source in [('Montage-import-smoke.mp4','test-data/import-smoke.mp4'),('Montage-preview-smoke.mp4','test-data/preview-smoke.mp4')]:
-    shutil.copyfile(source,folder/name)
-(folder/'Montage-preview-invalid.mp4').write_bytes(b'Invalid video fixture\n')
+assert ready.exists(), 'Coordinated fixture source did not produce its readiness report'
+creation=json.loads(ready.read_text())
+assert creation['status']=='ready', creation
 names=['Montage-import-smoke.mp4','Montage-preview-smoke.mp4','Montage-preview-invalid.mp4']
-for name in names: (folder/name).chmod(0o644)
+assert creation['saved_documents']==names, creation
+folder=source_root/'Documents'
+expected={names[0]:Path('test-data/import-smoke.mp4').read_bytes(),
+          names[1]:Path('test-data/preview-smoke.mp4').read_bytes(),
+          names[2]:b'Invalid video fixture\n'}
+for name,data in expected.items(): assert (folder/name).read_bytes()==data, name
 assert not folder.is_relative_to(Path(sys.argv[1]))
 Path('build/ui-smoke/ios/fixture-source.json').write_text(json.dumps({
-    'provider':'Files LocalStorage','folder':'On My iPhone/Montage smoke fixtures',
-    'provider_group':provider_owner,
+    'provider':'Files LocalStorage app Documents','folder':'On My iPhone/Montage smoke fixtures',
+    'fixture_app_bundle_id':'dev.montage.fixture-source',
+    'creation':creation,
     'outside_target_app_container':True,
     'files':{name:hashlib.sha256((folder/name).read_bytes()).hexdigest() for name in names},
 },indent=2)+'\n')
 print(folder)
-PY
+PYFIXTURE
 )
+
 xcode_status=0
 xcodebuild test-without-building -project ios-app/module.xcodeproj -scheme app \
   -destination "platform=iOS Simulator,id=$simulator_id" \
