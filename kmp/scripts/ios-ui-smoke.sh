@@ -49,8 +49,8 @@ xcodebuild build-for-testing -project ios-app/module.xcodeproj -scheme app \
   -destination-timeout 120 -parallel-testing-enabled NO \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/ui-smoke/ios/xcodebuild.log
-# Keep the source documents in a separate test-only app. Its UIDocument saves
-# create coordinated source documents before XCTest starts. Host filesystem
+# Keep the source documents in a separate test-only app. It publishes complete
+# files with native atomic writes before XCTest starts. Host filesystem
 # injection can leave visible entries whose document IDs cannot resolve to URLs.
 app_path="$PWD/build/ui-smoke/ios/DerivedData/Build/Products/Debug-iphonesimulator/ios-app.app"
 test -d "$app_path"

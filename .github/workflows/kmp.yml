@@ -15,11 +15,11 @@ on:
         type: choice
         options: [all, desktop, android, ios]
       ios_ui_runtime:
-        description: iOS UI compatibility runtime (26.5 FileProvider failure tracked separately)
+        description: iOS UI simulator runtime (explicit compatibility option)
         required: true
-        default: '26.4'
+        default: latest
         type: choice
-        options: ['26.4', latest]
+        options: [latest, '26.4']
 
 permissions:
   contents: read
@@ -204,12 +204,12 @@ jobs:
           ./kotlin test -m core --platform iosSimulatorArm64 --format teamcity 2>&1 | tee ios-tests.log
       - name: Require executed native tests
         run: python3 scripts/verify-ci-tests.py --teamcity-log ios-tests.log --min-tests 19
-      # Compile with the current Xcode/SDK. This explicitly selects an installed
-      # compatibility runtime; 26.5 FP -1005/nil URL failures remain in evidence.
+      # Keep the current compiler/SDK and latest installed UI runtime by default.
+      # Explicit compatibility requests are recorded in simulator.json.
       - name: Exercise iOS app UI on simulator
         timeout-minutes: 24
         env:
-          MONTAGE_IOS_UI_RUNTIME: ${{ inputs.ios_ui_runtime || '26.4' }}
+          MONTAGE_IOS_UI_RUNTIME: ${{ inputs.ios_ui_runtime || 'latest' }}
         run: ./scripts/ios-ui-smoke.sh
       - name: Upload iOS test evidence
         if: ${{ always() }}
