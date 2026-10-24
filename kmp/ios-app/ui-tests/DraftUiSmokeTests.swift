@@ -13,7 +13,6 @@ final class DraftUiSmokeTests: XCTestCase {
 
     func testEditAppendAndResetDraft() {
         continueAfterFailure = false
-        prepareSourceDocuments()
         let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
         openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30), app.debugDescription)
@@ -57,24 +56,6 @@ final class DraftUiSmokeTests: XCTestCase {
         attach(app, "reset")
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
-    }
-
-    private func prepareSourceDocuments() {
-        let source = XCUIApplication(bundleIdentifier: "dev.montage.fixture-source")
-        source.activate()
-        let status = source.staticTexts["fixture-status"]
-        XCTAssertTrue(status.waitForExistence(timeout: 30), source.debugDescription)
-        if status.label == "Source documents exported" { return }
-        source.buttons["export-fixtures"].tap()
-        XCTAssertTrue(source.buttons["Montage smoke fixtures, Actions Menu"].waitForExistence(timeout: 30), source.debugDescription)
-        attach(source, "fixture-export-destination")
-        let commit = source.buttons.matching(NSPredicate(format: "label IN %@", ["Save", "Export", "Copy"])).firstMatch
-        XCTAssertTrue(commit.waitForExistence(timeout: 30), source.debugDescription)
-        XCTAssertTrue(commit.isEnabled)
-        commit.tap()
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Source documents exported"), object: status)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed, source.debugDescription)
-        attach(source, "fixture-exported")
     }
 
     private func attach(_ app: XCUIApplication, _ name: String) {
@@ -141,7 +122,7 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        // Source documents are exported by a separate fixture app through Files.
+        // Source documents are saved by a separate fixture app through UIDocument.
         // Select them through the real provider; the app under test only imports.
         navigateToFixtureFolder(app)
         attach(app, "picker-folder-resolved-" + prefix)

@@ -40,8 +40,8 @@ xcodebuild build-for-testing -project ios-app/module.xcodeproj -scheme app \
   -destination-timeout 120 -parallel-testing-enabled NO \
   -derivedDataPath build/ui-smoke/ios/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/ui-smoke/ios/xcodebuild.log
-# Keep the source documents in a separate test-only app. The system export
-# picker creates its source documents through FileProvider during XCTest. Host filesystem
+# Keep the source documents in a separate test-only app. Its UIDocument saves
+# create coordinated source documents before XCTest starts. Host filesystem
 # injection can leave visible entries whose document IDs cannot resolve to URLs.
 app_path="$PWD/build/ui-smoke/ios/DerivedData/Build/Products/Debug-iphonesimulator/ios-app.app"
 test -d "$app_path"
@@ -70,17 +70,21 @@ for attempt in range(120):
     time.sleep(1)
 assert ready.exists(), 'Coordinated fixture source did not produce its readiness report'
 creation=json.loads(ready.read_text())
-assert creation['status'] in ['awaiting_export','ready'], creation
+assert creation['status']=='ready', creation
 names=['Montage-import-smoke.mp4','Montage-preview-smoke.mp4','Montage-preview-invalid.mp4']
 folder=source_root/'Documents'
-# Actual source-byte checks follow XCTest, after native export completes.
+assert creation['saved_documents']==names, creation
+expected={names[0]:Path('test-data/import-smoke.mp4').read_bytes(),
+          names[1]:Path('test-data/preview-smoke.mp4').read_bytes(),
+          names[2]:b'Invalid video fixture\n'}
+for name,data in expected.items(): assert (folder/name).read_bytes()==data, name
 assert not folder.is_relative_to(Path(sys.argv[1]))
 Path('build/ui-smoke/ios/fixture-source.json').write_text(json.dumps({
     'provider':'Files LocalStorage app Documents','folder':'On My iPhone/Montage smoke fixtures',
     'fixture_app_bundle_id':'dev.montage.fixture-source',
     'creation':creation,
     'outside_target_app_container':True,
-    'files':{},
+    'files':{name:hashlib.sha256((folder/name).read_bytes()).hexdigest() for name in names},
 },indent=2)+'\n')
 print(folder)
 PYFIXTURE
