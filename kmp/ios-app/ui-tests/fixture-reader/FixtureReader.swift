@@ -72,9 +72,16 @@ final class FixtureReader: UIResponder, UIApplicationDelegate, UIDocumentPickerD
         status.text = message
         let result: [String: Any] = ["status": message, "cancelled": cancellations, "reads": reads, "error": error ?? ""]
         do {
-            let cache = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            // Keep required evidence in durable app storage, not a purgeable cache.
+            let directory = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/MontageProbe", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let target = directory.appendingPathComponent("native-picker-control.json")
             try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
-                .write(to: cache.appendingPathComponent("montage-native-picker.json"), options: .atomic)
-        } catch { NSLog("Native picker control report failed: %@", String(describing: error)) }
+                .write(to: target, options: .atomic)
+            NSLog("Montage native picker control: %@ report=%@", message, target.path)
+        } catch {
+            status.text = "Failed to save probe report"
+            NSLog("Montage native picker control: report failed: %@", String(describing: error))
+        }
     }
 }

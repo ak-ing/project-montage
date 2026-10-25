@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
   "status": "in_progress",
-  "latest_source_commit": "ecfed7a4862fd101f255f3761c362dafbed27b8f",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40161671315",
+  "latest_source_commit": "414527614c288e37a748494e288bfe30693e8871",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40163192184",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -33,6 +33,27 @@
         "failure": "Original 1s cancel/reopen import blocked before selection callback: FileProvider did=3 FP -1005 / cannot get URL; new scene and preview tests did not execute their flows.",
         "empty_storage_is_acceptance": false
       }
+    },
+    {
+      "run_id": 40163192184,
+      "source_commit": "414527614c288e37a748494e288bfe30693e8871",
+      "status": "Windows/macOS/Android passed; iOS 3/5 passed, scene test queried TextField while actual Compose AX class was TextView with correct 8000 value",
+      "ios": {
+        "artifact_id": 12588030729,
+        "digest": "sha256:7347d2584afdf185841ce3c0784999c15e34a78aaa41585be75785d04e4b9e3e",
+        "checksum_verified": true,
+        "ui_passed": 3,
+        "ui_failed": 2,
+        "native_picker_control": "passed real cancel/reopen and all 3 source reads; JSON missing at pre-launch cache/container path",
+        "scene_failure": "Default-out assertion queried app.textFields; AX snapshot shows TextView clip-out value 8000. Keep exact assertions and query TextView.",
+        "final_cleanup": "not passed: failure left 8s preview/copy alive; no acceptance claimed"
+      }
     }
-  ]
+  ],
+  "platforms": {
+    "Windows x64": "passed current run: verified ZIP, 26 core +15 desktop tests and restored scene screenshot",
+    "macOS Arm64": "passed current run: verified ZIP, 26 core +15 desktop tests and restored scene screenshot",
+    "Android emulator": "passed current run: verified ZIP, 26 host core tests, exact restored ID/order/range, detach/remove and source/native-frame screenshot",
+    "iOS Arm64 simulator": "pending current run: 26 native tests and five UI cases, including pure UIKit FileProvider control"
+  }
 }

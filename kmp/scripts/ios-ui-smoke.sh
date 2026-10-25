@@ -135,8 +135,13 @@ xcrun simctl spawn "$simulator_id" log show --last 20m --style compact \
   > build/ui-smoke/ios/file-provider-errors.log || true
 xcrun xcresulttool get test-results summary --path build/ui-smoke/ios/DraftUiSmoke.xcresult > build/ui-smoke/ios/result.json
 xcrun xcresulttool export attachments --path build/ui-smoke/ios/DraftUiSmoke.xcresult --output-path build/ui-smoke/ios/attachments
-if test -f "$reader_data/Library/Caches/montage-native-picker.json"; then
-  cp "$reader_data/Library/Caches/montage-native-picker.json" build/ui-smoke/ios/native-picker-control.json
+xcrun simctl spawn "$simulator_id" log show --last 45m --style compact \
+  --predicate 'process == "MontageFixtureReader" AND eventMessage CONTAINS "Montage native picker control"' \
+  > build/ui-smoke/ios/native-picker-control.log || true
+# First launch/installation can change a simulator app's data-container mapping.
+reader_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.fixture-reader data)
+if test -f "$reader_data/Library/Application Support/MontageProbe/native-picker-control.json"; then
+  cp "$reader_data/Library/Application Support/MontageProbe/native-picker-control.json" build/ui-smoke/ios/native-picker-control.json
 fi
 app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
 python3 - "$app_data" "$fixture_sources" <<'PY'

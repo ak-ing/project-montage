@@ -215,11 +215,12 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func replaceNumber(_ app: XCUIApplication, _ identifier: String, _ value: String) {
-        let field = app.textFields[identifier]
+        // Compose exposes these editable fields as TextView on iOS, including single-line fields.
+        let field = app.textViews[identifier]
         XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription)
         field.tap()
         let existing = field.value as? String ?? ""
-        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + value)
+        typeSlowly(field, String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + value)
     }
 
     func testSceneClipEditingAndRestart() {
@@ -238,7 +239,7 @@ final class DraftUiSmokeTests: XCTestCase {
         video.tap()
         XCTAssertTrue(app.staticTexts["clip-source-duration"].waitForExistence(timeout: 30))
         XCTAssertEqual(app.staticTexts["clip-source-duration"].label, "8000 ms available")
-        let defaultRange = expectation(for: NSPredicate(format: "value == %@", "8000"), evaluatedWith: app.textFields["clip-out"])
+        let defaultRange = expectation(for: NSPredicate(format: "value == %@", "8000"), evaluatedWith: app.textViews["clip-out"])
         wait(for: [defaultRange], timeout: 10)
         replaceNumber(app, "clip-out", "9000")
         XCTAssertFalse(app.buttons["apply-scene-clip"].isEnabled)
@@ -264,8 +265,8 @@ final class DraftUiSmokeTests: XCTestCase {
         editorTap(app, "edit-scene-opening")
         XCTAssertTrue(app.staticTexts["clip-source-duration"].waitForExistence(timeout: 30))
         XCTAssertEqual(app.staticTexts["scene-editor-position"].label, "Scene 2")
-        XCTAssertEqual(app.textFields["clip-in"].value as? String, "1250")
-        XCTAssertEqual(app.textFields["clip-out"].value as? String, "6500")
+        XCTAssertEqual(app.textViews["clip-in"].value as? String, "1250")
+        XCTAssertEqual(app.textViews["clip-out"].value as? String, "6500")
         XCTAssertEqual(app.staticTexts["scene-editor-video"].label, "Montage-preview-smoke.mp4")
         attach(app, "scene-edits-restored")
         editorTap(app, "detach-scene-video")
