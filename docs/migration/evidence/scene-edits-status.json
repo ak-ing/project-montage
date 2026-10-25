@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
-  "status": "in_progress",
-  "latest_source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40164869788",
+  "status": "blocked_ios_file_provider",
+  "latest_source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40166230382",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -64,38 +64,67 @@
         "probe_artifacts": "Workflow explicit upload list omitted new native-picker-control files; added both json/log. Missing ZIP files alone did not prove missing persistence."
       },
       "next_comparison": "Native source initial creation with Data.write(.withoutOverwriting) preserves final filename/inode while provider indexes; complete 3 hashes/readiness before XCTest, all 5 UI/source/cleanup guards unchanged."
+    },
+    {
+      "run_id": 40166230382,
+      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "status": "three platform flows passed; iOS blocked in independent UIKit and original picker",
+      "ios_artifact_id": 12588469198,
+      "ios_digest": "sha256:fe2d444a2dd1d949d9eb93ce9b394d7b6ffdcde750847b9b17cb1e2a0ca5b143",
+      "ios_checksum_verified": true,
+      "native_control_cancelled": 1,
+      "native_control_reads": 0,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 4,
+      "source_creation": "Data.write(.withoutOverwriting)",
+      "original_sources_preserved": true,
+      "empty_storage_is_acceptance": false
     }
   ],
   "platforms": {
-    "Windows x64": "passed: current ZIP checked, 26 core +15 desktop tests",
-    "macOS Arm64": "passed: current ZIP checked, 26 core +15 desktop tests",
-    "Android emulator": "passed: current ZIP checked, 26 host core tests and exact clip/order/restart/detach/cleanup flow",
-    "iOS Arm64 simulator": "26 native core tests passed; five UI cases and final evidence/cleanup pending"
+    "Windows x64": "passed: 26 core +15 desktop tests",
+    "macOS Arm64": "passed: 26 core +15 desktop tests",
+    "Android emulator": "passed: 26 host core tests and exact scene link/order/range/restart/detach/cleanup flow",
+    "iOS Arm64 simulator": "26 native core passed; UI 1/5 passed and 4 failed; pure UIKit first file URL blocked, scene recovery not verified"
   },
   "verified_artifacts": [
     {
-      "name": "desktop-macos-26",
-      "id": 12588290293,
-      "digest": "sha256:15ff22a195ae962590a063a749d1a022d2575e94ee2b8020003555cc7e60cbf1",
-      "source_run_id": 40164869788,
-      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
-      "checksum_verified": true
+      "name": "desktop-windows-2025",
+      "id": 12588866634,
+      "digest": "sha256:834596727d28865bdc85ce555d49fdf4256621f2bbd498abe92b9145d4f81eff",
+      "source_run_id": 40166230382,
+      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "checksum_verified": true,
+      "ui_status": "passed"
     },
     {
-      "name": "desktop-windows-2025",
-      "id": 12587279926,
-      "digest": "sha256:2e4b2149e805972d6ae17078fdb7f1cd517f1ad00972032774504544ea12b27b",
-      "source_run_id": 40164869788,
-      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
-      "checksum_verified": true
+      "name": "desktop-macos-26",
+      "id": 12588672040,
+      "digest": "sha256:5ea9a2bdb671aa75c1ab4b8e31eae878c0dc6bbe5bb25bd438105ac7ae4fb071",
+      "source_run_id": 40166230382,
+      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "checksum_verified": true,
+      "ui_status": "passed"
     },
     {
       "name": "android-debug",
-      "id": 12587752449,
-      "digest": "sha256:86509ef7f04b51d994aa003b1cccdeea2d6c27b127debe7a6891cb99ae55d768",
-      "source_run_id": 40164869788,
-      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
-      "checksum_verified": true
+      "id": 12588413327,
+      "digest": "sha256:777a45696d1f874d4bc380727d41df098b6aa5b641e327b84ab4a7db7eb6e15e",
+      "source_run_id": 40166230382,
+      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "checksum_verified": true,
+      "ui_status": "passed"
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 12588469198,
+      "digest": "sha256:fe2d444a2dd1d949d9eb93ce9b394d7b6ffdcde750847b9b17cb1e2a0ca5b143",
+      "source_run_id": 40166230382,
+      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "checksum_verified": true,
+      "ui_status": "blocked"
     }
-  ]
+  ],
+  "accepted_four_platforms": false,
+  "evidence": "scene-edits-40166230382.json"
 }
