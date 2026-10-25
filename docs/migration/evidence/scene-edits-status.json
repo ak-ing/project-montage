@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
   "status": "in_progress",
-  "latest_source_commit": "414527614c288e37a748494e288bfe30693e8871",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40163192184",
+  "latest_source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40164869788",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -48,12 +48,54 @@
         "scene_failure": "Default-out assertion queried app.textFields; AX snapshot shows TextView clip-out value 8000. Keep exact assertions and query TextView.",
         "final_cleanup": "not passed: failure left 8s preview/copy alive; no acceptance claimed"
       }
+    },
+    {
+      "run_id": 40164869788,
+      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
+      "status": "Windows/macOS/Android passed; iOS original source URL failure reproduced in independent pure UIKit control, 1/5 passed",
+      "ios": {
+        "artifact_id": 12588531687,
+        "digest": "sha256:9a6bfbae8250401f3335067eae9b04a2b02c847bc95423d4c037326554e40243",
+        "checksum_verified": true,
+        "ui_passed": 1,
+        "ui_failed": 4,
+        "first_failure": "Pure UIKit control: first original 1s file tap never dismisses picker; fileproviderd getURL did=3 FP -1005 before KMP import. Main import then same failure; scene/preview blocked.",
+        "empty_cleanup_is_acceptance": false,
+        "probe_artifacts": "Workflow explicit upload list omitted new native-picker-control files; added both json/log. Missing ZIP files alone did not prove missing persistence."
+      },
+      "next_comparison": "Native source initial creation with Data.write(.withoutOverwriting) preserves final filename/inode while provider indexes; complete 3 hashes/readiness before XCTest, all 5 UI/source/cleanup guards unchanged."
     }
   ],
   "platforms": {
-    "Windows x64": "passed current run: verified ZIP, 26 core +15 desktop tests and restored scene screenshot",
-    "macOS Arm64": "passed current run: verified ZIP, 26 core +15 desktop tests and restored scene screenshot",
-    "Android emulator": "passed current run: verified ZIP, 26 host core tests, exact restored ID/order/range, detach/remove and source/native-frame screenshot",
-    "iOS Arm64 simulator": "pending current run: 26 native tests and five UI cases, including pure UIKit FileProvider control"
-  }
+    "Windows x64": "passed: current ZIP checked, 26 core +15 desktop tests",
+    "macOS Arm64": "passed: current ZIP checked, 26 core +15 desktop tests",
+    "Android emulator": "passed: current ZIP checked, 26 host core tests and exact clip/order/restart/detach/cleanup flow",
+    "iOS Arm64 simulator": "26 native core tests passed; five UI cases and final evidence/cleanup pending"
+  },
+  "verified_artifacts": [
+    {
+      "name": "desktop-macos-26",
+      "id": 12588290293,
+      "digest": "sha256:15ff22a195ae962590a063a749d1a022d2575e94ee2b8020003555cc7e60cbf1",
+      "source_run_id": 40164869788,
+      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
+      "checksum_verified": true
+    },
+    {
+      "name": "desktop-windows-2025",
+      "id": 12587279926,
+      "digest": "sha256:2e4b2149e805972d6ae17078fdb7f1cd517f1ad00972032774504544ea12b27b",
+      "source_run_id": 40164869788,
+      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
+      "checksum_verified": true
+    },
+    {
+      "name": "android-debug",
+      "id": 12587752449,
+      "digest": "sha256:86509ef7f04b51d994aa003b1cccdeea2d6c27b127debe7a6891cb99ae55d768",
+      "source_run_id": 40164869788,
+      "source_commit": "8dd2ce06178e9e887d4efee7f30d551f906483fc",
+      "checksum_verified": true
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-// Test-only source app. Publish complete files atomically from inside iOS;
-// avoid coordinating a document whose final URL does not exist yet.
+// Test-only source app. Create each final filename once from inside iOS;
+// do not replace its inode while Files may already be indexing it.
 import UIKit
 
 @main
@@ -31,7 +31,7 @@ final class FixtureSource: UIResponder, UIApplicationDelegate {
                 if manager.fileExists(atPath: destination.path) {
                     guard try Data(contentsOf: destination) == bytes else { report(error: "Existing fixture differs: " + name); return true }
                 } else {
-                    try bytes.write(to: destination, options: .atomic)
+                    try bytes.write(to: destination, options: .withoutOverwriting)
                 }
                 saved.append(name)
             }
@@ -41,10 +41,10 @@ final class FixtureSource: UIResponder, UIApplicationDelegate {
     }
 
     private func report(error: String?) {
-        status.text = error ?? "Three atomic source documents ready"
+        status.text = error ?? "Three source documents ready"
         let result: [String: Any] = [
             "status": error == nil ? "ready" : "failed",
-            "creation": "Data.write(.atomic)",
+            "creation": "Data.write(.withoutOverwriting)",
             "saved_documents": saved,
             "error": error ?? "",
         ]

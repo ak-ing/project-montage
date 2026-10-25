@@ -236,6 +236,8 @@ jobs:
             kmp/build/ui-smoke/ios/storage-result.json
             kmp/build/ui-smoke/ios/simulator.json
             kmp/build/ui-smoke/ios/fixture-source.json
+            kmp/build/ui-smoke/ios/native-picker-control.json
+            kmp/build/ui-smoke/ios/native-picker-control.log
             kmp/build/ui-smoke/ios/result.json
           retention-days: 7
           if-no-files-found: warn

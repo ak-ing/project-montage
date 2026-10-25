@@ -8,7 +8,7 @@ CI 固定 Eclipse Temurin：Linux x64/macOS Arm64 为 `25.0.5+8`，Windows x64 �
 
 `287e212` 仅为 iOS 用 curl 预取 Toolchain [IosBuildTask 指定的同版工具](https://github.com/JetBrains/kotlin-toolchain/blob/v0.13.0/sources/amper-cli/src/org/jetbrains/amper/tasks/ios/IosBuildTask.kt)，校验[官方 release 资产](https://github.com/cpisciotta/xcbeautify/releases/tag/3.2.1)的固定 SHA-256 `ed32972e41bc3aa19588f8b0f4a0209ef70c663ad60bbf4ad84a2de73355d637`，再原子放入 runner 临时 `KOTLIN_SHARED_CACHE_DIR/download.cache`。缓存名按 [0.13 官方 Downloader](https://github.com/JetBrains/kotlin-toolchain/blob/v0.13.0/sources/core/src/org/jetbrains/amper/core/downloader/downloader.kt) 的 `sha256(URL + "V1")[:10]` 计算；该内部联系随 Toolchain 升级必须复核。未补丁 HTTP 客户端或更改压缩包，下载与摘要已本地验证；远端结果见 [CI.md](CI.md)。
 
-iOS UI 冒烟另用已安装 Xcode SDK 编译一个仅供 CI 的 Swift 测试素材应用。它通过原生原子写入创建完整源文件并报告结果，供被测应用从真实系统选择器导入；不打包进产品，也不替代 Kotlin CLI/YAML 的应用构建。这样避免宿主直接写入模拟器文件提供器目录，源文件仍逐字节校验并保留取消后同进程重开与最终清理守卫。
+iOS UI 冒烟另用已安装 Xcode SDK 编译一个仅供 CI 的 Swift 测试素材应用。当前测试创建方式用 Data.write(.withoutOverwriting) 初次写入最终文件名，保持 inode 不因原子替换而变化；写完三个小素材并校验后报告就绪，供被测应用从真实系统选择器导入；不打包进产品，也不替代 Kotlin CLI/YAML 的应用构建。这样避免宿主直接写入模拟器文件提供器目录，源文件仍逐字节校验并保留取消后同进程重开与最终清理守卫。
 
 iOS UI 运行时另有明确的兼容性选择：默认使用最新已安装运行时，手动输入 ios_ui_runtime=26.4 可做兼容性对照。26.5 与 26.4.1 在 UIDocument 源素材下均出现 FileProvider FP -1005/nil URL，不能仅归因于 26.5；失败证据保留，未视为通过。该对照不改变 Xcode、编译 SDK、Kotlin 或依赖版本；具体执行结果与覆盖范围见 CI.md。
 
