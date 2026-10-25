@@ -59,9 +59,13 @@ new_wait = '''            let ready = app.descendants(matching: .any).matching(N
                 "Montage smoke fixtures", "Browse", "On My iPhone"
             )).element(boundBy: 0)
             XCTAssertTrue(ready.waitForExistence(timeout: 60), app.debugDescription)'''
-assert query_text.count(old_wait) == 1
-query_text = query_text.replace(old_wait, new_wait)
-query_text = query_text.replace('            if folderTitle.exists { return }', '''            if folderTitle.exists { return }
+if old_wait in query_text:
+    assert query_text.count(old_wait) == 1
+    query_text = query_text.replace(old_wait, new_wait)
+else:
+    assert new_wait in query_text, 'Unknown product navigation helper; review diagnostic normalization'
+if 'let phoneRoot = app.navigationBars.staticTexts.matching(identifier:' not in query_text:
+    query_text = query_text.replace('            if folderTitle.exists { return }', '''            if folderTitle.exists { return }
             let phoneRoot = app.navigationBars.staticTexts.matching(identifier: "On My iPhone").element(boundBy: 0)
             if phoneRoot.exists {
                 XCTAssertTrue(folder.waitForExistence(timeout: 60), app.debugDescription)
@@ -76,7 +80,8 @@ test, test_build = source(query_test)
     source_sha256=hashlib.sha256(test_text.encode()).hexdigest(),
     generated_sha256=hashlib.sha256(query_text.encode()).hexdigest(),
     cancellation_callbacks_and_hash_assertions_changed=False,
-    navigation_waits_changed=True, fixture_bytes_changed=False), indent=2) + '\n')
+    navigation_waits_changed=query_text != test_text, fixture_bytes_changed=False,
+    normalization_applied=query_text != test_text), indent=2) + '\n')
 
 fixture_source = repo / 'kmp/ios-app/ui-tests/fixture-source/FixtureSource.swift'
 fixture_text = fixture_source.read_text()
