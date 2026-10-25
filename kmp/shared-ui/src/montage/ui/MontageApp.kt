@@ -21,6 +21,7 @@ import montage.core.VideoAsset
 import montage.core.VideoLibrary
 import montage.core.appendScene
 import montage.core.sampleProject
+import montage.core.withoutVideo
 
 @Composable
 fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLibrary? = null, previews: VideoPreviewProvider? = null) {
@@ -37,6 +38,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
     var importNotice by remember { mutableStateOf<String?>(null) }
     var availability by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     var previewAsset by remember { mutableStateOf<VideoAsset?>(null) }
+    var editingScene by remember(repository) { mutableStateOf<String?>(null) }
     // Import/remove can return to the same workspace JSON while leaving a new
     // managed copy. It still needs a successful save or explicit discard.
     var pendingVideoCleanup by remember(repository) { mutableStateOf(false) }
@@ -88,6 +90,10 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
         VideoPreview(previewAsset!!, previews) { previewAsset = null }
         return
     }
+    editingScene?.let { id ->
+        SceneEditor(workspace, id, previews, onChange = { workspace = it; failure = null }, onBack = { editingScene = null })
+        return
+    }
     val draft = workspace.draft
     val editable = loaded && !busy
     val dirty = workspace != saved || pendingVideoCleanup
@@ -105,6 +111,7 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                     modifier = Modifier.fillMaxWidth().testTag("project-title"),
                 )
                 Text("${draft.scenes.size} scenes · ${draft.visibleDurationSeconds}s visible · ${draft.transitionBufferSeconds}s transition buffer", modifier = Modifier.testTag("draft-summary"))
+                if (draft.scenes.any { it.clip != null }) Text("${draft.editedDurationMillis} ms edited sequence · transitions not rendered", modifier = Modifier.testTag("edited-duration"))
                 if (!showVideos) {
                     OutlinedTextField(
                         value = description,
@@ -191,10 +198,11 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                 if (workspace.jobs.isNotEmpty()) {
                     Text("${workspace.jobs.size} saved task checkpoints · no tasks run automatically")
                 }
-                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(Modifier.weight(1f).testTag("workspace-list"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (showVideos) {
                         if (workspace.videos.isEmpty()) item { Text("No videos imported") }
                         items(workspace.videos, key = { "video-${it.id}" }) { asset ->
+                            val uses = draft.scenes.count { it.clip?.videoId == asset.id }
                             Card(Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp)) {
                                     Column {
@@ -206,12 +214,13 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                                             null -> "Checking video file…"
                                         })
                                     }
+                                    if (uses > 0) Text("Used by $uses scene(s) · detach in Scenes before removing", modifier = Modifier.testTag("video-in-use-${asset.id}"))
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (previews != null) TextButton(modifier = Modifier.testTag("preview-video-${asset.id}"), enabled = editable && availability[asset.id] == true, onClick = {
                                             previewAsset = asset
                                         }) { Text("Preview") }
-                                        TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable, onClick = {
-                                            workspace = workspace.copy(videos = workspace.videos.filterNot { it.id == asset.id })
+                                        TextButton(modifier = Modifier.testTag("remove-video-${asset.id}"), enabled = editable && uses == 0, onClick = {
+                                            workspace = workspace.withoutVideo(asset.id)
                                             pendingVideoCleanup = true
                                             failure = null
                                             importNotice = "Save draft to remove the video copy"
@@ -222,9 +231,15 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                         }
                     } else items(draft.scenes, key = { "scene-${it.id}" }) { scene ->
                         Card(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text(scene.description)
-                                Text("${scene.durationSeconds} seconds", style = MaterialTheme.typography.bodySmall)
+                            Row(Modifier.padding(12.dp)) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(scene.description)
+                                    Text("${scene.durationSeconds} seconds", style = MaterialTheme.typography.bodySmall)
+                                    scene.clip?.let { clip -> Text("${workspace.videos.first { it.id == clip.videoId }.name} · ${clip.inMillis}–${clip.outMillis} ms", modifier = Modifier.testTag("scene-clip-${scene.id}")) }
+                                }
+                                TextButton(modifier = Modifier.height(32.dp).testTag("edit-scene-${scene.id}"), contentPadding = PaddingValues(horizontal = 8.dp), enabled = editable, onClick = {
+                                    focus.clearFocus(); editingScene = scene.id
+                                }) { Text("Edit scene") }
                             }
                         }
                     }

@@ -48,7 +48,7 @@ class WorkspaceTest {
     }
 
     @Test fun unreadableOrFutureDocumentsAreNeverReplacedWithSample() {
-        for (document in listOf("broken JSON", "", """{"schemaVersion":3,"draft":{"title":"Future"}}""")) {
+        for (document in listOf("broken JSON", "", """{"schemaVersion":4,"draft":{"title":"Future"}}""")) {
             val storage = Storage(document)
             val repository = WorkspaceRepository(storage)
             assertFails { repository.load() }
@@ -95,7 +95,7 @@ class WorkspaceTest {
     @Test fun migratesVersionOneWithoutLosingDraftOrProviderCheckpoint() {
         val storage = Storage("""{"schemaVersion":1,"draft":{"title":"旧项目"},"jobs":[{"id":"video-1","tool":"GenerateVideos","status":"Interrupted","stage":"polling","providerOperationId":"op-123"}]}""")
         val restored = WorkspaceRepository(storage).load()
-        assertEquals(2, restored.schemaVersion)
+        assertEquals(3, restored.schemaVersion)
         assertEquals("旧项目", restored.draft.title)
         assertEquals("op-123", restored.jobs.single().providerOperationId)
         assertTrue(restored.videos.isEmpty())

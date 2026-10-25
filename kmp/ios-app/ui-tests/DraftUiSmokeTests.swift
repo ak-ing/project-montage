@@ -122,7 +122,7 @@ final class DraftUiSmokeTests: XCTestCase {
     }
 
     private func selectDocument(_ app: XCUIApplication, _ prefix: String, capture: Bool = false) {
-        // Source documents are saved by a separate fixture app through UIDocument.
+        // Source documents are published atomically inside a separate fixture app.
         // Select them through the real provider; the app under test only imports.
         navigateToFixtureFolder(app)
         attach(app, "picker-folder-resolved-" + prefix)
@@ -178,6 +178,89 @@ final class DraftUiSmokeTests: XCTestCase {
 
     private func previewPosition(_ app: XCUIApplication) -> Int {
         Int(app.staticTexts["video-position"].label.components(separatedBy: "/")[0].trimmingCharacters(in: .whitespaces)) ?? -1
+    }
+
+    private func editorTap(_ app: XCUIApplication, _ identifier: String, scrollDown: Bool = false) {
+        let button = app.buttons[identifier]
+        let editor = app.descendants(matching: .any)["scene-editor-scroll"]
+        let list = app.descendants(matching: .any)["workspace-list"]
+        for _ in 0..<5 {
+            if button.exists && button.isHittable { button.tap(); return }
+            let scroll = editor.exists ? editor : list
+            XCTAssertTrue(scroll.exists, app.debugDescription)
+            if scrollDown { scroll.swipeDown() } else { scroll.swipeUp() }
+        }
+        XCTFail("Editor button not reachable: " + identifier + "\n" + app.debugDescription)
+    }
+
+    private func replaceNumber(_ app: XCUIApplication, _ identifier: String, _ value: String) {
+        let field = app.textFields[identifier]
+        XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription)
+        field.tap()
+        let existing = field.value as? String ?? ""
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + value)
+    }
+
+    func testSceneClipEditingAndRestart() {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.montage.app")
+        openApp(app)
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        importVideo(app, "Montage-preview-smoke")
+        app.buttons["scene-tab"].tap()
+        app.buttons["edit-scene-opening"].tap()
+        XCTAssertTrue(app.buttons["choose-scene-video"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["move-scene-up"].isEnabled)
+        app.buttons["choose-scene-video"].tap()
+        let video = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "clip-video-")).firstMatch
+        XCTAssertTrue(video.waitForExistence(timeout: 10), app.debugDescription)
+        video.tap()
+        XCTAssertTrue(app.staticTexts["clip-source-duration"].waitForExistence(timeout: 30))
+        XCTAssertEqual(app.staticTexts["clip-source-duration"].label, "8000 ms available")
+        let defaultRange = expectation(for: NSPredicate(format: "value == %@", "8000"), evaluatedWith: app.textFields["clip-out"])
+        wait(for: [defaultRange], timeout: 10)
+        replaceNumber(app, "clip-out", "9000")
+        XCTAssertFalse(app.buttons["apply-scene-clip"].isEnabled)
+        XCTAssertTrue(app.staticTexts["clip-range-error"].exists)
+        replaceNumber(app, "clip-in", "1250")
+        replaceNumber(app, "clip-out", "6500")
+        editorTap(app, "apply-scene-clip")
+        editorTap(app, "move-scene-down", scrollDown: true)
+        XCTAssertEqual(app.staticTexts["scene-editor-position"].label, "Scene 2")
+        editorTap(app, "scene-editor-back", scrollDown: true)
+        XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["edited-duration"].label, "9250 ms edited sequence · transitions not rendered")
+        app.buttons["video-tab"].tap()
+        let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch
+        XCTAssertTrue(remove.exists)
+        XCTAssertFalse(remove.isEnabled)
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        // Reordered scene retains its stable identity and exact millisecond edit.
+        editorTap(app, "edit-scene-opening")
+        XCTAssertTrue(app.staticTexts["clip-source-duration"].waitForExistence(timeout: 30))
+        XCTAssertEqual(app.staticTexts["scene-editor-position"].label, "Scene 2")
+        XCTAssertEqual(app.textFields["clip-in"].value as? String, "1250")
+        XCTAssertEqual(app.textFields["clip-out"].value as? String, "6500")
+        XCTAssertEqual(app.staticTexts["scene-editor-video"].label, "Montage-preview-smoke.mp4")
+        attach(app, "scene-edits-restored")
+        editorTap(app, "detach-scene-video")
+        editorTap(app, "scene-editor-back", scrollDown: true)
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        app.buttons["video-tab"].tap()
+        XCTAssertTrue(remove.isEnabled)
+        remove.tap()
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["No videos imported"].exists)
+        app.buttons["scene-tab"].tap()
+        app.buttons["reset-sample"].tap()
+        app.buttons["save-draft"].tap()
+        XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
     }
 
     func testVideoPreviewPlaybackSeekAndRestart() {

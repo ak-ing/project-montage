@@ -143,8 +143,11 @@ def listing(folder):
     return [{'name':p.name,'is_file':p.is_file(),'is_symlink':p.is_symlink(),'bytes':p.lstat().st_size,'links':p.lstat().st_nlink} for p in folder.glob('*')]
 remaining=listing(media)
 aliases=listing(root/'tmp/ProjectMontagePreview')
-retained=json.loads(workspace.read_text())['videos'] if workspace.exists() else None
+snapshot=json.loads(workspace.read_text()) if workspace.exists() else None
+retained=snapshot['videos'] if snapshot is not None else None
+remaining_clips=[scene['clip'] for scene in snapshot['draft']['scenes'] if scene.get('clip') is not None] if snapshot is not None else None
 result={'source_preserved':source_preserved,'managed_cleanup_empty':not remaining,'preview_cache_cleanup_empty':not aliases,
+    'schema_version':snapshot['schemaVersion'] if snapshot is not None else None,'scene_clips_remaining':remaining_clips,
     'source_location':'Files/On My iPhone/Montage smoke fixtures','sources_outside_app_container':not sources.is_relative_to(root),
     'managed_remaining':remaining,'preview_cache_remaining':aliases,'retained_video_count':len(retained) if retained is not None else None,
     'fixture_sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'preview_fixture_sha256':hashlib.sha256(preview.read_bytes()).hexdigest()}
@@ -154,6 +157,7 @@ assert source_record['creation']['saved_documents']==list(expected), source_reco
 assert source_preserved, 'Import/removal changed or lost an original test video'
 assert result['sources_outside_app_container']
 assert retained == []
+assert snapshot['schemaVersion']==3 and remaining_clips==[]
 assert not remaining, f'Managed media was not removed after successful save: {remaining}'
 assert not aliases, f'Preview aliases were not released: {aliases}'
 PY
@@ -161,6 +165,6 @@ test "$xcode_status" -eq 0
 python3 - <<'PY'
 import json
 p=json.load(open('build/ui-smoke/ios/result.json'))
-assert p['passedTests'] == p['totalTestCount'] == 3 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
-print('iOS UI smoke passed: draft/import recovery, real video metadata/thumbnail/play/pause/seek/restart and corrupt-file handling')
+assert p['passedTests'] == p['totalTestCount'] == 4 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
+print('iOS UI smoke passed: draft/import/preview recovery, scene clip validation/reorder/restart/detach, corruption and cleanup')
 PY

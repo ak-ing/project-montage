@@ -1,5 +1,9 @@
 # 四平台 CI
 
+## 分镜素材关联与片段编辑（验证中）
+
+当前代码升级至 schema 3，支持关联本地素材、排序、毫秒级入出点、解除关联及保存恢复。CI 最低核心测试数提升至每端 26、桌面测试至每端 15；iOS 保留原三条用例并新增分镜编辑/重启/解除关联用例，共四条。Android 在原实际 APK 流程中增加区间错误、排序、重启后 JSON/界面恢复、引用保护与解除后清理断言。新功能的实际远端结果另行记录，前一节的预览基线不代替本里程碑验收。
+
 ## 视频信息与播放预览（2026-10-24 已通过）
 
 运行 [40115876922](https://github.com/ak-ing/project-montage/actions/runs/40115876922)（源码 `f9a3698`）四个作业全部成功。四份主产物 ZIP 已下载并逐份校验 SHA-256，实际 XML/TeamCity、移动端 JSON、截图与原生阶段日志已核对；测试无失败、无跳过。[完整证据清单](evidence/video-preview-40115876922.json) 保留提交、作业、产物摘要、测试名与截图来源，[历史记录](evidence/video-preview-status.json) 保留先前失败。
@@ -92,7 +96,7 @@ Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；�
 
 Android 从明确的 SDK 工具路径启动模拟器，不依赖 runner 的 PATH。AVD 请求 2 GB 用户数据分区；镜像仍可能要求更高初始化下限。构建后清理这个一次性 runner 中不再使用的 NDK、CMake 与 .NET，释放镜像初始化所需空间。新版默认 12 GB 超过构建后约 5.9 GB 的可用磁盘，缩小分区后仍约需 7.2 GB，故不能只靠分区设置。监控在模拟器进程提前退出时立即失败，避免等待完整启动超时。坐标从 UI XML 的控件边界计算。
 
-iOS 为整套 UI 用例创建一台独立 iPhone 模拟器，先用 `build-for-testing` 构建测试包，再安装被测应用与独立的测试素材应用。素材应用从 iOS 内原子写入三个完整文件并通过字节校验，随后 `test-without-building` 执行三个用例；取消后重开之间不重置或重启应用。测试有执行超时，失败时也尝试导出汇总与附件。完整 xcresult 单独上传为 `ios-ui-xcresult`，主要 `ios-simulator-evidence` 包保留日志、结果 JSON、截图和工程，便于直接审阅。
+iOS 为整套 UI 用例创建一台独立 iPhone 模拟器，先用 `build-for-testing` 构建测试包，再安装被测应用与独立的测试素材应用。素材应用从 iOS 内原子写入三个完整文件并通过字节校验，随后 `test-without-building` 执行四个用例；取消后重开之间不重置或重启应用。测试有执行超时，失败时也尝试导出汇总与附件。完整 xcresult 单独上传为 `ios-ui-xcresult`，主要 `ios-simulator-evidence` 包保留日志、结果 JSON、截图和工程，便于直接审阅。
 
 所有产物保留七天；代表截图另存于仓库证据目录。桌面 JAR 不是自包含安装包。软件渲染用于稳定的桌面功能验证，不代表 GPU 性能测试。
 
@@ -114,7 +118,7 @@ CNB 托管构建使用 Docker，可承接 Linux/JVM 测试及配置好 Android S
 
 ```sh
 ./kotlin test -m desktop-app --platform jvm
-python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 14
+python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 15
 ```
 
 Windows 使用 `kotlin.bat`，桌面需要图形会话。无 GPU 云端使用 `SKIKO_RENDER_API=SOFTWARE`；当前云实例还需 source `scripts/cloud-env.sh` 并提供 Xorg `DISPLAY`。CI 不加载云专用脚本。

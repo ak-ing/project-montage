@@ -32,13 +32,16 @@ data class JobCheckpoint(
 data class WorkspaceSnapshot(
     val draft: ProjectDraft,
     val jobs: List<JobCheckpoint> = emptyList(),
-    val schemaVersion: Int = 2,
+    val schemaVersion: Int = 3,
     val videos: List<VideoAsset> = emptyList(),
 ) {
     init {
-        require(schemaVersion == 2) { "Unsupported workspace version" }
+        require(schemaVersion == 3) { "Unsupported workspace version" }
         require(jobs.map { it.id }.distinct().size == jobs.size) { "Job ids must be unique" }
         require(videos.map { it.id }.distinct().size == videos.size) { "Video ids must be unique" }
+        require(draft.scenes.all { scene -> scene.clip == null || videos.any { it.id == scene.clip.videoId } }) {
+            "Scene references a video outside the workspace"
+        }
     }
 
     fun recover(): WorkspaceSnapshot = copy(jobs = jobs.map { it.recover() })
@@ -62,9 +65,9 @@ class WorkspaceRepository(private val storage: WorkspaceStorage) {
         val saved = if (document == null) WorkspaceSnapshot(sampleProject()) else {
             val fields = json.parseToJsonElement(document).jsonObject
             val version = fields["schemaVersion"]?.jsonPrimitive?.int ?: 1
-            require(version == 1 || version == 2) { "Unsupported workspace version" }
-            migrated = version == 1
-            json.decodeFromJsonElement<WorkspaceSnapshot>(JsonObject(fields + ("schemaVersion" to JsonPrimitive(2))))
+            require(version in 1..3) { "Unsupported workspace version" }
+            migrated = version < 3
+            json.decodeFromJsonElement<WorkspaceSnapshot>(JsonObject(fields + ("schemaVersion" to JsonPrimitive(3))))
         }
         val recovered = saved.recover()
         if (migrated || saved != recovered) storage.writeAtomically(json.encodeToString(recovered))

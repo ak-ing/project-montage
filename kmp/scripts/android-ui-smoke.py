@@ -67,6 +67,26 @@ def screenshot(stage):
     (out / f'{stage}.png').write_bytes(adb('exec-out', 'screencap', '-p', binary=True))
 
 
+def scroll_to(tag, container='workspace-list'):
+    for attempt in range(6):
+        nodes = list(tree().iter('node'))
+        target = next((n for n in nodes if n.get('resource-id', '').split('/')[-1] == tag), None)
+        if target is not None:
+            return target
+        region = find(container)
+        x1, y1, x2, y2 = map(int, re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', region.get('bounds')).groups())
+        adb('shell', 'input', 'swipe', str((x1+x2)//2), str(y1+(y2-y1)*3//4), str((x1+x2)//2), str(y1+(y2-y1)//4), '350')
+    raise AssertionError('Could not scroll to ' + tag)
+
+
+def replace_number(tag, value):
+    tap(tag)
+    adb('shell', 'input', 'keyevent', 'KEYCODE_MOVE_END')
+    adb('shell', 'input', 'keyevent', *(['KEYCODE_DEL'] * 30))
+    adb('shell', 'input', 'text', str(value))
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+
+
 def preview_metadata():
     find(text='Paused')
     value = find('video-metadata').get('text', '')
@@ -213,6 +233,49 @@ try:
     restored_copy = adb('exec-out', 'run-as', 'dev.montage.app', 'cat', managed_preview, binary=True)
     assert restored_copy == preview_fixture.read_bytes()
     assert json.loads(adb('exec-out', 'run-as', 'dev.montage.app', 'cat', 'files/workspace.json')) == preview_document
+    # Edit a real local video, protect its reference, and restore exact edit decisions.
+    tap('scene-tab')
+    tap_node(scroll_to('edit-scene-opening'))
+    assert find('move-scene-up').get('enabled') == 'false'
+    tap('choose-scene-video')
+    tap('clip-video-' + preview_asset['id'])
+    source_duration = find('clip-source-duration').get('text')
+    assert source_duration == '8023 ms available', source_duration
+    replace_number('clip-out', 9000)
+    assert find('apply-scene-clip').get('enabled') == 'false'
+    find('clip-range-error')
+    replace_number('clip-in', 1250)
+    replace_number('clip-out', 6500)
+    tap('apply-scene-clip')
+    tap('move-scene-down')
+    assert find('scene-editor-position').get('text') == 'Scene 2'
+    tap('scene-editor-back')
+    find(text='Unsaved changes')
+    tap('video-tab')
+    assert find('remove-video-' + preview_asset['id']).get('enabled') == 'false'
+    tap('save-draft')
+    find(text='No unsaved changes')
+    adb('shell', 'am', 'force-stop', 'dev.montage.app')
+    adb('shell', 'am', 'start', '-W', '-n', resolved)
+    find(text='No unsaved changes')
+    edited_document = json.loads(adb('exec-out', 'run-as', 'dev.montage.app', 'cat', 'files/workspace.json'))
+    assert edited_document['schemaVersion'] == 3
+    assert [s['id'] for s in edited_document['draft']['scenes']] == ['ending', 'opening', 'scene-3']
+    restored_clip = edited_document['draft']['scenes'][1]['clip']
+    assert restored_clip == {'videoId': preview_asset['id'], 'inMillis': 1250, 'outMillis': 6500}, restored_clip
+    assert edited_document['jobs'] == preview_document['jobs']
+    tap_node(scroll_to('edit-scene-opening'))
+    find('clip-source-duration')
+    assert find('scene-editor-position').get('text') == 'Scene 2'
+    assert find('clip-in').get('text') == '1250'
+    assert find('clip-out').get('text') == '6500'
+    screenshot('scene-edits-restored')
+    tap_node(scroll_to('detach-scene-video', 'scene-editor-scroll'))
+    tap('scene-editor-back')
+    tap('save-draft')
+    find(text='No unsaved changes')
+    tap('video-tab')
+    assert find('remove-video-' + preview_asset['id']).get('enabled') == 'true'
     tap('remove-video-' + preview_asset['id'])
     tap('save-draft')
     find(text='No unsaved changes')
@@ -236,7 +299,7 @@ try:
     assert 'dev.montage.app' not in crashes, crashes
     application_anrs = re.findall(r'ANR in dev\.montage\.app\b.*', adb('logcat', '-d'))
     assert not application_anrs, application_anrs
-    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'draft recovery; native picker cancel/import; independent copy; metadata/thumbnail/play/pause/seek; preview restart; corruption/retry; remove/cleanup', 'serial': args.serial, 'fixture_sha256': hashlib.sha256(imported).hexdigest(), 'imported_bytes': len(imported), 'managed_cleanup_empty': True, 'system_launcher_recoveries': launcher_recoveries, 'preview': {'fixture_sha256': hashlib.sha256(restored_copy).hexdigest(), 'metadata': metadata, 'paused_position_ms': paused_position, 'seek_position_ms': seek_position, 'restart_recovery': True, 'corruption_and_retry': True}}, indent=2))
+    (out / 'result.json').write_text(json.dumps({'status': 'passed', 'flow': 'draft recovery; native picker cancel/import; independent copy; metadata/thumbnail/play/pause/seek; preview restart; corruption/retry; scene clip/range validation/reorder/restart/detach; remove/cleanup', 'serial': args.serial, 'fixture_sha256': hashlib.sha256(imported).hexdigest(), 'imported_bytes': len(imported), 'managed_cleanup_empty': True, 'system_launcher_recoveries': launcher_recoveries, 'scene_edits': {'schema_version': 3, 'scene_order': [s['id'] for s in edited_document['draft']['scenes']], 'clip': restored_clip, 'restart_recovery': True, 'invalid_range_rejected': True, 'referenced_removal_blocked': True, 'detach_then_remove': True}, 'preview': {'fixture_sha256': hashlib.sha256(restored_copy).hexdigest(), 'metadata': metadata, 'paused_position_ms': paused_position, 'seek_position_ms': seek_position, 'restart_recovery': True, 'corruption_and_retry': True}}, indent=2))
     print('Android UI smoke passed: draft recovery; native picker cancel/import, independent copy, restart and removal')
 finally:
     (out / 'logcat.txt').write_text(adb('logcat', '-d'))
