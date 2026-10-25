@@ -14,6 +14,8 @@ bash diagnostics/apple/run-file-provider-probe.sh
 The separate Actions workflow uses the same current macOS/Xcode and latest
 installed iOS runtime. Each probe owns one fresh device and shuts it down on exit;
 it never resets the app between cancellation and reopening.
+XCTest targets an empty native host and launches the reader as a separate app,
+matching the full suite's control topology without building Kotlin.
 
 Evidence includes native XCTest results/screenshots, source hashes/inodes, host
 and Simulator Foundation file-reference URL round trips, and read-only scalar

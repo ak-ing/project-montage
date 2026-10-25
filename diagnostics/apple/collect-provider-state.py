@@ -54,7 +54,8 @@ for identifier, folder in roots:
                 quoted = '"' + name.replace('"', '""') + '"'
                 columns = list(connection.execute('PRAGMA table_info(' + quoted + ')'))
                 # Show schema and scalar path/name/id metadata only; omit blobs/bookmarks/tokens.
-                selected = [c[1] for c in columns if any(s in c[1].lower() for s in ['name', 'path', 'identifier', 'itemid', 'fileid', 'parentid'])
+                selected = [c[1] for c in columns if (c[1].lower() in ['id', 'rowid', 'docid', 'documentid', 'document_id', 'st_ino', 'st_dev']
+                            or any(s in c[1].lower() for s in ['name', 'path', 'identifier', 'itemid', 'fileid', 'parentid']))
                             and not any(s in c[1].lower() for s in ['token', 'bookmark', 'secret', 'key', 'credential'])]
                 table = dict(name=name, schema=sql, columns=[dict(name=c[1], type=c[2]) for c in columns])
                 if selected:

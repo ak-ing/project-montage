@@ -35,29 +35,40 @@ def source(path):
     return ref, add('PBXBuildFile', fileRef=ref)
 
 reader, reader_build = source(repo / 'kmp/ios-app/ui-tests/fixture-reader/FixtureReader.swift')
+host, host_build = source(repo / 'diagnostics/apple/ProbeHost.swift')
 test, test_build = source(repo / 'kmp/ios-app/ui-tests/DraftUiSmokeTests.swift')
 app_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageFixtureReader.app', sourceTree='BUILT_PRODUCTS_DIR')
+host_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageProbeHost.app', sourceTree='BUILT_PRODUCTS_DIR')
 test_product = add('PBXFileReference', explicitFileType='wrapper.cfbundle', path='MontageUITests.xctest', sourceTree='BUILT_PRODUCTS_DIR')
-products = add('PBXGroup', children=[app_product, test_product], name='Products', sourceTree='<group>')
-main = add('PBXGroup', children=[reader, test, products], sourceTree='<group>')
+products = add('PBXGroup', children=[app_product, host_product, test_product], name='Products', sourceTree='<group>')
+main = add('PBXGroup', children=[reader, host, test, products], sourceTree='<group>')
 app = add('PBXNativeTarget', name='MontageFixtureReader', productName='MontageFixtureReader',
           productType='com.apple.product-type.application', productReference=app_product,
           buildConfigurationList=configs(PRODUCT_NAME='MontageFixtureReader', PRODUCT_BUNDLE_IDENTIFIER='dev.montage.fixture-reader',
                                         INFOPLIST_FILE=str(root / 'ReaderInfo.plist'), GENERATE_INFOPLIST_FILE='NO'),
           buildPhases=[phase('PBXSourcesBuildPhase', [reader_build]), phase('PBXFrameworksBuildPhase'), phase('PBXResourcesBuildPhase')],
           buildRules=[], dependencies=[])
-proxy = add('PBXContainerItemProxy', containerPortal='PENDING', proxyType=1, remoteGlobalIDString=app, remoteInfo='MontageFixtureReader')
-dependency = add('PBXTargetDependency', target=app, targetProxy=proxy)
+host_app = add('PBXNativeTarget', name='MontageProbeHost', productName='MontageProbeHost',
+          productType='com.apple.product-type.application', productReference=host_product,
+          buildConfigurationList=configs(PRODUCT_NAME='MontageProbeHost', PRODUCT_BUNDLE_IDENTIFIER='dev.montage.probe-host',
+                                        INFOPLIST_FILE=str(root / 'HostInfo.plist'), GENERATE_INFOPLIST_FILE='NO'),
+          buildPhases=[phase('PBXSourcesBuildPhase', [host_build]), phase('PBXFrameworksBuildPhase'), phase('PBXResourcesBuildPhase')],
+          buildRules=[], dependencies=[])
+proxy = add('PBXContainerItemProxy', containerPortal='PENDING', proxyType=1, remoteGlobalIDString=host_app, remoteInfo='MontageProbeHost')
+dependency = add('PBXTargetDependency', target=host_app, targetProxy=proxy)
+reader_proxy = add('PBXContainerItemProxy', containerPortal='PENDING', proxyType=1, remoteGlobalIDString=app, remoteInfo='MontageFixtureReader')
+reader_dependency = add('PBXTargetDependency', target=app, targetProxy=reader_proxy)
 tests = add('PBXNativeTarget', name='MontageUITests', productName='MontageUITests',
             productType='com.apple.product-type.bundle.ui-testing', productReference=test_product,
             buildConfigurationList=configs(PRODUCT_NAME='MontageUITests', PRODUCT_BUNDLE_IDENTIFIER='dev.montage.fixture-reader.uitests',
-                                          GENERATE_INFOPLIST_FILE='YES', TEST_TARGET_NAME='MontageFixtureReader'),
+                                          GENERATE_INFOPLIST_FILE='YES', TEST_TARGET_NAME='MontageProbeHost'),
             buildPhases=[phase('PBXSourcesBuildPhase', [test_build]), phase('PBXFrameworksBuildPhase'), phase('PBXResourcesBuildPhase')],
-            buildRules=[], dependencies=[dependency])
+            buildRules=[], dependencies=[dependency, reader_dependency])
 project_id = add('PBXProject', buildConfigurationList=configs(), compatibilityVersion='Xcode 14.0', developmentRegion='en',
-                 knownRegions=['en', 'Base'], mainGroup=main, productRefGroup=products, projectDirPath='', projectRoot='', targets=[app, tests],
-                 attributes={'LastUpgradeCheck': '2600', 'TargetAttributes': {tests: {'TestTargetID': app}}})
+                 knownRegions=['en', 'Base'], mainGroup=main, productRefGroup=products, projectDirPath='', projectRoot='', targets=[app, host_app, tests],
+                 attributes={'LastUpgradeCheck': '2600', 'TargetAttributes': {tests: {'TestTargetID': host_app}}})
 objects[proxy]['containerPortal'] = project_id
+objects[reader_proxy]['containerPortal'] = project_id
 
 def render(value):
     if isinstance(value, dict):
@@ -73,12 +84,16 @@ info.update(CFBundleIdentifier='dev.montage.fixture-reader', CFBundleExecutable=
             CFBundleDisplayName='Montage Files probe', UIFileSharingEnabled=False, LSSupportsOpeningDocumentsInPlace=False)
 with (root / 'ReaderInfo.plist').open('wb') as f:
     plistlib.dump(info, f)
+info.update(CFBundleIdentifier='dev.montage.probe-host', CFBundleExecutable='MontageProbeHost', CFBundleName='MontageProbeHost',
+            CFBundleDisplayName='Montage probe host')
+with (root / 'HostInfo.plist').open('wb') as f:
+    plistlib.dump(info, f)
 scheme = ET.parse(repo / 'kmp/ios-app/module.xcodeproj/xcshareddata/xcschemes/app.xcscheme')
 for ref in scheme.iter('BuildableReference'):
     is_test = ref.get('BlueprintName') == 'MontageUITests'
-    ref.set('BlueprintIdentifier', tests if is_test else app)
-    ref.set('BlueprintName', 'MontageUITests' if is_test else 'MontageFixtureReader')
-    ref.set('BuildableName', 'MontageUITests.xctest' if is_test else 'MontageFixtureReader.app')
+    ref.set('BlueprintIdentifier', tests if is_test else host_app)
+    ref.set('BlueprintName', 'MontageUITests' if is_test else 'MontageProbeHost')
+    ref.set('BuildableName', 'MontageUITests.xctest' if is_test else 'MontageProbeHost.app')
     ref.set('ReferencedContainer', 'container:probe.xcodeproj')
 directory = project / 'xcshareddata/xcschemes'
 directory.mkdir(parents=True, exist_ok=True)

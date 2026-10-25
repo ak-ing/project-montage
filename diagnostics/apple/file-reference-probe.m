@@ -29,6 +29,12 @@ int main(int argc, const char *argv[]) {
                 id identifier = nil;
                 [url getResourceValue:&identifier forKey:NSURLFileResourceIdentifierKey error:nil];
                 record[@"resource_identifier"] = value([identifier description]);
+                id document = nil;
+                [url getResourceValue:&document forKey:NSURLDocumentIdentifierKey error:nil];
+                record[@"document_identifier"] = value(document);
+                id generation = nil;
+                [url getResourceValue:&generation forKey:NSURLGenerationIdentifierKey error:nil];
+                record[@"generation_identifier"] = value([generation description]);
             }
             // NSDate / opaque attributes aren't JSON values. Keep a bounded textual description.
             record[@"attributes"] = value([attributes description]);

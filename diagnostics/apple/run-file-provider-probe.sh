@@ -33,6 +33,8 @@ xcodebuild build-for-testing -project "$probe_root/probe.xcodeproj" -scheme prob
   -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 \
   -derivedDataPath "$probe_root/DerivedData" CODE_SIGNING_ALLOWED=NO \
   2>&1 | tee "$out/build.log"
+# The full suite launches the control as a separate app, not XCTest's injected target.
+xcrun simctl install "$device" "$probe_root/DerivedData/Build/Products/Debug-iphonesimulator/MontageFixtureReader.app"
 source_app="$probe_root/MontageFixtureSource.app"
 mkdir -p "$source_app/Fixtures"
 cp "$repo/kmp/ios-app/ui-tests/fixture-source/Info.plist" "$source_app/Info.plist"
