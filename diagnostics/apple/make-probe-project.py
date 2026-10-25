@@ -43,7 +43,11 @@ test_text = test_source.read_text()
 # snapshots. Compare the public full-query path without changing test actions,
 # assertions or fixtures; the optimization is not yet established as the cause.
 query_test = root / 'DraftUiSmokeTests.swift'
-query_text = test_text.replace('.firstMatch', '.element(boundBy: 0)')
+query_text = test_text
+for identifier in ('Cancel', 'Open', 'BackButton'):
+    query_text = query_text.replace(f'app.buttons["{identifier}"].firstMatch',
+        f'app.buttons.matching(identifier: "{identifier}").element(boundBy: 0)')
+query_text = query_text.replace('.firstMatch', '.element(boundBy: 0)')
 query_test.write_text(query_text)
 test, test_build = source(query_test)
 (root / 'query-mode.json').write_text(json.dumps(dict(mode='full-query', source=str(test_source),
