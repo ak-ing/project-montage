@@ -31,7 +31,7 @@ fun SceneEditor(workspace: WorkspaceSnapshot, sceneId: String, previews: VideoPr
     val asset = workspace.videos.firstOrNull { it.id == selectedId }
     val player = remember(previews, asset, attempt) { asset?.let { previews?.open(it) } }
     DisposableEffect(player) { onDispose { player?.close() } }
-    val state = player?.state?.collectAsState()?.value
+    val state = key(player) { player?.state?.collectAsState()?.value }
     val metadata = state?.metadata
     LaunchedEffect(player, metadata) {
         if (metadata != null && !rangeEdited && outText.isEmpty()) outText = metadata.durationMillis.toString()

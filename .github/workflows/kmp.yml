@@ -181,6 +181,9 @@ jobs:
           xcrun swiftc -typecheck -parse-as-library -target arm64-apple-ios15.0-simulator \
             -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -framework UIKit \
             ios-app/ui-tests/fixture-source/FixtureSource.swift
+          xcrun swiftc -typecheck -parse-as-library -target arm64-apple-ios15.0-simulator \
+            -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -framework UIKit -framework CryptoKit \
+            ios-app/ui-tests/fixture-reader/FixtureReader.swift
       - name: Set up pinned build JDK
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:

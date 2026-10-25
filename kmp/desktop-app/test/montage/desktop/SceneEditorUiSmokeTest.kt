@@ -45,6 +45,7 @@ class SceneEditorUiSmokeTest {
             val fixture = File("../test-data/preview-smoke.mp4")
             val original = fixture.readBytes()
             val asset = library.importStream("Scene-source.mp4") { fixture.inputStream() }
+            val shortAsset = library.importStream("Short-source.mp4") { File("../test-data/import-smoke.mp4").inputStream() }
             val file = File(media, "${asset.id}.media")
             val disk = FileWorkspaceStorage(directory.resolve("workspace.json"))
             var failSave = false
@@ -55,16 +56,30 @@ class SceneEditorUiSmokeTest {
                 }
             }
             val repository = WorkspaceRepository(storage)
-            val initial = repository.load().copy(videos = listOf(asset), jobs = listOf(
+            val initial = repository.load().copy(videos = listOf(asset, shortAsset), jobs = listOf(
                 JobCheckpoint("job", MontageTool.GenerateVideos, JobStatus.Interrupted, "polling", "operation-keep")))
-            repository.save(initial)
-            val before = disk.read()
+            // Start from an actual schema-2 file, not just a new schema-3 draft.
+            val legacy = """{"schemaVersion":2,"draft":{"title":"My first Montage","scenes":[{"id":"opening","description":"Opening scene","durationSeconds":6},{"id":"ending","description":"Closing scene","durationSeconds":4}],"transition":"fade"},"jobs":[{"id":"job","tool":"GenerateVideos","status":"Interrupted","stage":"polling","providerOperationId":"operation-keep"}],"videos":[{"id":"${asset.id}","name":"${asset.name}","byteSize":${asset.byteSize}},{"id":"${shortAsset.id}","name":"${shortAsset.name}","byteSize":${shortAsset.byteSize}}]}"""
+            disk.writeAtomically(legacy)
             val provider = ObservedProvider(media)
             var epoch by mutableStateOf(0)
             compose.setContent { key(epoch) { MontageApp("Scene edit smoke", storage, library, provider) } }
             waitReady()
+            assertEquals(initial, WorkspaceRepository(storage).load())
+            val before = disk.read()
+            assertNotEquals(legacy, before)
             compose.onNodeWithTag("edit-scene-opening").performScrollTo().performClick()
             compose.onNodeWithTag("move-scene-up").assertIsNotEnabled()
+            compose.onNodeWithTag("choose-scene-video").performClick()
+            compose.onNodeWithTag("clip-video-${asset.id}").performClick()
+            waitDuration()
+            compose.onNodeWithTag("clip-source-duration").assertTextEquals("8000 ms available")
+            compose.onNodeWithTag("choose-scene-video").performClick()
+            compose.onNodeWithTag("clip-video-${shortAsset.id}").performClick()
+            waitDuration()
+            compose.onNodeWithTag("clip-source-duration").assertTextEquals("1000 ms available")
+            compose.onNodeWithTag("clip-out").performTextReplacement("6500")
+            compose.onNodeWithTag("apply-scene-clip").assertIsNotEnabled()
             compose.onNodeWithTag("choose-scene-video").performClick()
             compose.onNodeWithTag("clip-video-${asset.id}").performClick()
             waitDuration()
@@ -117,7 +132,12 @@ class SceneEditorUiSmokeTest {
             compose.onNodeWithTag("scene-editor-back").performClick()
             // Missing referenced media remains linked and is retryable after external repair.
             val backup = File(media, "backup")
-            check(file.renameTo(backup))
+            compose.runOnIdle {
+                // Input dispatch precedes recomposition/disposal. Windows forbids
+                // renaming an open native decoder file; wait for the actual exit.
+                assertEquals(provider.opened, provider.closed)
+                check(file.renameTo(backup))
+            }
             compose.onNodeWithTag("edit-scene-opening").performScrollTo().performClick()
             compose.waitUntil(30_000) { compose.onAllNodesWithTag("clip-video-error").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("apply-scene-clip").assertIsNotEnabled()
@@ -141,6 +161,9 @@ class SceneEditorUiSmokeTest {
             compose.onNodeWithTag("video-tab").performClick()
             compose.onNodeWithTag("remove-video-${asset.id}").assertIsEnabled().performClick()
             assertTrue(file.isFile)
+            compose.onNodeWithTag("save-draft").performClick()
+            waitReady()
+            compose.onNodeWithTag("remove-video-${shortAsset.id}").performScrollTo().assertIsEnabled().performClick()
             compose.onNodeWithTag("save-draft").performClick()
             waitReady()
             val final = WorkspaceRepository(storage).load()

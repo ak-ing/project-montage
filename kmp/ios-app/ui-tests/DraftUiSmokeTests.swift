@@ -180,6 +180,27 @@ final class DraftUiSmokeTests: XCTestCase {
         Int(app.staticTexts["video-position"].label.components(separatedBy: "/")[0].trimmingCharacters(in: .whitespaces)) ?? -1
     }
 
+    func testFileProviderNativeControl() {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.montage.fixture-reader")
+        app.launch()
+        XCTAssertTrue(app.staticTexts["native-picker-status"].waitForExistence(timeout: 15))
+        app.buttons["native-pick-video"].tap()
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 30))
+        cancel.tap()
+        XCTAssertTrue(app.staticTexts["Cancelled"].waitForExistence(timeout: 15))
+        let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.collectionViews["File View"])
+        wait(for: [closed], timeout: 15)
+        for name in ["Montage-import-smoke", "Montage-preview-smoke", "Montage-preview-invalid"] {
+            app.buttons["native-pick-video"].tap()
+            selectDocument(app, name)
+            XCTAssertTrue(app.staticTexts["Read " + name + ".mp4"].waitForExistence(timeout: 15), app.debugDescription)
+        }
+        attach(app, "native-picker-control-ready")
+        app.terminate()
+    }
+
     private func editorTap(_ app: XCUIApplication, _ identifier: String, scrollDown: Bool = false) {
         let button = app.buttons[identifier]
         let editor = app.descendants(matching: .any)["scene-editor-scroll"]

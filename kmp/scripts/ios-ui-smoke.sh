@@ -68,6 +68,22 @@ xcrun swiftc -parse-as-library -target arm64-apple-ios15.0-simulator \
 codesign --force --sign - --timestamp=none "$fixture_app"
 xcrun simctl install "$simulator_id" "$fixture_app"
 xcrun simctl launch "$simulator_id" dev.montage.fixture-source
+reader_app="$PWD/build/ui-smoke/ios/MontageFixtureReader.app"
+mkdir -p "$reader_app"
+python3 - "$fixture_app/Info.plist" "$reader_app/Info.plist" <<'PYREADER'
+import plistlib,sys
+with open(sys.argv[1],'rb') as f: info=plistlib.load(f)
+info.update(CFBundleIdentifier='dev.montage.fixture-reader',CFBundleExecutable='MontageFixtureReader',
+    CFBundleName='MontageFixtureReader',CFBundleDisplayName='Montage Files probe',UIFileSharingEnabled=False,
+    LSSupportsOpeningDocumentsInPlace=False)
+with open(sys.argv[2],'wb') as f: plistlib.dump(info,f)
+PYREADER
+xcrun swiftc -parse-as-library -target arm64-apple-ios15.0-simulator \
+  -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -framework UIKit -framework CryptoKit \
+  ios-app/ui-tests/fixture-reader/FixtureReader.swift -o "$reader_app/MontageFixtureReader"
+codesign --force --sign - --timestamp=none "$reader_app"
+xcrun simctl install "$simulator_id" "$reader_app"
+reader_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.fixture-reader data)
 fixture_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.fixture-source data)
 fixture_sources=$(python3 - "$app_data" "$fixture_data" <<'PYFIXTURE'
 from pathlib import Path
@@ -119,6 +135,9 @@ xcrun simctl spawn "$simulator_id" log show --last 20m --style compact \
   > build/ui-smoke/ios/file-provider-errors.log || true
 xcrun xcresulttool get test-results summary --path build/ui-smoke/ios/DraftUiSmoke.xcresult > build/ui-smoke/ios/result.json
 xcrun xcresulttool export attachments --path build/ui-smoke/ios/DraftUiSmoke.xcresult --output-path build/ui-smoke/ios/attachments
+if test -f "$reader_data/Library/Caches/montage-native-picker.json"; then
+  cp "$reader_data/Library/Caches/montage-native-picker.json" build/ui-smoke/ios/native-picker-control.json
+fi
 app_data=$(xcrun simctl get_app_container "$simulator_id" dev.montage.app data)
 python3 - "$app_data" "$fixture_sources" <<'PY'
 from pathlib import Path
@@ -165,6 +184,8 @@ test "$xcode_status" -eq 0
 python3 - <<'PY'
 import json
 p=json.load(open('build/ui-smoke/ios/result.json'))
-assert p['passedTests'] == p['totalTestCount'] == 4 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
+assert p['passedTests'] == p['totalTestCount'] == 5 and p['failedTests'] == 0 and p['skippedTests'] == 0, p
+control=json.load(open('build/ui-smoke/ios/native-picker-control.json'))
+assert control['cancelled']==1 and len(control['reads'])==3 and not control['error'], control
 print('iOS UI smoke passed: draft/import/preview recovery, scene clip validation/reorder/restart/detach, corruption and cleanup')
 PY

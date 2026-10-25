@@ -67,7 +67,7 @@ def screenshot(stage):
     (out / f'{stage}.png').write_bytes(adb('exec-out', 'screencap', '-p', binary=True))
 
 
-def scroll_to(tag, container='workspace-list'):
+def scroll_to(tag, container='workspace-list', toward_top=False):
     for attempt in range(6):
         nodes = list(tree().iter('node'))
         target = next((n for n in nodes if n.get('resource-id', '').split('/')[-1] == tag), None)
@@ -75,7 +75,8 @@ def scroll_to(tag, container='workspace-list'):
             return target
         region = find(container)
         x1, y1, x2, y2 = map(int, re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', region.get('bounds')).groups())
-        adb('shell', 'input', 'swipe', str((x1+x2)//2), str(y1+(y2-y1)*3//4), str((x1+x2)//2), str(y1+(y2-y1)//4), '350')
+        start, end = (1, 3) if toward_top else (3, 1)
+        adb('shell', 'input', 'swipe', str((x1+x2)//2), str(y1+(y2-y1)*start//4), str((x1+x2)//2), str(y1+(y2-y1)*end//4), '350')
     raise AssertionError('Could not scroll to ' + tag)
 
 
@@ -238,7 +239,9 @@ try:
     tap_node(scroll_to('edit-scene-opening'))
     assert find('move-scene-up').get('enabled') == 'false'
     tap('choose-scene-video')
-    tap('clip-video-' + preview_asset['id'])
+    # DropdownMenu is a separate Android popup root; it exposes its visible
+    # filename, not the parent Activity's testTagsAsResourceId inheritance.
+    tap(text='Montage-preview-smoke.mp4')
     source_duration = find('clip-source-duration').get('text')
     assert source_duration == '8023 ms available', source_duration
     replace_number('clip-out', 9000)
@@ -247,9 +250,9 @@ try:
     replace_number('clip-in', 1250)
     replace_number('clip-out', 6500)
     tap('apply-scene-clip')
-    tap('move-scene-down')
+    tap_node(scroll_to('move-scene-down', 'scene-editor-scroll', toward_top=True))
     assert find('scene-editor-position').get('text') == 'Scene 2'
-    tap('scene-editor-back')
+    tap_node(scroll_to('scene-editor-back', 'scene-editor-scroll', toward_top=True))
     find(text='Unsaved changes')
     tap('video-tab')
     assert find('remove-video-' + preview_asset['id']).get('enabled') == 'false'
@@ -271,7 +274,7 @@ try:
     assert find('clip-out').get('text') == '6500'
     screenshot('scene-edits-restored')
     tap_node(scroll_to('detach-scene-video', 'scene-editor-scroll'))
-    tap('scene-editor-back')
+    tap_node(scroll_to('scene-editor-back', 'scene-editor-scroll', toward_top=True))
     tap('save-draft')
     find(text='No unsaved changes')
     tap('video-tab')

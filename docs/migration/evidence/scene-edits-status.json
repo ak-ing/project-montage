@@ -1,0 +1,38 @@
+{
+  "milestone": "scene-video-links-order-and-clip-ranges",
+  "status": "in_progress",
+  "latest_source_commit": "ecfed7a4862fd101f255f3761c362dafbed27b8f",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40161671315",
+  "history": [
+    {
+      "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
+      "run_id": 40161631378,
+      "status": "superseded: restored executable mode of iOS smoke script before final run"
+    },
+    {
+      "run_id": 40161671315,
+      "source_commit": "ecfed7a4862fd101f255f3761c362dafbed27b8f",
+      "status": "macOS passed; Windows 14/15; Android popup selection failed; iOS original native file selection blocked",
+      "windows_artifact_id": 12586334351,
+      "windows_digest": "sha256:f92f1e94705b4900338460dfe1b82322bc6d7c184e175af2476e390191883a2b",
+      "windows_checksum_verified": true,
+      "failure": "New UI smoke renamed a file immediately after Back input without waiting for composition/disposal; adding UI-idle and actual player-closed assertions before the missing-file probe. No test guards removed.",
+      "android": {
+        "artifact_id": 12586902787,
+        "digest": "sha256:7658b1a1bf38799a579eb8408f8eb0094408093366667e5dc1e52c26495ae8b4",
+        "checksum_verified": true,
+        "failure": "Dropdown popup exposes unique visible filename but no inherited resource IDs; XML confirms expected file present. Select visible name, retaining exact post-restart managed-ID/range JSON assertions."
+      },
+      "ios": {
+        "artifact_id": 12587091559,
+        "digest": "sha256:4302e204d662b0d6619d0dd18c524a765fb8d2dfc545d14020424e378835ede3",
+        "checksum_verified": true,
+        "core_tests": 26,
+        "ui_passed": 1,
+        "ui_failed": 3,
+        "failure": "Original 1s cancel/reopen import blocked before selection callback: FileProvider did=3 FP -1005 / cannot get URL; new scene and preview tests did not execute their flows.",
+        "empty_storage_is_acceptance": false
+      }
+    }
+  ]
+}
