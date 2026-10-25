@@ -15,8 +15,19 @@ concurrency:
 
 jobs:
   native-files:
+    name: Native Files (${{ matrix.identity }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - identity: native-created
+            track: '0'
+          - identity: tracked-synced
+            track: '1'
     runs-on: macos-26
     timeout-minutes: 25
+    env:
+      MONTAGE_PROBE_TRACK_IDENTITIES: ${{ matrix.track }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -28,7 +39,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: native-files-probe
+          name: native-files-probe-${{ matrix.identity }}
           path: ${{ runner.temp }}/montage-native-probe/evidence/**
           if-no-files-found: warn
           retention-days: 7

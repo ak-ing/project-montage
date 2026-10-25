@@ -1,0 +1,23 @@
+# Native iOS Files probe 40217561432, source b707af19885928877397b539aaa9fde013f783a8
+# Excerpt of provider-live.log, original line numbers retained. Full artifact SHA-256:
+# 30a9284144efe94938ea97c3ff9f37814d1279f46db2cfd6752da0a647933a19
+# Source bytes and container unchanged; this is a failed diagnostic, not product acceptance.
+
+15479: 2026-10-25 17:49:58.393 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15504: 2026-10-25 17:49:58.408 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15509: 2026-10-25 17:49:58.420 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15523: 2026-10-25 17:49:58.432 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15574: 2026-10-25 17:49:58.454 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15578: 2026-10-25 17:49:58.470 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15587: 2026-10-25 17:49:58.484 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15588: 2026-10-25 17:49:58.499 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+15815: 2026-10-25 17:49:58.631 Db LocalStorageFileProvider[15242:c370] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] resolved did=3 to "/Users/runner/Library/Developer/CoreSimulator/Devices/216D05BB-AB3B-4A7F-9F08-9F46A0DA1B82/data/Containers/Data/Application/14B169B5-0AB4-4225-94A6-171571F53A50/Documents/Montage-import-smoke.mp4"
+17305: 2026-10-25 17:50:04.964 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] ┏80 lookup url for did=3
+17307: 2026-10-25 17:50:04.966 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+17308: 2026-10-25 17:50:04.978 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+17311: 2026-10-25 17:50:04.994 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+17312: 2026-10-25 17:50:05.011 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] item lookup failed with ENOENT, wait and try again
+17313: 2026-10-25 17:50:05.027 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] can't resolve did=3 [2: No such file or directory]
+17315: 2026-10-25 17:50:05.027 Db LocalStorageFileProvider[15242:c59f] [com.apple.FileProvider:com.apple.FileProvider.LocalStorage] [DEBUG] failed to resolve did=3
+17325: 2026-10-25 17:50:05.028 E  fileproviderd[5555:a756] [com.apple.FileProvider:default] [ERROR] Cannot get URL for item ID “localstorage/did=3” for extension com.apple.FileProvider.LocalStorage. Error: NSError: FP -1005 "The operation couldn’t be completed. (NSFileProviderErrorDomain error -1005.)" UserInfo={NSFileProviderErrorNonExistentItemIdentifier=did=3} }
+17330: 2026-10-25 17:50:05.029 E  com.apple.DocumentManager.Service[15228:c29d] [com.apple.DocumentManager:UI] [TAP] [Interaction]  Got a nil url returned from fetchURL for Montage-import-smoke, clearing lastOpenedNode

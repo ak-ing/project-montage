@@ -4,6 +4,7 @@
 from pathlib import Path
 import json
 import hashlib
+import os
 import plistlib
 import sys
 import xml.etree.ElementTree as ET
@@ -48,13 +49,54 @@ for identifier in ('Cancel', 'Open', 'BackButton'):
     query_text = query_text.replace(f'app.buttons["{identifier}"].firstMatch',
         f'app.buttons.matching(identifier: "{identifier}").element(boundBy: 0)')
 query_text = query_text.replace('.firstMatch', '.element(boundBy: 0)')
+old_wait = '''            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                folderTitle.exists || folder.exists || location.exists || parent.exists || browse.exists
+            }, object: app)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed, app.debugDescription)'''
+new_wait = '''            let ready = app.descendants(matching: .any).matching(NSPredicate(
+                format: "identifier IN %@ OR label BEGINSWITH %@ OR label == %@ OR label == %@",
+                ["Montage smoke fixtures, Actions Menu", "DOC.sidebar.item.On My iPhone", "BackButton"],
+                "Montage smoke fixtures", "Browse", "On My iPhone"
+            )).element(boundBy: 0)
+            XCTAssertTrue(ready.waitForExistence(timeout: 60), app.debugDescription)'''
+assert query_text.count(old_wait) == 1
+query_text = query_text.replace(old_wait, new_wait)
+query_text = query_text.replace('            if folderTitle.exists { return }', '''            if folderTitle.exists { return }
+            let phoneRoot = app.navigationBars.staticTexts.matching(identifier: "On My iPhone").element(boundBy: 0)
+            if phoneRoot.exists {
+                XCTAssertTrue(folder.waitForExistence(timeout: 60), app.debugDescription)
+                folder.tap()
+                continue
+            }''')
 query_test.write_text(query_text)
 test, test_build = source(query_test)
 (root / 'query-mode.json').write_text(json.dumps(dict(mode='full-query', source=str(test_source),
     replacement='.firstMatch -> .element(boundBy: 0)',
+    navigation_wait='one native OR query, 60s; wait for source folder at On My iPhone instead of navigating back during enumeration',
     source_sha256=hashlib.sha256(test_text.encode()).hexdigest(),
     generated_sha256=hashlib.sha256(query_text.encode()).hexdigest(),
-    test_actions_assertions_and_fixtures_changed=False), indent=2) + '\n')
+    cancellation_callbacks_and_hash_assertions_changed=False,
+    navigation_waits_changed=True, fixture_bytes_changed=False), indent=2) + '\n')
+
+fixture_source = repo / 'kmp/ios-app/ui-tests/fixture-source/FixtureSource.swift'
+fixture_text = fixture_source.read_text()
+track = os.environ.get('MONTAGE_PROBE_TRACK_IDENTITIES', '0')
+assert track in ('0', '1'), track
+fixture_generated = fixture_text
+if track == '1':
+    assert fixture_text.count('                saved.append(name)') == 1
+    fixture_generated = fixture_generated.replace('    private var saved: [String] = []',
+        '    private var saved: [String] = []\n    private var documentIDs: [String: NSNumber] = [:]')
+    fixture_generated = fixture_generated.replace('                saved.append(name)',
+        '                documentIDs[name] = try prepareFixtureIdentity(destination)\n                saved.append(name)')
+    fixture_generated = fixture_generated.replace('            "saved_documents": saved,',
+        '            "saved_documents": saved,\n            "identity_preparation": "fchflags(UF_TRACKED) + fsync",\n            "document_ids": documentIDs,')
+(root / 'FixtureSource.swift').write_text(fixture_generated)
+(root / 'source-identity-mode.json').write_text(json.dumps(dict(
+    tracked_and_synced=track == '1', original_sha256=hashlib.sha256(fixture_text.encode()).hexdigest(),
+    generated_sha256=hashlib.sha256(fixture_generated.encode()).hexdigest(),
+    helper='diagnostics/apple/PrepareFixtureIdentity.swift', payload_bytes_changed=False,
+    reference='https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/stat.h'), indent=2) + '\n')
 app_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageFixtureReader.app', sourceTree='BUILT_PRODUCTS_DIR')
 host_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageProbeHost.app', sourceTree='BUILT_PRODUCTS_DIR')
 test_product = add('PBXFileReference', explicitFileType='wrapper.cfbundle', path='MontageUITests.xctest', sourceTree='BUILT_PRODUCTS_DIR')

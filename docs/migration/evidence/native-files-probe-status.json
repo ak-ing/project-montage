@@ -175,7 +175,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-import-smoke.mp4"
           },
           {
             "document_identifier": 5,
@@ -192,7 +193,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-preview-smoke.mp4"
           },
           {
             "document_identifier": 4,
@@ -209,7 +211,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-preview-invalid.mp4"
           }
         ],
         "simulator": [
@@ -228,7 +231,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-import-smoke.mp4"
           },
           {
             "document_identifier": 5,
@@ -245,7 +249,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-preview-smoke.mp4"
           },
           {
             "document_identifier": 4,
@@ -262,7 +267,8 @@
               "source": "/dev/disk2s5",
               "stat_device": 16777229,
               "type": "apfs"
-            }
+            },
+            "file_name": "Montage-preview-invalid.mp4"
           }
         ]
       },
@@ -288,6 +294,46 @@
         "Full query reached selection in this run; one run does not establish that navigation flakiness is fixed.",
         "Kernel and Foundation agree on IDs 3/5/4 and all files are tracked (BSD flags 64). This does not establish working provider URL delivery.",
         "Provider internal resolution failure is localized; its cause is not yet proven. No product milestone accepted."
+      ],
+      "preserved_trace": "native-files-40217561432-trace.txt"
+    },
+    {
+      "run_id": 40218813221,
+      "source_sha": "8632cc4b79958f08d83deccc998412f9c5b3a6f9",
+      "artifact": {
+        "id": 12609061942,
+        "sha256": "02b5f1caa047607c1d4f54c88a0363b203ca90c9633c5cf53d07c9278cba0a61"
+      },
+      "result": "Pre-suite restart completed and preserved sources, but XCTest navigation timed out before selection",
+      "ui": {
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "totalTestCount": 1
+      },
+      "simulator": {
+        "id": "50B1337F-1123-4BF0-A46A-E2423954249D",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+        "device_type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "fresh_device": true,
+        "reset_between_cancel_and_reopen": false,
+        "kotlin_product_built": false,
+        "pre_suite_restart": true,
+        "source_created_before_restart": true,
+        "same_device_and_source_container_after_restart": true
+      },
+      "native_control": {
+        "cancelled": 1,
+        "error": "",
+        "reads": {},
+        "status": "Cancelled"
+      },
+      "source_preserved": true,
+      "container_mapping_changed": false,
+      "limits": [
+        "No file selection occurred; the effect of pre-suite restart on URL delivery is unestablished.",
+        "Full-query replacement alone does not eliminate navigation timeouts.",
+        "No reset or restart occurred inside cancellation/reopening."
       ]
     }
   ],

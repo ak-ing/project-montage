@@ -4,9 +4,17 @@ set -euo pipefail
 repo=$(cd "$(dirname "$0")/../.." && pwd)
 probe_root="${RUNNER_TEMP:-/tmp}/montage-native-probe"
 out="$probe_root/evidence"
+restart_requested="${MONTAGE_PROBE_PRE_SUITE_RESTART:-0}"
+case "$restart_requested" in 0|1) ;; *) exit 2 ;; esac
 mkdir -p "$out"
 test "$(uname -m)" = arm64
 xcodebuild -version > "$out/xcode-version.txt"
+python3 "$repo/diagnostics/apple/make-probe-project.py" "$probe_root"
+cp "$probe_root/query-mode.json" "$probe_root/source-identity-mode.json" "$out/"
+sdk=$(xcrun --sdk iphonesimulator --show-sdk-path)
+xcrun swiftc -typecheck -parse-as-library -target arm64-apple-ios15.0-simulator -sdk "$sdk" -framework UIKit \
+  "$probe_root/FixtureSource.swift" "$repo/diagnostics/apple/PrepareFixtureIdentity.swift" \
+  2>&1 | tee "$out/source-typecheck.log"
 sw_vers > "$out/host-version.txt"
 xcrun simctl list devices available -j > "$out/available-devices.json"
 read -r runtime device_type < <(python3 - "$out/available-devices.json" <<'PY'
@@ -19,16 +27,15 @@ PY
 )
 device=$(xcrun simctl create "Montage native Files probe ${GITHUB_RUN_ID:-local}" "$device_type" "$runtime")
 trap 'xcrun simctl shutdown "$device" >/dev/null 2>&1 || true' EXIT
-python3 - "$device" "$runtime" "$device_type" "$out/simulator.json" <<'PY'
+python3 - "$device" "$runtime" "$device_type" "$out/simulator.json" "$restart_requested" <<'PY'
 import json,sys
 from pathlib import Path
 Path(sys.argv[4]).write_text(json.dumps({'id':sys.argv[1],'runtime':sys.argv[2],'device_type':sys.argv[3],
-    'fresh_device':True,'reset_between_cancel_and_reopen':False,'kotlin_product_built':False},indent=2)+'\n')
+    'fresh_device':True,'reset_between_cancel_and_reopen':False,'kotlin_product_built':False,
+    'pre_suite_restart':False,'requested_pre_suite_restart':sys.argv[5]=='1'},indent=2)+'\n')
 PY
 xcrun simctl boot "$device"
 xcrun simctl bootstatus "$device" -b
-python3 "$repo/diagnostics/apple/make-probe-project.py" "$probe_root"
-cp "$probe_root/query-mode.json" "$out/query-mode.json"
 plutil -lint "$probe_root/probe.xcodeproj/project.pbxproj"
 xcodebuild build-for-testing -project "$probe_root/probe.xcodeproj" -scheme probe \
   -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 \
@@ -42,9 +49,8 @@ cp "$repo/kmp/ios-app/ui-tests/fixture-source/Info.plist" "$source_app/Info.plis
 cp "$repo/kmp/test-data/import-smoke.mp4" "$source_app/Fixtures/Montage-import-smoke.mp4"
 cp "$repo/kmp/test-data/preview-smoke.mp4" "$source_app/Fixtures/Montage-preview-smoke.mp4"
 printf 'Invalid video fixture\n' > "$source_app/Fixtures/Montage-preview-invalid.mp4"
-sdk=$(xcrun --sdk iphonesimulator --show-sdk-path)
 xcrun swiftc -parse-as-library -target arm64-apple-ios15.0-simulator -sdk "$sdk" -framework UIKit \
-  "$repo/kmp/ios-app/ui-tests/fixture-source/FixtureSource.swift" -o "$source_app/MontageFixtureSource"
+  "$probe_root/FixtureSource.swift" "$repo/diagnostics/apple/PrepareFixtureIdentity.swift" -o "$source_app/MontageFixtureSource"
 codesign --force --sign - --timestamp=none "$source_app"
 xcrun simctl install "$device" "$source_app"
 xcrun simctl launch "$device" dev.montage.fixture-source
@@ -57,7 +63,9 @@ p=root/'Library/Caches/montage-fixtures.json'
 for _ in range(120):
     if p.exists():break
     time.sleep(1)
-creation=json.loads(p.read_text());assert creation['status']=='ready',creation
+creation=json.loads(p.read_text())
+(out/'source-readiness.json').write_text(json.dumps(creation,indent=2)+'\n')
+assert creation['status']=='ready',creation
 expected={'Montage-import-smoke.mp4':(repo/'kmp/test-data/import-smoke.mp4').read_bytes(),
           'Montage-preview-smoke.mp4':(repo/'kmp/test-data/preview-smoke.mp4').read_bytes(),
           'Montage-preview-invalid.mp4':b'Invalid video fixture\n'}
@@ -65,15 +73,16 @@ records={}
 for name,b in expected.items():
     f=root/'Documents'/name;assert f.read_bytes()==b
     s=f.stat();records[name]={'sha256':hashlib.sha256(b).hexdigest(),'inode':s.st_ino,'device':s.st_dev,
-        'uid':s.st_uid,'gid':s.st_gid,'mode':oct(s.st_mode),'size':s.st_size,'path':str(f)}
+        'uid':s.st_uid,'gid':s.st_gid,'mode':oct(s.st_mode),'size':s.st_size,'path':str(f),'bsd_flags':s.st_flags}
 (out/'source-before.json').write_text(json.dumps({'creation':creation,'files':records},indent=2)+'\n')
 PY
 xcrun clang -fobjc-arc -framework Foundation "$repo/diagnostics/apple/file-reference-probe.m" -o "$probe_root/host-file-probe"
 xcrun clang -fobjc-arc -target arm64-apple-ios15.0-simulator -isysroot "$sdk" -framework Foundation \
   "$repo/diagnostics/apple/file-reference-probe.m" -o "$probe_root/simulator-file-probe"
 fixtures=("$source_data/Documents/Montage-import-smoke.mp4" "$source_data/Documents/Montage-preview-smoke.mp4" "$source_data/Documents/Montage-preview-invalid.mp4")
-# Controlled registration experiment: all source apps/files already exist before
+# Optional registration experiment: all source apps/files already exist before
 # a second boot. This occurs before XCTest, never inside cancellation/reopening.
+if test "$restart_requested" = 1; then
 xcrun simctl shutdown "$device"
 xcrun simctl boot "$device"
 xcrun simctl bootstatus "$device" -b
@@ -90,6 +99,7 @@ r.update(pre_suite_restart=True,source_created_before_restart=True,
          same_device_and_source_container_after_restart=True)
 p.write_text(json.dumps(r,indent=2)+'\n')
 PY
+fi
 log_pid=''
 cleanup_probe() {
   if test -n "$log_pid"; then kill "$log_pid" >/dev/null 2>&1 || true; fi
