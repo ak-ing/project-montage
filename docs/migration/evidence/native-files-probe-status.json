@@ -335,6 +335,120 @@
         "Full-query replacement alone does not eliminate navigation timeouts.",
         "No reset or restart occurred inside cancellation/reopening."
       ]
+    },
+    {
+      "run_id": 40220361345,
+      "source_sha": "d8327aaa5193c5e343d4d7238e89addd38363f67",
+      "workflow_conclusion": "failure due to tracked-synced experiment; native-created job succeeded",
+      "jobs": [
+        {
+          "job_id": 121250412496,
+          "mode": "native-created",
+          "artifact": {
+            "id": 12608414128,
+            "sha256": "749ba955a7522043b7f5501a44365a3258af4de3c7bf34beecf2ae9a81231cef"
+          },
+          "ui": {
+            "passedTests": 1,
+            "failedTests": 0,
+            "skippedTests": 0,
+            "totalTestCount": 1
+          },
+          "native_control": {
+            "cancelled": 1,
+            "error": "",
+            "reads": {
+              "Montage-import-smoke.mp4": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+              "Montage-preview-invalid.mp4": "2414a664d6f3f40086ab33737090f7ba661db4dbfda3a19f54550bb3059044e2",
+              "Montage-preview-smoke.mp4": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a"
+            },
+            "status": "Read Montage-preview-invalid.mp4"
+          },
+          "source_preserved": true,
+          "container_mapping_changed": false,
+          "simulator": {
+            "id": "33EBB02A-07BC-414B-AD73-5B2DCEBA2300",
+            "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+            "device_type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            "fresh_device": true,
+            "reset_between_cancel_and_reopen": false,
+            "kotlin_product_built": false,
+            "pre_suite_restart": false,
+            "requested_pre_suite_restart": false
+          },
+          "source_identity_mode": {
+            "tracked_and_synced": false,
+            "original_sha256": "7b75b39c96ec4eb8dff5af40c9bf51be93c479fa7a341dd74cd718e530088e78",
+            "generated_sha256": "7b75b39c96ec4eb8dff5af40c9bf51be93c479fa7a341dd74cd718e530088e78",
+            "helper": "diagnostics/apple/PrepareFixtureIdentity.swift",
+            "payload_bytes_changed": false,
+            "reference": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/stat.h"
+          },
+          "pre_ui_bsd_flags": {
+            "Montage-import-smoke.mp4": 0,
+            "Montage-preview-smoke.mp4": 0,
+            "Montage-preview-invalid.mp4": 0
+          },
+          "result": "Passed all three actual URL callbacks and SHA checks",
+          "failure_texts": []
+        },
+        {
+          "job_id": 121250412233,
+          "mode": "tracked-synced",
+          "artifact": {
+            "id": 12609695232,
+            "sha256": "a9d721861c8677207c2f2fe0960abe689cacdc046493a0cd2069ce84500ea284"
+          },
+          "ui": {
+            "passedTests": 0,
+            "failedTests": 1,
+            "skippedTests": 0,
+            "totalTestCount": 1
+          },
+          "native_control": {
+            "cancelled": 1,
+            "error": "",
+            "reads": {
+              "Montage-import-smoke.mp4": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086"
+            },
+            "status": "Read Montage-import-smoke.mp4"
+          },
+          "source_preserved": true,
+          "container_mapping_changed": false,
+          "simulator": {
+            "id": "E520EC69-B594-4820-9F00-27E909812E0C",
+            "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+            "device_type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            "fresh_device": true,
+            "reset_between_cancel_and_reopen": false,
+            "kotlin_product_built": false,
+            "pre_suite_restart": false,
+            "requested_pre_suite_restart": false
+          },
+          "source_identity_mode": {
+            "tracked_and_synced": true,
+            "original_sha256": "7b75b39c96ec4eb8dff5af40c9bf51be93c479fa7a341dd74cd718e530088e78",
+            "generated_sha256": "077fa6a7be2e1ea0d803bff1a56d8ede7dbab114b98b2cb7b02de9218ddbb7b6",
+            "helper": "diagnostics/apple/PrepareFixtureIdentity.swift",
+            "payload_bytes_changed": false,
+            "reference": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/stat.h"
+          },
+          "pre_ui_bsd_flags": {
+            "Montage-import-smoke.mp4": 64,
+            "Montage-preview-smoke.mp4": 64,
+            "Montage-preview-invalid.mp4": 64
+          },
+          "result": "Read original one-second file, then failed URL delivery selecting eight-second source",
+          "failure_texts": [
+            "Asynchronous wait failed: Exceeded timeout of 15 seconds, with unfulfilled expectations: \"Expect predicate `exists == 0` for object \"Montage-preview-smoke, mp4\" Cell\"."
+          ]
+        }
+      ],
+      "decision": "Promote only the verified navigation test helper. Preserve the unchanged source producer; do not promote tracking/sync or pre-suite reboot.",
+      "limits": [
+        "Native-created passed once on a cold fresh device; broader simulator/provider reliability is not established.",
+        "Standalone native success is not acceptance of the five product iOS cases. Full KMP validation remains required."
+      ]
     }
   ],
   "preserved_conditions": [

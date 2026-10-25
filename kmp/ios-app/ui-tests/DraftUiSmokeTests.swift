@@ -67,7 +67,7 @@ final class DraftUiSmokeTests: XCTestCase {
 
     private func dismissKeyboardIntroduction(_ app: XCUIApplication) {
         // A fresh simulator may present Apple's first-use QuickPath introduction.
-        let intro = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Speed up your typing")).firstMatch
+        let intro = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Speed up your typing")).element(boundBy: 0)
         if intro.waitForExistence(timeout: 3) {
             app.buttons["Continue"].tap()
         }
@@ -87,7 +87,7 @@ final class DraftUiSmokeTests: XCTestCase {
         openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.buttons["import-video"].tap()
-        let cancel = app.buttons["Cancel"].firstMatch
+        let cancel = app.buttons.matching(identifier: "Cancel").element(boundBy: 0)
         XCTAssertTrue(cancel.waitForExistence(timeout: 30), app.debugDescription)
         cancel.tap()
         let cancelledPicker = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.collectionViews["File View"])
@@ -108,7 +108,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Available on this device"].waitForExistence(timeout: 30))
         XCTAssertTrue(app.staticTexts["Montage-import-smoke.mp4"].exists)
         attach(app, "videos-restored")
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).element(boundBy: 0).tap()
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         XCTAssertTrue(app.staticTexts["No videos imported"].exists)
@@ -126,7 +126,7 @@ final class DraftUiSmokeTests: XCTestCase {
         // Select them through the real provider; the app under test only imports.
         navigateToFixtureFolder(app)
         attach(app, "picker-folder-resolved-" + prefix)
-        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
+        let file = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).element(boundBy: 0)
         XCTAssertTrue(file.waitForExistence(timeout: 30), app.debugDescription)
         XCTAssertTrue(file.isEnabled)
         if capture { attach(app, "video-picker") }
@@ -134,7 +134,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(filename.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(filename.frame.isEmpty)
         file.tap()
-        let open = app.buttons["Open"].firstMatch
+        let open = app.buttons.matching(identifier: "Open").element(boundBy: 0)
         if open.waitForExistence(timeout: 3) { open.tap() }
         attach(app, "picker-after-selection-" + prefix)
         let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: file)
@@ -143,20 +143,28 @@ final class DraftUiSmokeTests: XCTestCase {
 
     private func navigateToFixtureFolder(_ app: XCUIApplication) {
         let folderTitle = app.buttons["Montage smoke fixtures, Actions Menu"]
-        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).firstMatch
+        let folder = app.cells.matching(NSPredicate(format: "label BEGINSWITH %@", "Montage smoke fixtures")).element(boundBy: 0)
         let location = app.cells["DOC.sidebar.item.On My iPhone"]
-        let parent = app.buttons["BackButton"].firstMatch
+        let parent = app.buttons.matching(identifier: "BackButton").element(boundBy: 0)
         let browse = app.buttons.matching(NSPredicate(
             format: "label == %@ AND identifier != %@", "Browse", "BackButton"
-        )).firstMatch
+        )).element(boundBy: 0)
         // A verified restored destination is already usable. At every step,
         // wait for current native navigation state rather than a vanished row.
         for _ in 0..<6 {
-            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-                folderTitle.exists || folder.exists || location.exists || parent.exists || browse.exists
-            }, object: app)
-            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 30), .completed, app.debugDescription)
+            let ready = app.descendants(matching: .any).matching(NSPredicate(
+                format: "identifier IN %@ OR label BEGINSWITH %@ OR label == %@ OR label == %@",
+                ["Montage smoke fixtures, Actions Menu", "DOC.sidebar.item.On My iPhone", "BackButton"],
+                "Montage smoke fixtures", "Browse", "On My iPhone"
+            )).element(boundBy: 0)
+            XCTAssertTrue(ready.waitForExistence(timeout: 60), app.debugDescription)
             if folderTitle.exists { return }
+            let phoneRoot = app.navigationBars.staticTexts.matching(identifier: "On My iPhone").element(boundBy: 0)
+            if phoneRoot.exists {
+                XCTAssertTrue(folder.waitForExistence(timeout: 60), app.debugDescription)
+                folder.tap()
+                continue
+            }
             if folder.exists { folder.tap(); continue }
             if location.exists { location.tap(); continue }
             if parent.exists { parent.tap(); continue }
@@ -186,7 +194,7 @@ final class DraftUiSmokeTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["native-picker-status"].waitForExistence(timeout: 15))
         app.buttons["native-pick-video"].tap()
-        let cancel = app.buttons["Cancel"].firstMatch
+        let cancel = app.buttons.matching(identifier: "Cancel").element(boundBy: 0)
         XCTAssertTrue(cancel.waitForExistence(timeout: 30))
         cancel.tap()
         XCTAssertTrue(app.staticTexts["Cancelled"].waitForExistence(timeout: 15))
@@ -234,7 +242,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["choose-scene-video"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["move-scene-up"].isEnabled)
         app.buttons["choose-scene-video"].tap()
-        let video = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "clip-video-")).firstMatch
+        let video = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "clip-video-")).element(boundBy: 0)
         XCTAssertTrue(video.waitForExistence(timeout: 10), app.debugDescription)
         video.tap()
         XCTAssertTrue(app.staticTexts["clip-source-duration"].waitForExistence(timeout: 30))
@@ -253,7 +261,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["edited-duration"].label, "9250 ms edited sequence · transitions not rendered")
         app.buttons["video-tab"].tap()
-        let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch
+        let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).element(boundBy: 0)
         XCTAssertTrue(remove.exists)
         XCTAssertFalse(remove.isEnabled)
         app.buttons["save-draft"].tap()
@@ -291,7 +299,7 @@ final class DraftUiSmokeTests: XCTestCase {
         openApp(app)
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         importVideo(app, "Montage-preview-smoke")
-        let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "preview-video-")).firstMatch
+        let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "preview-video-")).element(boundBy: 0)
         XCTAssertTrue(preview.waitForExistence(timeout: 10))
         preview.tap()
         assertPreviewReady(app)
@@ -333,7 +341,7 @@ final class DraftUiSmokeTests: XCTestCase {
         assertPreviewReady(app)
         attach(app, "preview-terminated-restored")
         app.buttons["preview-back"].tap()
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).element(boundBy: 0).tap()
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
 
@@ -345,7 +353,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["preview-error"].waitForExistence(timeout: 30))
         app.buttons["preview-back"].tap()
         XCTAssertTrue(app.staticTexts["Montage-preview-invalid.mp4"].exists)
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).firstMatch.tap()
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "remove-video-")).element(boundBy: 0).tap()
         XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["save-draft"].isEnabled)
         app.buttons["save-draft"].tap()
