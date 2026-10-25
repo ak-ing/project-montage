@@ -40,7 +40,8 @@ for identifier, folder in roots:
         with db.open('rb') as f:
             if f.read(16) != b'SQLite format 3\0':
                 continue
-        target = out / 'provider-db-snapshots' / str(len(records))
+        # Keep raw scratch copies outside the upload tree even if collection is interrupted.
+        target = out.parent / 'provider-db-snapshots' / str(len(records))
         target.mkdir(parents=True, exist_ok=True)
         for suffix in ['', '-wal', '-shm']:
             source = Path(str(db) + suffix)
@@ -67,5 +68,5 @@ for identifier, folder in roots:
         records.append(record)
 (out / 'provider-databases.json').write_text(json.dumps(records, indent=2) + '\n')
 # Raw SQLite snapshots are diagnostic inputs only; do not upload any blob/bookmark data.
-shutil.rmtree(out / 'provider-db-snapshots', ignore_errors=True)
+shutil.rmtree(out.parent / 'provider-db-snapshots', ignore_errors=True)
 print('Reviewed', len(records), 'read-only provider database snapshots')
