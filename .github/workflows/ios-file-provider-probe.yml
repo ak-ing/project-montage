@@ -1,0 +1,34 @@
+name: Native iOS Files probe
+
+on:
+  push:
+    branches: [rewrite/kmp]
+    paths: ['diagnostics/apple/**', '.github/workflows/ios-file-provider-probe.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-files-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-files:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Native UIKit control and read-only file identity diagnostics
+        timeout-minutes: 17
+        run: bash diagnostics/apple/run-file-provider-probe.sh
+      - name: Upload native probe evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-files-probe
+          path: ${{ runner.temp }}/montage-native-probe/evidence/**
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: Apache-2.0
+// Read-only comparison of host and Simulator Foundation on the same synthetic files.
+#import <Foundation/Foundation.h>
+#include <stdio.h>
+
+static id value(id object) { return object ?: [NSNull null]; }
+
+int main(int argc, const char *argv[]) {
+    @autoreleasepool {
+        NSMutableArray *records = [NSMutableArray array];
+        for (int i = 1; i < argc; i++) {
+            NSString *path = [NSString stringWithUTF8String:argv[i]];
+            NSURL *url = [NSURL fileURLWithPath:path];
+            NSError *error = nil;
+            NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
+            NSMutableDictionary *record = [@{@"path":path, @"attributes":value(attributes), @"attributes_error":value(error.description)} mutableCopy];
+            if (attributes && [attributes[NSFileSize] unsignedLongLongValue] <= 65536) {
+                error = nil;
+                NSData *direct = [NSData dataWithContentsOfURL:url options:0 error:&error];
+                record[@"direct_bytes"] = direct ? @(direct.length) : [NSNull null];
+                record[@"direct_error"] = value(error.description);
+                NSURL *reference = [url fileReferenceURL];
+                record[@"reference_url"] = value(reference.absoluteString);
+                record[@"resolved_path"] = value(reference.filePathURL.path);
+                error = nil;
+                NSData *indirect = reference ? [NSData dataWithContentsOfURL:reference options:0 error:&error] : nil;
+                record[@"reference_bytes"] = indirect ? @(indirect.length) : [NSNull null];
+                record[@"reference_error"] = value(error.description);
+                id identifier = nil;
+                [url getResourceValue:&identifier forKey:NSURLFileResourceIdentifierKey error:nil];
+                record[@"resource_identifier"] = value([identifier description]);
+            }
+            // NSDate / opaque attributes aren't JSON values. Keep a bounded textual description.
+            record[@"attributes"] = value([attributes description]);
+            [records addObject:record];
+        }
+        NSDictionary *result = @{@"home":NSHomeDirectory(), @"files":records};
+        NSData *json = [NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys error:nil];
+        fwrite(json.bytes, 1, json.length, stdout);
+        putchar('\n');
+    }
+    return 0;
+}

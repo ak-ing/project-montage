@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+"""Generate a native-only XCTest project reusing the exact existing UIKit control."""
+from pathlib import Path
+import json
+import plistlib
+import sys
+import xml.etree.ElementTree as ET
+
+repo = Path(__file__).resolve().parents[2]
+root = Path(sys.argv[1]).resolve()
+project = root / 'probe.xcodeproj'
+project.mkdir(parents=True, exist_ok=True)
+objects = {}
+
+def add(isa, **values):
+    identifier = f'{len(objects) + 1:024X}'
+    objects[identifier] = dict(isa=isa, **values)
+    return identifier
+
+def config(name, **settings):
+    return add('XCBuildConfiguration', name=name, buildSettings=dict(
+        SDKROOT='iphonesimulator', IPHONEOS_DEPLOYMENT_TARGET='15.0', SWIFT_VERSION='5.0',
+        TARGETED_DEVICE_FAMILY='1', CODE_SIGN_STYLE='Automatic', **settings))
+
+def configs(**settings):
+    return add('XCConfigurationList', buildConfigurations=[config(n, **settings) for n in ['Debug', 'Release']],
+               defaultConfigurationIsVisible=0, defaultConfigurationName='Debug')
+
+def phase(kind, files=()):
+    return add(kind, buildActionMask=2147483647, files=list(files), runOnlyForDeploymentPostprocessing=0)
+
+def source(path):
+    ref = add('PBXFileReference', lastKnownFileType='sourcecode.swift', path=str(path), sourceTree='<absolute>')
+    return ref, add('PBXBuildFile', fileRef=ref)
+
+reader, reader_build = source(repo / 'kmp/ios-app/ui-tests/fixture-reader/FixtureReader.swift')
+test, test_build = source(repo / 'kmp/ios-app/ui-tests/DraftUiSmokeTests.swift')
+app_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageFixtureReader.app', sourceTree='BUILT_PRODUCTS_DIR')
+test_product = add('PBXFileReference', explicitFileType='wrapper.cfbundle', path='MontageUITests.xctest', sourceTree='BUILT_PRODUCTS_DIR')
+products = add('PBXGroup', children=[app_product, test_product], name='Products', sourceTree='<group>')
+main = add('PBXGroup', children=[reader, test, products], sourceTree='<group>')
+app = add('PBXNativeTarget', name='MontageFixtureReader', productName='MontageFixtureReader',
+          productType='com.apple.product-type.application', productReference=app_product,
+          buildConfigurationList=configs(PRODUCT_NAME='MontageFixtureReader', PRODUCT_BUNDLE_IDENTIFIER='dev.montage.fixture-reader',
+                                        INFOPLIST_FILE=str(root / 'ReaderInfo.plist'), GENERATE_INFOPLIST_FILE='NO'),
+          buildPhases=[phase('PBXSourcesBuildPhase', [reader_build]), phase('PBXFrameworksBuildPhase'), phase('PBXResourcesBuildPhase')],
+          buildRules=[], dependencies=[])
+proxy = add('PBXContainerItemProxy', containerPortal='PENDING', proxyType=1, remoteGlobalIDString=app, remoteInfo='MontageFixtureReader')
+dependency = add('PBXTargetDependency', target=app, targetProxy=proxy)
+tests = add('PBXNativeTarget', name='MontageUITests', productName='MontageUITests',
+            productType='com.apple.product-type.bundle.ui-testing', productReference=test_product,
+            buildConfigurationList=configs(PRODUCT_NAME='MontageUITests', PRODUCT_BUNDLE_IDENTIFIER='dev.montage.fixture-reader.uitests',
+                                          GENERATE_INFOPLIST_FILE='YES', TEST_TARGET_NAME='MontageFixtureReader'),
+            buildPhases=[phase('PBXSourcesBuildPhase', [test_build]), phase('PBXFrameworksBuildPhase'), phase('PBXResourcesBuildPhase')],
+            buildRules=[], dependencies=[dependency])
+project_id = add('PBXProject', buildConfigurationList=configs(), compatibilityVersion='Xcode 14.0', developmentRegion='en',
+                 knownRegions=['en', 'Base'], mainGroup=main, productRefGroup=products, projectDirPath='', projectRoot='', targets=[app, tests],
+                 attributes={'LastUpgradeCheck': '2600', 'TargetAttributes': {tests: {'TestTargetID': app}}})
+objects[proxy]['containerPortal'] = project_id
+
+def render(value):
+    if isinstance(value, dict):
+        return '{\n' + '\n'.join(json.dumps(k) + ' = ' + render(v) + ';' for k, v in value.items()) + '\n}'
+    if isinstance(value, list):
+        return '(' + ''.join(render(v) + ',' for v in value) + ')'
+    return str(value) if isinstance(value, int) else json.dumps(value)
+
+(project / 'project.pbxproj').write_text('// !$*UTF8*$!\n' + render(dict(archiveVersion=1, classes={}, objectVersion=56, objects=objects, rootObject=project_id)) + '\n')
+with (repo / 'kmp/ios-app/ui-tests/fixture-source/Info.plist').open('rb') as f:
+    info = plistlib.load(f)
+info.update(CFBundleIdentifier='dev.montage.fixture-reader', CFBundleExecutable='MontageFixtureReader', CFBundleName='MontageFixtureReader',
+            CFBundleDisplayName='Montage Files probe', UIFileSharingEnabled=False, LSSupportsOpeningDocumentsInPlace=False)
+with (root / 'ReaderInfo.plist').open('wb') as f:
+    plistlib.dump(info, f)
+scheme = ET.parse(repo / 'kmp/ios-app/module.xcodeproj/xcshareddata/xcschemes/app.xcscheme')
+for ref in scheme.iter('BuildableReference'):
+    is_test = ref.get('BlueprintName') == 'MontageUITests'
+    ref.set('BlueprintIdentifier', tests if is_test else app)
+    ref.set('BlueprintName', 'MontageUITests' if is_test else 'MontageFixtureReader')
+    ref.set('BuildableName', 'MontageUITests.xctest' if is_test else 'MontageFixtureReader.app')
+    ref.set('ReferencedContainer', 'container:probe.xcodeproj')
+directory = project / 'xcshareddata/xcschemes'
+directory.mkdir(parents=True, exist_ok=True)
+scheme.write(directory / 'probe.xcscheme', encoding='utf-8', xml_declaration=True)
+print(project)
