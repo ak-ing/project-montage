@@ -20,6 +20,10 @@ matching the full suite's control topology without building Kotlin.
 Evidence includes native XCTest results/screenshots, source hashes/inodes, host
 and Simulator Foundation file-reference URL round trips, and read-only scalar
 metadata from LocalStorage provider databases in this new test simulator.
+The probe also records filesystem type, mount/device identities, public
+`fsgetpath` inode lookups, kernel/Foundation document IDs, and path symlinks.
+These observations do not replace a successful picker callback and never repair
+or rewrite the provider's storage.
 Raw SQLite files, binary bookmarks and tokens are not uploaded. The source and
 provider database are not modified by diagnostics. This is CI tooling, not an
 app backend or a replacement for full KMP validation.

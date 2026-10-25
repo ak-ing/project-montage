@@ -13,26 +13,38 @@ out = Path(sys.argv[2])
 records = []
 groups = data / 'Containers/Shared/AppGroup'
 roots = []
+containers = []
 for folder in groups.iterdir() if groups.exists() else []:
     meta = folder / '.com.apple.mobile_container_manager.metadata.plist'
     if not meta.exists():
         continue
     with meta.open('rb') as f:
         identifier = plistlib.load(f).get('MCMMetadataIdentifier', '')
-    if identifier != 'group.com.apple.FileProvider.LocalStorage':
-        continue
-    roots.append((identifier, folder))
+    if any(part in identifier.lower() for part in ['fileprovider', 'documentmanager']):
+        containers.append(dict(identifier=identifier, kind='AppGroup', path=str(folder)))
+        roots.append((identifier, folder))
 plugins = data / 'Containers/Data/PluginKitPlugin'
 for folder in plugins.iterdir() if plugins.exists() else []:
     meta = folder / '.com.apple.mobile_container_manager.metadata.plist'
     if meta.exists():
         with meta.open('rb') as f:
             identifier = plistlib.load(f).get('MCMMetadataIdentifier', '')
-        if identifier == 'com.apple.FileProvider.LocalStorage':
+        if any(part in identifier.lower() for part in ['fileprovider', 'documentmanager']):
+            containers.append(dict(identifier=identifier, kind='PluginKitPlugin', path=str(folder)))
             roots.append((identifier, folder))
 daemon = data / 'Library/Application Support/FileProvider'
 if daemon.exists():
     roots.append(('com.apple.fileproviderd fresh simulator metadata', daemon))
+# Record path topology as evidence for Simulator/Files failures involving symlinks.
+# All inspected directories belong to this newly created diagnostic device.
+ancestors = [data, *data.parents]
+path_state = dict(data_path=str(data), resolved_data_path=str(data.resolve()),
+    ancestors=[dict(path=str(p), is_symlink=p.is_symlink(),
+                    link_target=str(p.readlink()) if p.is_symlink() else None) for p in ancestors],
+    provider_containers=containers,
+    provider_files=[dict(identifier=i, path=str(p.relative_to(folder)), bytes=p.stat().st_size)
+        for i, folder in roots for p in list(folder.rglob('*'))[:1000] if p.is_file()])
+(out / 'provider-path-state.json').write_text(json.dumps(path_state, indent=2) + '\n')
 for identifier, folder in roots:
     for db in folder.rglob('*'):
         if not db.is_file() or db.stat().st_size > 32 * 1024 * 1024:
