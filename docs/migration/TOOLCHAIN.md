@@ -1,5 +1,17 @@
 # Kotlin Toolchain 与版本决策
 
+## 2026-10-24：CI JDK 下载兼容
+
+`40054692318` 四端均在 Toolchain 自动下载 JDK 阶段遇到 `TooLongLineException: Line exceeds limit of 8192 characters`（HTTP 响应头解析），尚未执行应用测试。`e312999` 按[官方 JDK provisioning 文档](https://github.com/JetBrains/kotlin-toolchain/blob/v0.13.0/docs/src/user-guide/advanced/jdk-provisioning.md)的 `auto` 规则，先通过 [actions/setup-java v6.1.0](https://github.com/actions/setup-java/releases/tag/v6.1.0)（固定提交 `b843ebf9b913146b38da2eaa7aeddf76074ae1ad`）设置符合要求的 `JAVA_HOME`；Kotlin CLI/YAML 仍执行全部构建与测试。
+
+CI 固定 Eclipse Temurin：Linux x64/macOS Arm64 为 `25.0.5+8`，Windows x64 为 `25.0.4.1+1`。2026-10-24 已核对 [25.0.5+8 官方资产](https://github.com/adoptium/temurin25-binaries/releases/tag/jdk-25.0.5%2B8)仅覆盖前两类所需包，Windows 使用[该平台已发布版本](https://github.com/adoptium/temurin25-binaries/releases/tag/jdk-25.0.4.1%2B1)。模块要求仍为 JDK 25，开发者保留默认自动获取能力；没有修改官方 wrapper、关闭 TLS/校验或加入第二套构建。`40055046151` 的前三端成功，但 iOS 在下载内置 `xcbeautify 3.2.1` 时再遇同一限制。已核对 Toolchain 所用 Ktor 3.4.1 的 [HTTP_LINE_LIMIT 固定为 8192](https://github.com/ktorio/ktor/blob/3.4.1/ktor-http/ktor-http-cio/common/src/io/ktor/http/cio/HttpParser.kt)，没有通过虚构 JVM 配置修改它。
+
+`287e212` 仅为 iOS 用 curl 预取 Toolchain [IosBuildTask 指定的同版工具](https://github.com/JetBrains/kotlin-toolchain/blob/v0.13.0/sources/amper-cli/src/org/jetbrains/amper/tasks/ios/IosBuildTask.kt)，校验[官方 release 资产](https://github.com/cpisciotta/xcbeautify/releases/tag/3.2.1)的固定 SHA-256 `ed32972e41bc3aa19588f8b0f4a0209ef70c663ad60bbf4ad84a2de73355d637`，再原子放入 runner 临时 `KOTLIN_SHARED_CACHE_DIR/download.cache`。缓存名按 [0.13 官方 Downloader](https://github.com/JetBrains/kotlin-toolchain/blob/v0.13.0/sources/core/src/org/jetbrains/amper/core/downloader/downloader.kt) 的 `sha256(URL + "V1")[:10]` 计算；该内部联系随 Toolchain 升级必须复核。未补丁 HTTP 客户端或更改压缩包，下载与摘要已本地验证；远端结果见 [CI.md](CI.md)。
+
+iOS UI 冒烟另用已安装 Xcode SDK 编译一个仅供 CI 的 Swift 测试素材应用。它通过原生原子写入创建完整源文件并报告结果，供被测应用从真实系统选择器导入；不打包进产品，也不替代 Kotlin CLI/YAML 的应用构建。这样避免宿主直接写入模拟器文件提供器目录，源文件仍逐字节校验并保留取消后同进程重开与最终清理守卫。
+
+iOS UI 运行时另有明确的兼容性选择：默认使用最新已安装运行时，手动输入 ios_ui_runtime=26.4 可做兼容性对照。26.5 与 26.4.1 在 UIDocument 源素材下均出现 FileProvider FP -1005/nil URL，不能仅归因于 26.5；失败证据保留，未视为通过。该对照不改变 Xcode、编译 SDK、Kotlin 或依赖版本；具体执行结果与覆盖范围见 CI.md。
+
 ## 2026-10-16：桌面媒体预览
 
 最终实现采用 JavaCV/JavaCPP **1.5.14** 与 FFmpeg **8.1.2-1.5.14**，由各 [Maven Central 发布元数据](https://repo.maven.apache.org/maven2/org/bytedeco/ffmpeg/maven-metadata.xml)核实并固定。仅引入 FFmpeg/JavaCPP 的 Windows x64、macOS Arm64/x64、Linux x64 默认 native classifier，未引入 `-gpl` 变体或全预设 platform 包。JavaCV 会传递引入其他预设的 Java API JAR，发行时仍须裁剪未用依赖并生成完整清单。Intel Mac 原生资源已列入，尚未运行该架构验证；Windows Arm64 未配置。
@@ -51,4 +63,4 @@ Android/iOS 使用系统媒体 API，无新增媒体 Maven 依赖。数据读取
 
 详细执行结果见 [VALIDATION.md](VALIDATION.md)。未在对应宿主运行的构建只能标为未验证。
 
-补充：最新版本约束针对项目显式选择的编译器、UI 和直接库；传递依赖遵循这些官方发行物的依赖图，没有把整个依赖图强制提升到互不兼容的任意最新版本。JDK 实际 provision 为 Temurin 25.0.4.1+1，JUnit 平台实际为 6.1.3。
+补充：最新版本约束针对项目显式选择的编译器、UI 和直接库；传递依赖遵循这些官方发行物的依赖图，没有把整个依赖图强制提升到互不兼容的任意最新版本。早期执行记录的 JDK provision 为 Temurin 25.0.4.1+1；当前 CI 的 Windows/Linux/macOS 固定版本见首节。JUnit 平台实际为 6.1.3。

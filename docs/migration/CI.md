@@ -1,12 +1,27 @@
 # 四平台 CI
 
-## 视频信息与播放预览（正在验证）
+## 视频信息与播放预览（2026-10-24 已通过）
 
-当前工作流要求每端至少 19 个领域测试、每桌面至少 14 个存储/媒体/UI 测试，iOS 恰好 3 个 XCTest。新增八秒蓝→红画面及合成音轨的 [测试素材](../../kmp/test-data/README.md)，覆盖真实时长/尺寸/旋转/音轨、解码缩略图、播放/暂停/seek、重启后重新读取和损坏文件错误/重试。桌面测试检查解码颜色和播放器真实位置；移动端经系统选择器导入后操作共享预览页。远端结果待记录，不将配置完成视为测试通过。
+运行 [40115876922](https://github.com/ak-ing/project-montage/actions/runs/40115876922)（源码 `f9a3698`）四个作业全部成功。四份主产物 ZIP 已下载并逐份校验 SHA-256，实际 XML/TeamCity、移动端 JSON、截图与原生阶段日志已核对；测试无失败、无跳过。[完整证据清单](evidence/video-preview-40115876922.json) 保留提交、作业、产物摘要、测试名与截图来源，[历史记录](evidence/video-preview-status.json) 保留先前失败。
 
-首轮 [38883686667](https://github.com/ak-ing/project-montage/actions/runs/38883686667)（`9b273ba`）暴露 Windows 托管机缺少 AAC 解码能力、错误后播放器持有文件，以及 macOS 就绪超时和手机素材卡片被拥挤布局裁切的问题。已补 Windows 媒体组件、错误时立即 dispose、为桌面解码器创建同卷带扩展名硬链接（不复制大文件），并为素材页腾出空间。macOS 不再强制软件 Prism 管线，新增原生就绪诊断。修正后的 Linux 14 个测试通过，远端复检待记录。桌面 UI 截图来自 Compose 离屏测试场景，播放器使用真实本机解码器；不将其描述为实际系统窗口鼠标操作。
+| 平台 | 领域测试 | 存储、媒体与 UI 证据 |
+| --- | --- | --- |
+| Windows x64 | 19 成功 | 14 个桌面测试成功；真实 FFmpeg 解码、缩略图、播放/暂停、红色 seek、重播、恢复及损坏修复重试 |
+| macOS Arm64 | 19 成功 | 同上；Compose 离屏场景与本机解码器 |
+| Android API 35 模拟器 | 19 个 host 测试成功 | 实际 APK 与系统选择器；元数据、解码帧、播放/暂停/seek、恢复、损坏修复重试与清理 |
+| iOS 26.5 Arm64 模拟器 | 19 个原生测试成功 | 3 个 XCTest 成功；草稿、取消后再导入及恢复/移除、预览/seek/两次重启/错误重试；最终存储断言通过 |
 
-Windows Server 2025 安装系统媒体功能后仍无旧 AAC 组件，最终桌面适配器改为 JavaCV/FFmpeg 默认 LGPL 原生解码；测试额外核对运行时版本/许可和无 GPL/nonfree 配置。Android 已实测播放、暂停、跳转、重启恢复，修复 Retry 没有重建原生视图的问题；该修正也应用于 UIKit 预览。Android 对同一 AAC 测试片报告 8023 ms，测试允许 7950..8100 ms，以容纳编码起始填充，未篡改平台报告值。iOS 多文件选择改为系统列表模式，并改用 security-scoped URL 后在设备内复制，复检仍待记录。
+合计 76 次领域测试、28 次桌面存储/媒体/UI 测试、3 条 iOS XCTest 和 Android 完整 UI 流程。自生成 [八秒蓝→红测试片](../../kmp/test-data/README.md) 含合成音轨；Android 报告 8023 ms，按实际值接受 7950..8100 ms 的 AAC 起始填充差异。iOS 三种素材均保留原文件；保存移除后的受管理目录与预览临时目录为空，日志确认至少三次移除清理。
+
+`b4e9250` 的上一轮三条 XCTest 虽通过，最终存储断言仍发现 22 字节损坏素材副本。原因是未保存的导入再移除回到相同 JSON，保存被禁用。`d03f063` 将待清理副本计入未保存状态，清理失败允许重试。桌面回归先以 13/14 失败复现，再以 14/14 验证；本轮 iOS 明确断言该路径保存可用，并通过最终清理守卫。此前选择器、容器扩展名、重播和原生视图重试等修复也均由本轮覆盖；没有降低测试数量或存储断言。应用容器内测试片出现过 FileProvider 过期 ID/nil URL；目录重进也未解决。最终测试片由独立的测试素材应用通过原生原子写入准备完整文件，再从原生 Files 导航选择，新增容器外来源及字节完整性检查，整套 UI 使用同一台新建模拟器，记录实际设备 ID，保留同进程取消后重开。26.4.1 和 26.5 上此前 UIDocument 素材准备方式的失败均保留，本轮通过范围为原生原子写入的本地测试文件，不代表所有文件提供器均已验证。应用不再把自己的容器 URL 强行设为选择器起点。Toolchain 的 GitHub 下载响应头限制通过固定 CI JDK 和校验后预取同版 xcbeautify 解决，见 [TOOLCHAIN.md](TOOLCHAIN.md)。
+
+| Windows | macOS | Android | iOS |
+| --- | --- | --- | --- |
+| [红色 seek](evidence/preview-windows-seek.png) | [结束后重播](evidence/preview-macos-replay.png) | [红色 seek](evidence/preview-android-seek.png) | [红色 seek](evidence/preview-ios-seek.png) · [预览中终止后恢复](evidence/preview-ios-terminated-restored.png) |
+
+桌面采用 JavaCV/JavaCPP 1.5.14 和 FFmpeg 8.1.2 默认 LGPL 构建，报告直接检查运行时版本、许可及无 GPL/nonfree 配置。桌面 CI 是 Compose 离屏场景与真实本机解码器；[Linux 实际窗口重播](evidence/preview-linux-window.json) 仅作补充，截图基于相同解码器、早于最终共享 UI 清理修复。移动端为实际安装的模拟器应用。完整 xcresult 大包未下载；已检查的主 iOS 包包含导出汇总、截图、日志和 Xcode 工程。
+
+Xcode 工程再次核对 `dev.montage.app`、最低 iOS 15.0、共享 app scheme 与 `MontageUITests`。真机、物理听音、完整生命周期/旋转、编码兼容性、性能、安装签名及完整发行许可审计仍未覆盖。当前仅为本地素材预览，没有模型 API、拼接或导出。
 
 ## 本地视频导入验证（已完成基线）
 
@@ -77,7 +92,7 @@ Android 截图检查发现默认系统 ActionBar 与 CMP 重复显示标题；�
 
 Android 从明确的 SDK 工具路径启动模拟器，不依赖 runner 的 PATH。AVD 请求 2 GB 用户数据分区；镜像仍可能要求更高初始化下限。构建后清理这个一次性 runner 中不再使用的 NDK、CMake 与 .NET，释放镜像初始化所需空间。新版默认 12 GB 超过构建后约 5.9 GB 的可用磁盘，缩小分区后仍约需 7.2 GB，故不能只靠分区设置。监控在模拟器进程提前退出时立即失败，避免等待完整启动超时。坐标从 UI XML 的控件边界计算。
 
-iOS 优先复用已启动的 iPhone 模拟器，先用 `build-for-testing` 构建测试包，再安装应用并将测试视频放入独立安装的 Documents，随后 `test-without-building` 执行两个用例。测试有执行超时，失败时也尝试导出汇总与附件。完整 xcresult 单独上传为 `ios-ui-xcresult`，主要 `ios-simulator-evidence` 包保留日志、结果 JSON、截图和工程，便于直接审阅。
+iOS 为整套 UI 用例创建一台独立 iPhone 模拟器，先用 `build-for-testing` 构建测试包，再安装被测应用与独立的测试素材应用。素材应用从 iOS 内原子写入三个完整文件并通过字节校验，随后 `test-without-building` 执行三个用例；取消后重开之间不重置或重启应用。测试有执行超时，失败时也尝试导出汇总与附件。完整 xcresult 单独上传为 `ios-ui-xcresult`，主要 `ios-simulator-evidence` 包保留日志、结果 JSON、截图和工程，便于直接审阅。
 
 所有产物保留七天；代表截图另存于仓库证据目录。桌面 JAR 不是自包含安装包。软件渲染用于稳定的桌面功能验证，不代表 GPU 性能测试。
 
@@ -99,7 +114,7 @@ CNB 托管构建使用 Docker，可承接 Linux/JVM 测试及配置好 Android S
 
 ```sh
 ./kotlin test -m desktop-app --platform jvm
-python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 10
+python3 scripts/verify-ci-tests.py --xml-dir build/reports/desktop-app/jvm --min-tests 14
 ```
 
 Windows 使用 `kotlin.bat`，桌面需要图形会话。无 GPU 云端使用 `SKIKO_RENDER_API=SOFTWARE`；当前云实例还需 source `scripts/cloud-env.sh` 并提供 Xorg `DISPLAY`。CI 不加载云专用脚本。
@@ -110,4 +125,4 @@ iOS：在 macOS/Xcode 上先 `./kotlin build -m ios-app --platform iosSimulatorA
 
 移动端 UI 流程使用独立、初始为空的测试安装，会修改并保存草稿；不要将日常项目目录作为测试数据。桌面测试自建临时目录，不使用默认项目目录。
 
-当前验证对象是设备端草稿工作区、任务检查点与本地视频导入。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。
+当前验证对象是设备端草稿工作区、任务检查点、本地视频导入与播放预览。macOS Intel、Windows Arm64、Android/iOS 真机、旋转/生命周期全面回归、安装包、签名、公证、GPU 性能与设备端生成全流程（模型 API 直连及本地媒体处理/导出）仍未覆盖。完整记录见 [VALIDATION.md](VALIDATION.md)。

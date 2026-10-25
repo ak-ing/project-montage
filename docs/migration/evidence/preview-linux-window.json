@@ -1,0 +1,16 @@
+{
+  "platform": "Linux x64 development host, actual ComposeWindow on Xorg dummy display",
+  "source_desktop_app": "b825e7e",
+  "decoder": "JavaCV 1.5.14 / FFmpeg 8.1.2",
+  "metadata": "8000 ms · 160 × 90 · 0° · Audio",
+  "playback_finished_ms": 8000,
+  "replay_paused_ms": 1044,
+  "workspace_and_fixture_unchanged": true,
+  "physical_audio_verified": false,
+  "audio_output": "No output device; visible fallback hint and video playback continued",
+  "screenshot": "preview-linux-replay.png",
+  "scope": "Supplementary actual-window replay check; Windows/macOS CI uses offscreen Compose scenes with real decoders",
+  "final_desktop_decoder_source_equivalent": true,
+  "shared_ui_source_equivalent": false,
+  "shared_ui_change_since_capture": "d03f063 adds pending cleanup state; verified by desktop regression and final platform CI separately"
+}

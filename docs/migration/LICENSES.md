@@ -2,7 +2,7 @@
 
 ## 2026-10-16：新增媒体预览依赖
 
-桌面最终采用 JavaCV/JavaCPP 1.5.14（所用类可选择 Apache-2.0 许可）和默认 FFmpeg 8.1.2 原生构建；不使用可选 `-gpl` 包。测试直接读取 `avcodec_license()` 和构建配置，当前 Linux 报告为 **LGPL version 3 or later**，未启用 `--enable-gpl` / `--enable-nonfree`；每端 CI 保留 `preview-runtime.json` 核对实际加载版本、许可证和配置。这不等于完整传递依赖审计。保留 [JavaCV 许可](https://github.com/bytedeco/javacv/blob/1.5.14/LICENSE.txt)、[JavaCPP 许可](https://github.com/bytedeco/javacpp/blob/1.5.14/LICENSE.txt)、[FFmpeg LGPLv3](https://github.com/FFmpeg/FFmpeg/blob/n8.1.2/COPYING.LGPLv3) 及 [对应预设构建源码](https://github.com/bytedeco/javacpp-presets/tree/1.5.14/ffmpeg)；发行包须提供所选二进制的声明、准确源码/补丁及动态替换或重链接材料。尚未交付完整安装包。
+桌面最终采用 JavaCV/JavaCPP 1.5.14（所用类可选择 Apache-2.0 许可）和默认 FFmpeg 8.1.2 原生构建；不使用可选 `-gpl` 包。测试直接读取 `avcodec_license()` 和构建配置，已检查的 Linux、Windows x64 与 macOS Arm64 均报告为 **LGPL version 3 or later**，未启用 `--enable-gpl` / `--enable-nonfree`；每端 CI 保留 `preview-runtime.json` 核对实际加载版本、许可证和配置。这不等于完整传递依赖审计。保留 [JavaCV 许可](https://github.com/bytedeco/javacv/blob/1.5.14/LICENSE.txt)、[JavaCPP 许可](https://github.com/bytedeco/javacpp/blob/1.5.14/LICENSE.txt)、[FFmpeg LGPLv3](https://github.com/FFmpeg/FFmpeg/blob/n8.1.2/COPYING.LGPLv3) 及 [对应预设构建源码](https://github.com/bytedeco/javacpp-presets/tree/1.5.14/ffmpeg)；发行包须提供所选二进制的声明、准确源码/补丁及动态替换或重链接材料。尚未交付完整安装包。
 
 先前测试过的 OpenJFX 27 已从当前桌面依赖移除。Android MediaPlayer/MediaMetadataRetriever 与 iOS AVFoundation 为系统 API，没有复制原版 Python/FFmpeg/Torch 实现。八秒蓝/红视频与低音量正弦音轨为自行生成的测试数据，无第三方影片/音乐。用于制作测试片的命令行 FFmpeg 与运行时 JNI 解码依赖分别记录。
 

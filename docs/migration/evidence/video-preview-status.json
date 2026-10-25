@@ -1,0 +1,357 @@
+{
+  "milestone": "local-video-preview",
+  "status": "passed",
+  "latest_source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40115876922",
+  "platforms": {
+    "Windows x64": "passed: 19 core + 14 desktop storage/media/UI tests",
+    "macOS Arm64": "passed: 19 core + 14 desktop storage/media/UI tests",
+    "Android emulator": "passed: 19 host core tests + installed APK preview/restart/error/cleanup flow",
+    "iOS Arm64 simulator": "passed: 19 native core tests; UI runtime 26.5: all 3 XCTest flows and source/media/cache guards"
+  },
+  "verified_artifacts": [
+    {
+      "name": "desktop-macos-26",
+      "id": 12567994731,
+      "digest": "sha256:bc6b5145c66eb240d32d34434e3df0c91d508fd08a17098d9862849b556c69ed",
+      "source_run_id": 40115876922,
+      "source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+      "checksum_verified": true
+    },
+    {
+      "name": "desktop-windows-2025",
+      "id": 12567959670,
+      "digest": "sha256:d6430316815233d5abea737878b21f0b2fb9b22ededfb1c6884925d282f096fd",
+      "source_run_id": 40115876922,
+      "source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+      "checksum_verified": true
+    },
+    {
+      "name": "android-debug",
+      "id": 12570280014,
+      "digest": "sha256:c109dc5d539459f3b90b7977eb428b4beaf4c2f03a044b53bdbbe62825efc734",
+      "source_run_id": 40115876922,
+      "source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+      "checksum_verified": true
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 12569581624,
+      "digest": "sha256:5697371c2d21282002bd502a7a7db1735c617b6ae34591a40f4b8dda07d1d8dd",
+      "source_run_id": 40115876922,
+      "source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+      "checksum_verified": true
+    }
+  ],
+  "history": [
+    {
+      "run_id": 38889221963,
+      "source_commit": "7a12587",
+      "ios_core": 19,
+      "ios_ui_passed": 0,
+      "ios_ui_failed": 3,
+      "cause": "keyboard introduction interrupted input; native picker did not return"
+    },
+    {
+      "run_id": 38909311385,
+      "source_commit": "7e8a762",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "native picker did not return after list-cell press; draft test passed"
+    },
+    {
+      "run_id": 38912815658,
+      "source_commit": "b825e7e",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "8s import committed but native preview errored; picker after cancel did not return"
+    },
+    {
+      "run_id": 38915921956,
+      "source_commit": "88d5537",
+      "status": "superseded before iOS started",
+      "windows_core": 19,
+      "windows_ui_failed": 1,
+      "cause": "decoder state reached Error before corresponding Compose UI node was rendered"
+    },
+    {
+      "run_id": 38916311448,
+      "source_commit": "b417e8e",
+      "ios_core": 19,
+      "ios_ui_passed": 2,
+      "ios_ui_failed": 1,
+      "cause": "Compose seek accessibility element was Other, not UIKit Slider; real metadata/thumbnail/play/pause worked"
+    },
+    {
+      "run_id": 38919481084,
+      "source_commit": "779f2cb",
+      "attempt": 1,
+      "ios_ui_passed": 2,
+      "ios_ui_failed": 1,
+      "cause": "Preview/seek/restarts/error handling passed; cancel then select 1s fixture produced no native selection callback"
+    },
+    {
+      "run_id": 38919481084,
+      "source_commit": "779f2cb",
+      "attempt": 2,
+      "ios_ui_passed": 2,
+      "ios_ui_failed": 1,
+      "cause": "Same cancel/reopen picker failure; no further blind rerun"
+    },
+    {
+      "run_id": 38927483222,
+      "source_commit": "785adb9",
+      "ios_ui_passed": 3,
+      "ios_ui_failed": 0,
+      "storage_guard": "failed",
+      "cause": "UI passed but managed media remained; final storage guard correctly failed"
+    },
+    {
+      "run_id": 38931652958,
+      "source_commit": "4645835",
+      "storage_guard": "unrun",
+      "cause": "XCTest termination/launch timeout; test runner restarted; report not accepted"
+    },
+    {
+      "run_id": 39752701565,
+      "source_commit": "8c99b42",
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "storage_guard": "passed with no completed imports",
+      "cause": "Cancel/reopen picker failed; preview inherited picker and could not start; empty storage does not validate preview cleanup"
+    },
+    {
+      "run_id": 39758448526,
+      "source_commit": "4945880",
+      "ios_ui_passed": 0,
+      "ios_ui_failed": 3,
+      "storage_guard": "failed: workspace absent",
+      "cause": "Synthetic text input failed, picker failed; subsequent preview blocked by picker"
+    },
+    {
+      "run_id": 39827560116,
+      "source_commit": "b4e9250",
+      "ios_ui_passed": 3,
+      "ios_ui_failed": 0,
+      "storage_guard": "failed",
+      "remaining_managed_file_bytes": 22,
+      "preview_cache_cleanup_empty": true,
+      "source_preserved": true,
+      "cause": "Unsaved invalid import then removal returned to unchanged workspace JSON; Save draft disabled, leaving app-owned copy",
+      "ios_evidence_review": {
+        "id": 12447918776,
+        "digest": "sha256:fcb471b30834c0d89d62781c18ac3ac18dd7a2d1cf8312bba480d9b00387fbfb",
+        "checksum_verified": true,
+        "finding": "All 3 XCTest passed, workspace videos empty, original fixtures unchanged; one app-owned 22-byte invalid media copy remained because Save was disabled after import/remove restored the original JSON"
+      }
+    },
+    {
+      "run_id": 40054692318,
+      "source_commit": "d03f063",
+      "status": "blocked before application tests",
+      "cause": "Toolchain JDK download response headers exceeded Ktor 8192 character line limit on all four hosts; no platform test result accepted"
+    },
+    {
+      "run_id": 40055046151,
+      "source_commit": "e312999",
+      "status": "three platforms passed; iOS blocked before UI tests",
+      "cause": "JDK preinstallation worked; same hardcoded HTTP header limit blocked Toolchain xcbeautify 3.2.1 download after native compilation"
+    },
+    {
+      "run_id": 40055696360,
+      "source_commit": "287e212",
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "ios_app_build": "passed with verified formatter cache",
+      "cause": "FileProvider logged NonExistentItemIdentifier localstorage/did=3 and nil URL for seeded import fixture; taps reached system UI, no native selection callback; subsequent preview inherited picker",
+      "ios_evidence_review": {
+        "id": 12545354211,
+        "digest": "sha256:909395f41cb4906d4e86eb49f4f331bc6ef8f632ca203d84bc12e3b9014c11ea",
+        "checksum_verified": true,
+        "finding": "Native DocumentManager logged TAP with nil fetchURL; LocalStorage item did=3 did not exist. No completed import, so empty storage is not cleanup acceptance"
+      }
+    },
+    {
+      "run_id": 40057289783,
+      "source_commit": "13325b4",
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "Optional folder-resolution branch did not execute; BackButton was not present within its 10s check, folder arrived later; same seeded fixture FileProvider nil URL failure; changed to mandatory 30s labelled parent wait",
+      "ios_evidence_review": {
+        "id": 12546745712,
+        "digest": "sha256:fa104a02c68ae0358eb1b6f1d5434ebf858f22d5122c3742c5f9f11fbf1aa534",
+        "checksum_verified": true,
+        "finding": "No picker-folder-resolved attachment; optional BackButton wait expired before initial folder reveal completed. Native FileProvider nil URL persisted"
+      }
+    },
+    {
+      "run_id": 40058839449,
+      "source_commit": "2528099",
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "Mandatory parent navigation executed and capture exists, but fixture in target-app Documents still returned nil URL. Same original fixture content retained; no accepted preview/cleanup result",
+      "ios_evidence_review": {
+        "id": 12546293834,
+        "digest": "sha256:2ed3d23fa6774f68a5185f6c66cddfe283340e44edcb1382e62201a96189a6c8",
+        "checksum_verified": true
+      }
+    },
+    {
+      "run_id": 40060790447,
+      "source_commit": "1278eea",
+      "status": "superseded before iOS UI; readiness and registered storage follow-up in 365fc36",
+      "cause": "Cancelled by newer source, not counted as validation"
+    },
+    {
+      "run_id": 40061148546,
+      "source_commit": "365fc36053be01c7115e133218c4d70b159bdcf7",
+      "ios_core": 19,
+      "ios_ui_executed": 0,
+      "status": "failed before UI tests",
+      "cause": "Three registered providers use the same File Provider Storage basename; fixture setup refused an ambiguous directory. Windows/macOS/Android passed."
+    },
+    {
+      "run_id": 40062684176,
+      "source_commit": "a47ce7fab3a6afa4690897bd37a68fc4a40b712c",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "Registered LocalStorage folder resolved and byte checks passed, but selected item IDs did=3/did=4 returned FP -1005 and nil URL; no selection callback, preview blocked behind failed picker",
+      "artifact": {
+        "id": 12547843468,
+        "sha256": "4f320172b6c5bd57270cf46cce97c042f4f94da547856797600175c361494674",
+        "checksum_verified": true
+      },
+      "other_platforms": "passed; reports checked"
+    },
+    {
+      "run_id": 40101650027,
+      "source_commit": "f466c85dc6d2dc37ecf0a84d41ad47e1c397f5ad",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "Independent Swift source app UIDocument save/close succeeded and all 3 source byte hashes matched; FileProvider already returned FP -1005 for document IDs before cancellation. Main picker still returned nil URL; preview blocked behind failed picker.",
+      "artifact": {
+        "id": 12563850545,
+        "sha256": "0ae94f961b0802f7e2829a56e3b709c138ee71a7adf3d3f587406d57cf71f047",
+        "checksum_verified": true
+      },
+      "other_platforms": "passed; source-matched artifacts checked"
+    },
+    {
+      "run_id": 40103685563,
+      "source_commit": "1528a9115d01e56b00949954ca7b48736e8eda80",
+      "status": "superseded before UI",
+      "cause": "Follow-up isolates entire UI suite on a freshly created simulator; all observed earlier runs reused the same pre-created E839A11B device and provider returned stale IDs even before main app cancellation"
+    },
+    {
+      "run_id": 40104004786,
+      "source_commit": "fcb469a652a88ddb918d783609e5f540d11eb676",
+      "ios_core": 19,
+      "ios_ui_passed": 0,
+      "ios_ui_failed": 3,
+      "cause": "Fresh simulator confirmed with distinct actual XCTest device ID. Native export picker restored the expected source app Documents folder while navigation was loading; test waited for a folder cell that was no longer visible, never tapped Save. Source stayed awaiting_export and original main flows had no fixtures. This does not establish whether stale file IDs are resolved.",
+      "artifact": {
+        "id": 12564627417,
+        "sha256": "616cb38ea400a3009204bb27f783abc7381a178670e7bc0a0b28605796dc1393",
+        "checksum_verified": true
+      },
+      "other_platforms": "passed; source-matched artifacts checked"
+    },
+    {
+      "run_id": 40106022165,
+      "source_commit": "a6804f7d1714848bd37044a00e4a0a9febcd3856",
+      "ios_core": 19,
+      "ios_ui_passed": 0,
+      "ios_ui_failed": 3,
+      "cause": "Native export picker restored its own Documents directory before mandatory Locations-row wait, so setup still never tapped Save. AX shows expected destination title and enabled Save button. Source awaiting_export, no exported fixtures. Later main flows blocked by missing fixtures; no stale-ID conclusion.",
+      "artifact": {
+        "id": 12565665094,
+        "sha256": "94b27b5f3a10b5133da74a7e6ff91bcfda32ead22a08581acb77af86cb7bdbbc",
+        "checksum_verified": true
+      },
+      "other_platforms": "passed; source-matched artifacts checked"
+    },
+    {
+      "run_id": 40107563544,
+      "source_commit": "0c0751b9b79f2c30e3bd8b00b1c6a8f9bcf80a0f",
+      "ios_core": 19,
+      "ios_ui_passed": 0,
+      "ios_ui_failed": 3,
+      "cause": "Export destination title resolved, but Save was disabled when checked, so no fixtures were exported. Main flows then had no source files. This extra export preparation has not established the original stale-ID behavior.",
+      "artifact": {
+        "id": 12565173840,
+        "sha256": "33fd7a409b7af6675bbd982f6e4654c5e9145ce9cc7559335d8b2b5d7637fef6",
+        "checksum_verified": true
+      },
+      "other_platforms": "passed; source-matched artifacts checked"
+    },
+    {
+      "run_id": 40110072697,
+      "source_commit": "80b755296dac51d4c705ba91045ca97c2415f4ca",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "cause": "On a fresh iOS 26.5 device, independent UIDocument source save/close and all 3 byte hashes succeeded, but FileProvider returned FP -1005 for existing files before main cancellation; selected 1s file again produced nil fetchURL and no selection callback. Draft passed, preview blocked behind picker. Empty media was not cleanup acceptance because no imports occurred.",
+      "artifact": {
+        "id": 12566254844,
+        "sha256": "d793d9963dca7608879aeb4a224ffaf1acc7bed0d86c2fcbbfee90ae64fb31d6",
+        "checksum_verified": true
+      },
+      "other_platforms": "Windows/macOS passed and reports checked; current Android repeated build stalled and was superseded before tests. Prior Android source equivalence independently verified, no reuse selected."
+    },
+    {
+      "run_id": 40112242544,
+      "source_commit": "e169b41e92f9fb5eeaa180ff1ee95d2600f8ff5d",
+      "ios_core": 19,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 2,
+      "actual_ui_runtime": "26.4.1",
+      "cause": "Explicit 26.4 comparison reproduced the same selection/dismissal failure on well-formed UIDocument source files; draft passed, original 1s native file selection never returned, preview blocked. Cannot attribute the behavior solely to 26.5. All 3 source byte hashes preserved; no imported files means empty media is not cleanup acceptance.",
+      "artifact": {
+        "id": 12567522466,
+        "sha256": "5e547c4c11357ca0ad1908bebfc1aa2fbdc1f25fb10445429c279f89f86f7bc1",
+        "checksum_verified": true
+      },
+      "other_platforms": "Windows/macOS/Android passed; current source ZIPs checked"
+    },
+    {
+      "run_id": 40114634938,
+      "source_commit": "0c3a61f8cf4567b7296ff3b74f3ac80a4907702c",
+      "ios_core": 19,
+      "ios_ui_executed": 0,
+      "cause": "Product XCTest build succeeded, but new atomic fixture helper failed Swift compilation: two early returns in UIApplicationDelegate Bool method omitted a return value. Atomic fixture experiment did not run; no source readiness or UI result exists. Next revision fixes Bool returns and moves SDK type-check before expensive product builds.",
+      "artifact": {
+        "id": 12568591212,
+        "sha256": "94349250fe61a3fa1c3f210eab02bd892752c28037021304f4e82a0983c3fefe",
+        "checksum_verified": true
+      },
+      "other_platforms": "Windows/macOS/Android passed; source-matched reports checked"
+    },
+    {
+      "run_id": 40115876922,
+      "source_commit": "f9a3698bc1928a9260eeded815f9d91d7d5523c4",
+      "status": "passed after artifact review",
+      "core_executions": 76,
+      "desktop_executions": 28,
+      "ios_ui_passed": 3,
+      "storage_guard": "passed"
+    }
+  ],
+  "latest_fix": {
+    "source_commit": "d03f063",
+    "behavior": "Pending managed-media cleanup keeps Save draft enabled even if workspace equals saved JSON; failed cleanup remains retryable",
+    "regression_before": {
+      "desktop_tests_passed": 13,
+      "failed": 1
+    },
+    "regression_after": {
+      "desktop_tests_passed": 14,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "evidence": "video-preview-40115876922.json"
+}
