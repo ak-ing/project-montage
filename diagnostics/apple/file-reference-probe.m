@@ -47,7 +47,10 @@ int main(int argc, const char *argv[]) {
                 request.commonattr = ATTR_CMN_DOCUMENT_ID;
                 struct { uint32_t length; uint32_t document; } documentResult = {0};
                 errno = 0;
-                int documentStatus = getattrlist(path.fileSystemRepresentation, &request, &documentResult, sizeof(documentResult), 0);
+                // ATTR_CMN_DOCUMENT_ID reuses an old attribute bit and requires
+                // this option in Apple's public sys/attr.h.
+                int documentStatus = getattrlist(path.fileSystemRepresentation, &request, &documentResult,
+                    sizeof(documentResult), FSOPT_ATTR_CMN_EXTENDED);
                 record[@"kernel_document_id"] = documentStatus == 0 ? @(documentResult.document) : (id)[NSNull null];
                 record[@"kernel_document_id_errno"] = @(documentStatus == 0 ? 0 : errno);
                 error = nil;

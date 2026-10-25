@@ -100,15 +100,20 @@
         "host": null,
         "simulator": null
       },
-      "kernel_document_id_errno": {
-        "host": 22,
-        "simulator": 22
-      },
       "limits": [
-        "Kernel document-ID request returned EINVAL and Foundation returned nil in this run, which never entered the source folder.",
+        "The direct kernel document-ID measurement was invalid due to a missing required option. Foundation returned nil in this run, which never entered the source folder.",
         "This differs from 40214856335, where Files enumerated the source files and Foundation returned document ID 3.",
         "No symlinks or inode lookup errors were found; these checks do not establish successful FileProvider document-ID resolution."
-      ]
+      ],
+      "invalid_kernel_probe": {
+        "raw_errno": {
+          "host": 22,
+          "simulator": 22
+        },
+        "valid": false,
+        "reason": "Diagnostic omitted FSOPT_ATTR_CMN_EXTENDED required by public sys/attr.h; EINVAL is a probe parameter error, not evidence of an OS fault.",
+        "reference": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/attr.h"
+      }
     }
   ],
   "preserved_conditions": [
