@@ -1,0 +1,121 @@
+{
+  "accepted": false,
+  "scope": "Standalone native diagnostics, separate from full KMP milestone acceptance",
+  "full_product_status": "Windows/macOS/Android scene flows passed in 40166230382; iOS remains blocked",
+  "runs": [
+    {
+      "run_id": 40213153912,
+      "source_sha": "a9b6517dfd28d34b95fdc042b714dd97a683c670",
+      "scope": "Standalone native UIKit/XCTest diagnostic; not full product acceptance",
+      "result": "failed during XCTest navigation; no file selection attempted",
+      "native_control": {
+        "cancelled": 1,
+        "error": "",
+        "reads": {},
+        "status": "Cancelled"
+      },
+      "source_preserved": true,
+      "container_mapping_changed": false,
+      "files": {
+        "Montage-import-smoke.mp4": {
+          "bytes": 1666,
+          "sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086"
+        },
+        "Montage-preview-smoke.mp4": {
+          "bytes": 48228,
+          "sha256": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a"
+        },
+        "Montage-preview-invalid.mp4": {
+          "bytes": 22,
+          "sha256": "2414a664d6f3f40086ab33737090f7ba661db4dbfda3a19f54550bb3059044e2"
+        }
+      },
+      "host_file_reference_roundtrips": true,
+      "simulator_file_reference_roundtrips": true,
+      "limits": [
+        "Files folder appears in failure AX dump but element queries returned no matches during navigation.",
+        "The standalone run never selected a file and does not reproduce the original did=3 URL-delivery failure.",
+        "Ordinary file-reference round trips are not a successful document-picker callback.",
+        "No SQLite metadata snapshots found in the inspected roots; this does not prove no provider database exists."
+      ],
+      "artifact": {
+        "id": 12606274245,
+        "sha256": "ef2c97299691e4d014b4989ca9de4b34bc46eaddd859a5d11ca84c890bf66937"
+      }
+    },
+    {
+      "run_id": 40214856335,
+      "source_sha": "8545e6c10d3a5460d41b33d7fe2c401d1df26f64",
+      "artifact": {
+        "id": 12607281709,
+        "sha256": "26c40066f60a88af27caabfd7529929fcd1db79df72980510bde0152f1cd0a99"
+      },
+      "scope": "Native UIKit/Swift/XCTest; empty separate XCTest target; no Kotlin product built",
+      "result": "Original URL-delivery failure reproduced after navigation succeeded",
+      "ui": {
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "totalTestCount": 1
+      },
+      "native_control": {
+        "cancelled": 1,
+        "error": "",
+        "reads": {},
+        "status": "Cancelled"
+      },
+      "source_preserved": true,
+      "container_mapping_changed": false,
+      "document_ids": {
+        "Montage-import-smoke.mp4": 3,
+        "Montage-preview-smoke.mp4": 5,
+        "Montage-preview-invalid.mp4": 4
+      },
+      "provider_failure": "FP -1005, Cannot get URL for localstorage/did=3; selected 1-second original; no callback",
+      "limits": [
+        "Foundation document ID readability and inode references do not establish FileProvider URL delivery.",
+        "No product iOS flow accepted by this standalone test."
+      ]
+    },
+    {
+      "run_id": 40215962225,
+      "source_sha": "6b27ff5632e843a6b77c150c97a01d3addfc462a",
+      "artifact": {
+        "id": 12607168649,
+        "sha256": "056983121be9bb7977cc8eafa0a0d03a6054cca4387a7fbf9f92e4b60a802e89"
+      },
+      "result": "XCTest navigation timed out before selection; no URL-delivery conclusion from this run",
+      "ui": {
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "totalTestCount": 1
+      },
+      "source_preserved": true,
+      "container_mapping_changed": false,
+      "data_path_has_symlink": false,
+      "filesystem": "apfs",
+      "host_and_simulator_inode_resolution": "Both statfs FSID and stat device number resolved all three source paths",
+      "document_identifier": {
+        "host": null,
+        "simulator": null
+      },
+      "kernel_document_id_errno": {
+        "host": 22,
+        "simulator": 22
+      },
+      "limits": [
+        "Kernel document-ID request returned EINVAL and Foundation returned nil in this run, which never entered the source folder.",
+        "This differs from 40214856335, where Files enumerated the source files and Foundation returned document ID 3.",
+        "No symlinks or inode lookup errors were found; these checks do not establish successful FileProvider document-ID resolution."
+      ]
+    }
+  ],
+  "preserved_conditions": [
+    "original one-second source unchanged",
+    "same-process cancel then reopen",
+    "no Kotlin product in diagnostic builds",
+    "original five product XCTest cases remain mandatory"
+  ],
+  "next_required": "Resolve native FileProvider URL delivery, then pass all five iOS cases and real source/media/cache guards."
+}

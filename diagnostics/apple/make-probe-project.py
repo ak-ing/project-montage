@@ -3,6 +3,7 @@
 """Generate a native-only XCTest project reusing the exact existing UIKit control."""
 from pathlib import Path
 import json
+import hashlib
 import plistlib
 import sys
 import xml.etree.ElementTree as ET
@@ -36,7 +37,20 @@ def source(path):
 
 reader, reader_build = source(repo / 'kmp/ios-app/ui-tests/fixture-reader/FixtureReader.swift')
 host, host_build = source(repo / 'diagnostics/apple/ProbeHost.swift')
-test, test_build = source(repo / 'kmp/ios-app/ui-tests/DraftUiSmokeTests.swift')
+test_source = repo / 'kmp/ios-app/ui-tests/DraftUiSmokeTests.swift'
+test_text = test_source.read_text()
+# Investigate remote Files nodes missing from queries but present in complete
+# snapshots. Compare the public full-query path without changing test actions,
+# assertions or fixtures; the optimization is not yet established as the cause.
+query_test = root / 'DraftUiSmokeTests.swift'
+query_text = test_text.replace('.firstMatch', '.element(boundBy: 0)')
+query_test.write_text(query_text)
+test, test_build = source(query_test)
+(root / 'query-mode.json').write_text(json.dumps(dict(mode='full-query', source=str(test_source),
+    replacement='.firstMatch -> .element(boundBy: 0)',
+    source_sha256=hashlib.sha256(test_text.encode()).hexdigest(),
+    generated_sha256=hashlib.sha256(query_text.encode()).hexdigest(),
+    test_actions_assertions_and_fixtures_changed=False), indent=2) + '\n')
 app_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageFixtureReader.app', sourceTree='BUILT_PRODUCTS_DIR')
 host_product = add('PBXFileReference', explicitFileType='wrapper.application', path='MontageProbeHost.app', sourceTree='BUILT_PRODUCTS_DIR')
 test_product = add('PBXFileReference', explicitFileType='wrapper.cfbundle', path='MontageUITests.xctest', sourceTree='BUILT_PRODUCTS_DIR')

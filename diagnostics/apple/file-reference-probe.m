@@ -28,7 +28,7 @@ int main(int argc, const char *argv[]) {
                     record[@"filesystem"] = @{@"type":[NSString stringWithUTF8String:volume.f_fstypename],
                         @"mount":[NSString stringWithUTF8String:volume.f_mntonname],
                         @"source":[NSString stringWithUTF8String:volume.f_mntfromname], @"fsid":@[@(volume.f_fsid.val[0]), @(volume.f_fsid.val[1])],
-                        @"stat_device":@(status.st_dev), @"inode":@(status.st_ino)};
+                        @"stat_device":@(status.st_dev), @"inode":@(status.st_ino), @"bsd_flags":@(status.st_flags)};
                     NSMutableArray *resolutions = [NSMutableArray array];
                     fsid_t ids[] = {volume.f_fsid, {{status.st_dev, 0}}};
                     for (int j = 0; j < 2; j++) {

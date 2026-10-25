@@ -28,6 +28,7 @@ PY
 xcrun simctl boot "$device"
 xcrun simctl bootstatus "$device" -b
 python3 "$repo/diagnostics/apple/make-probe-project.py" "$probe_root"
+cp "$probe_root/query-mode.json" "$out/query-mode.json"
 plutil -lint "$probe_root/probe.xcodeproj/project.pbxproj"
 xcodebuild build-for-testing -project "$probe_root/probe.xcodeproj" -scheme probe \
   -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 \
@@ -71,6 +72,18 @@ xcrun clang -fobjc-arc -framework Foundation "$repo/diagnostics/apple/file-refer
 xcrun clang -fobjc-arc -target arm64-apple-ios15.0-simulator -isysroot "$sdk" -framework Foundation \
   "$repo/diagnostics/apple/file-reference-probe.m" -o "$probe_root/simulator-file-probe"
 fixtures=("$source_data/Documents/Montage-import-smoke.mp4" "$source_data/Documents/Montage-preview-smoke.mp4" "$source_data/Documents/Montage-preview-invalid.mp4")
+log_pid=''
+cleanup_probe() {
+  if test -n "$log_pid"; then kill "$log_pid" >/dev/null 2>&1 || true; fi
+  xcrun simctl shutdown "$device" >/dev/null 2>&1 || true
+}
+trap cleanup_probe EXIT
+# Stream debug events while the provider resolves the selection; default-level
+# persisted logs alone did not expose its internal resolution failure.
+xcrun simctl spawn "$device" log stream --level debug --style compact \
+  --predicate 'process == "LocalStorageFileProvider" OR process == "fileproviderd" OR subsystem CONTAINS[c] "DocumentManager"' \
+  > "$out/provider-live.log" 2>&1 &
+log_pid=$!
 test_status=0
 xcodebuild test-without-building -project "$probe_root/probe.xcodeproj" -scheme probe \
   -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 \
@@ -78,6 +91,9 @@ xcodebuild test-without-building -project "$probe_root/probe.xcodeproj" -scheme 
   -test-timeouts-enabled YES -default-test-execution-time-allowance 180 -maximum-test-execution-time-allowance 240 \
   -parallel-testing-enabled NO -derivedDataPath "$probe_root/DerivedData" -resultBundlePath "$probe_root/NativeProbe.xcresult" \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$out/test.log" || test_status=$?
+kill "$log_pid" >/dev/null 2>&1 || true
+wait "$log_pid" 2>/dev/null || true
+log_pid=''
 xcrun simctl spawn "$device" log show --last 20m --style compact \
   --predicate 'subsystem CONTAINS[c] "FileProvider" OR subsystem CONTAINS[c] "DocumentManager" OR process == "MontageFixtureReader"' \
   > "$out/provider.log" || true

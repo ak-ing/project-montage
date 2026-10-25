@@ -4,6 +4,10 @@ This standalone simulator probe builds only UIKit/Swift/XCTest. It reuses the
 existing `testFileProviderNativeControl` without changing its cancellation,
 reopen, original one-second source, selection callback or three SHA-256 checks.
 The product's five iOS cases and media-cleanup guards remain mandatory.
+The diagnostic build replaces XCTest `.firstMatch` with the public
+`.element(boundBy: 0)` full-query path. This controlled query experiment investigates
+remote Files elements absent from fast queries but present in complete snapshots;
+`query-mode.json` records the change. Product test sources remain untouched.
 
 On an Apple Silicon Mac with Xcode, run:
 
