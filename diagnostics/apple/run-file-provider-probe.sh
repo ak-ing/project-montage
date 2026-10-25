@@ -72,6 +72,24 @@ xcrun clang -fobjc-arc -framework Foundation "$repo/diagnostics/apple/file-refer
 xcrun clang -fobjc-arc -target arm64-apple-ios15.0-simulator -isysroot "$sdk" -framework Foundation \
   "$repo/diagnostics/apple/file-reference-probe.m" -o "$probe_root/simulator-file-probe"
 fixtures=("$source_data/Documents/Montage-import-smoke.mp4" "$source_data/Documents/Montage-preview-smoke.mp4" "$source_data/Documents/Montage-preview-invalid.mp4")
+# Controlled registration experiment: all source apps/files already exist before
+# a second boot. This occurs before XCTest, never inside cancellation/reopening.
+xcrun simctl shutdown "$device"
+xcrun simctl boot "$device"
+xcrun simctl bootstatus "$device" -b
+source_restarted=$(xcrun simctl get_app_container "$device" dev.montage.fixture-source data)
+test "$source_restarted" = "$source_data"
+python3 - "$out" "$source_restarted" <<'PY'
+import hashlib,json,sys
+from pathlib import Path
+out,root=map(Path,sys.argv[1:]);before=json.loads((out/'source-before.json').read_text())
+for name,v in before['files'].items():
+    assert hashlib.sha256((root/'Documents'/name).read_bytes()).hexdigest()==v['sha256']
+p=out/'simulator.json';r=json.loads(p.read_text())
+r.update(pre_suite_restart=True,source_created_before_restart=True,
+         same_device_and_source_container_after_restart=True)
+p.write_text(json.dumps(r,indent=2)+'\n')
+PY
 log_pid=''
 cleanup_probe() {
   if test -n "$log_pid"; then kill "$log_pid" >/dev/null 2>&1 || true; fi

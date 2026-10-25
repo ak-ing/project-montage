@@ -114,6 +114,181 @@
         "reason": "Diagnostic omitted FSOPT_ATTR_CMN_EXTENDED required by public sys/attr.h; EINVAL is a probe parameter error, not evidence of an OS fault.",
         "reference": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/attr.h"
       }
+    },
+    {
+      "run_id": 40217240061,
+      "source_sha": "afa3f513774ea1c5b9a8e639aa4d48e5fb8d62b8",
+      "artifact": {
+        "id": 12608167826,
+        "sha256": "70bfa908c0b8041d39c518244296e8f30adc028a85d6315ef824db9fc8a5cb25"
+      },
+      "result": "Diagnostic Swift compilation failed; no UI tests executed and fixture publication not reached",
+      "failure": "Generated query experiment called element(boundBy:) on four XCUIElement values instead of XCUIElementQuery.",
+      "correction": "b707af19885928877397b539aaa9fde013f783a8 converts those button subscripts into matching(identifier:) queries first.",
+      "executed_ui_tests": 0,
+      "accepted": false
+    },
+    {
+      "run_id": 40217561432,
+      "source_sha": "b707af19885928877397b539aaa9fde013f783a8",
+      "artifact": {
+        "id": 12608715007,
+        "sha256": "30a9284144efe94938ea97c3ff9f37814d1279f46db2cfd6752da0a647933a19"
+      },
+      "result": "Full-query diagnostic built and reached source selection; original FileProvider URL delivery failed again",
+      "query_mode": {
+        "mode": "full-query",
+        "source": "/Users/runner/work/project-montage/project-montage/kmp/ios-app/ui-tests/DraftUiSmokeTests.swift",
+        "replacement": ".firstMatch -> .element(boundBy: 0)",
+        "source_sha256": "56b1305bdf37835de342f3b03a848ca97f2035b17e2cb2a4449fe8821a903926",
+        "generated_sha256": "158f9dd3c4ebfe0f7933571790472386e2e1a5b451fa98e89b2f914f6945799e",
+        "test_actions_assertions_and_fixtures_changed": false
+      },
+      "ui": {
+        "passedTests": 0,
+        "failedTests": 1,
+        "skippedTests": 0,
+        "totalTestCount": 1
+      },
+      "native_control": {
+        "cancelled": 1,
+        "error": "",
+        "reads": {},
+        "status": "Cancelled"
+      },
+      "source_preserved": true,
+      "container_mapping_changed": false,
+      "file_identity": {
+        "host": [
+          {
+            "document_identifier": 3,
+            "kernel_document_id": 3,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007226,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          },
+          {
+            "document_identifier": 5,
+            "kernel_document_id": 5,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007227,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          },
+          {
+            "document_identifier": 4,
+            "kernel_document_id": 4,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007228,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          }
+        ],
+        "simulator": [
+          {
+            "document_identifier": 3,
+            "kernel_document_id": 3,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007226,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          },
+          {
+            "document_identifier": 5,
+            "kernel_document_id": 5,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007227,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          },
+          {
+            "document_identifier": 4,
+            "kernel_document_id": 4,
+            "kernel_document_id_errno": 0,
+            "filesystem": {
+              "bsd_flags": 64,
+              "fsid": [
+                16777229,
+                26
+              ],
+              "inode": 3007228,
+              "mount": "/System/Volumes/Data",
+              "source": "/dev/disk2s5",
+              "stat_device": 16777229,
+              "type": "apfs"
+            }
+          }
+        ]
+      },
+      "kernel_probe_valid": true,
+      "live_provider_observations": [
+        {
+          "time_utc": "2026-10-25T17:49:58.631Z",
+          "process": "LocalStorageFileProvider[15242]",
+          "result": "resolved did=3 to the unchanged source path"
+        },
+        {
+          "time_utc": "2026-10-25T17:50:04.964Z",
+          "process": "LocalStorageFileProvider[15242]",
+          "result": "URLForItemID lookup begins for did=3"
+        },
+        {
+          "time_utc": "2026-10-25T17:50:05.027Z",
+          "process": "LocalStorageFileProvider[15242]",
+          "result": "After internal retries, did=3 lookup fails with ENOENT; FP -1005 returned to picker"
+        }
+      ],
+      "limits": [
+        "Full query reached selection in this run; one run does not establish that navigation flakiness is fixed.",
+        "Kernel and Foundation agree on IDs 3/5/4 and all files are tracked (BSD flags 64). This does not establish working provider URL delivery.",
+        "Provider internal resolution failure is localized; its cause is not yet proven. No product milestone accepted."
+      ]
     }
   ],
   "preserved_conditions": [

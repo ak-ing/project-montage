@@ -18,6 +18,10 @@ bash diagnostics/apple/run-file-provider-probe.sh
 The separate Actions workflow uses the same current macOS/Xcode and latest
 installed iOS runtime. Each probe owns one fresh device and shuts it down on exit;
 it never resets the app between cancellation and reopening.
+The current controlled registration experiment restarts that same device once
+after fixture preparation and before XCTest starts. It verifies the unchanged
+source container and all three hashes after restarting; `simulator.json` records
+this preparation. No restart occurs within a test case.
 XCTest targets an empty native host and launches the reader as a separate app,
 matching the full suite's control topology without building Kotlin.
 
