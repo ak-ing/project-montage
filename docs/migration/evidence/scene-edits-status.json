@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
-  "status": "ios_editor_scroll_settling_fix_pending_validation",
-  "latest_source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40329665412",
+  "status": "passed",
+  "latest_source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -130,52 +130,56 @@
       "scene_failure": "Numeric range and Apply/reorder succeeded; immediate post-scroll back tap left editor visible",
       "cleanup_accepted": false,
       "evidence": "scene-edits-40329665412.json"
+    },
+    {
+      "run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "status": "passed after artifact, UI screenshot and storage review",
+      "core_executions": 104,
+      "desktop_executions": 30,
+      "ios_ui_passed": 5
     }
   ],
   "platforms": {
-    "Windows x64": "passed: 26 core +15 desktop tests",
-    "macOS Arm64": "passed: 26 core +15 desktop tests",
-    "Android emulator": "passed: 26 host core and complete scene/preview/import UI/storage flow",
-    "iOS Arm64 simulator": "26 native core passed; UI 2/5; initial XCTest launch timeout, post-scroll editor back failed; preview blocked, final cleanup failed"
+    "desktop-macos-26": "passed",
+    "desktop-windows-2025": "passed",
+    "android-debug": "passed",
+    "ios-simulator-evidence": "passed"
   },
   "verified_artifacts": [
     {
-      "name": "desktop-windows-2025",
-      "id": 12655111001,
-      "digest": "sha256:f07b6cf24037026e1514c0409568edd712476d998aedc501dd29f0f96ad8bf67",
-      "source_run_id": 40329665412,
-      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
-      "checksum_verified": true,
-      "ui_status": "passed"
+      "name": "desktop-macos-26",
+      "id": 12656866433,
+      "digest": "sha256:ab5c559a3b172f5c6256c863796536ea6e87ffa10d46e9f60ed65c87e9e2e51b",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true
     },
     {
-      "name": "desktop-macos-26",
-      "id": 12653272639,
-      "digest": "sha256:961f83bee38ea6256d1ea9310ab3cd1ad84321ed108343686b3bf77f2a12e7a7",
-      "source_run_id": 40329665412,
-      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
-      "checksum_verified": true,
-      "ui_status": "passed"
+      "name": "desktop-windows-2025",
+      "id": 12656696597,
+      "digest": "sha256:e552bec4a7c6d257df399f64560216aa72eb66ce6c9ef925332d9a8609b34ee1",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true
     },
     {
       "name": "android-debug",
-      "id": 12653548631,
-      "digest": "sha256:5be4e1c1e34eb0e9858ae993c8179233ee4564013508cb2f9131bbdb548a2dd9",
-      "source_run_id": 40329665412,
-      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
-      "checksum_verified": true,
-      "ui_status": "passed"
+      "id": 12656528297,
+      "digest": "sha256:0d86dd2cc70d21180b0fa425c82bd416abd48da58144c821d54e767240dccf1b",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true
     },
     {
       "name": "ios-simulator-evidence",
-      "id": 12656520180,
-      "digest": "sha256:34fa77fb8366ea035a97720556b92e0728e0d001b54dcd597daabdae09541d11",
-      "source_run_id": 40329665412,
-      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
-      "checksum_verified": true,
-      "ui_status": "failed"
+      "id": 12658002651,
+      "digest": "sha256:3330740ec3e0b743b7ba42f1e6efff43a3e3cdb0d70ba20ecd06fe7c0bc85d61",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true
     }
   ],
-  "accepted_four_platforms": false,
-  "evidence": "scene-edits-40329665412.json"
+  "accepted_four_platforms": true,
+  "evidence": "scene-edits-40334710634.json"
 }

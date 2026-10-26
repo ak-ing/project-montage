@@ -1,0 +1,465 @@
+{
+  "run_id": 40334710634,
+  "run_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634",
+  "commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+  "run_attempt": 1,
+  "jobs": [
+    {
+      "id": 121613070511,
+      "name": "Desktop (macos-26)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "run_id": 40334710634,
+      "html_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634/job/121613070511"
+    },
+    {
+      "id": 121613070966,
+      "name": "Android APK and host unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "run_id": 40334710634,
+      "html_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634/job/121613070966"
+    },
+    {
+      "id": 121613071049,
+      "name": "iOS Arm64 simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "run_id": 40334710634,
+      "html_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634/job/121613071049"
+    },
+    {
+      "id": 121613071077,
+      "name": "Desktop (windows-2025)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "run_id": 40334710634,
+      "html_url": "https://github.com/ak-ing/project-montage/actions/runs/40334710634/job/121613071077"
+    }
+  ],
+  "frame_color_check": "Preview blue/red checked below midpoint, decoded thumbnail separately; editor surface blue checked in lower-center x47%-70% strip to exclude its lower-left thumbnail",
+  "artifacts": [
+    {
+      "name": "desktop-macos-26",
+      "id": 12656866433,
+      "digest": "sha256:ab5c559a3b172f5c6256c863796536ea6e87ffa10d46e9f60ed65c87e9e2e51b",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true,
+      "core_tests": [
+        "versionTwoMigrationPreservesMediaDraftAndRunningOperationAtomically()",
+        "applyingClipRequiresExistingSceneAndManagedVideo()",
+        "preservesEncodedDimensionsAndComputesRotatedDisplaySize()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "clipPrecisionAndSceneOrderSurviveNewRepositoryAndFailedSave()",
+        "rangesAreNonEmptyAndBoundedByActualDuration()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "reorderingKeepsIdentityClipTargetsAndCheckpoints()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "rejectsInvalidMetadataWithoutHidingUnknownOrientation()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "invalidSavedClipOrDanglingReferenceNeverOverwritesDocument()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "referencedVideoCannotBeRemovedUntilAllScenesDetach()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "seekIsBoundedByTheActualMediaDuration()"
+      ],
+      "desktop_storage_media_ui_tests": [
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "editValidateReorderRecoverDetachAndRemoveUsingRealMedia",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "malformedAtomSizesFailWithoutAllocatingFromUntrustedLengths",
+        "readsVideoGeometryFromManagedCopyWithOpaqueExtension",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted",
+        "nativeDecodePlaybackSeekAndRestoredPreviewKeepUnsavedEdits",
+        "editAppendAndResetDraft",
+        "corruptVideoCanBeRepairedAndRetriedWithoutLosingWorkspace",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles"
+      ],
+      "decoder_runtime": {
+        "ffmpeg_version": "8.1.2",
+        "avcodec_license": "LGPL version 3 or later",
+        "configuration": "--prefix=.. --disable-iconv --disable-opencl --disable-sdl2 --disable-bzlib --disable-lzma --disable-linux-perf --disable-xlib --enable-shared --enable-version3 --enable-runtime-cpudetect --enable-zlib --enable-libmp3lame --enable-libspeex --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-openssl --enable-libopenh264 --enable-libvpx --enable-libfreetype --enable-libharfbuzz --enable-libopus --enable-libxml2 --enable-libsrt --enable-libwebp --enable-libaom --enable-libsvtav1 --enable-libzimg --enable-vulkan --enable-hwaccel=h264_vulkan --enable-hwaccel=hevc_vulkan --enable-hwaccel=av1_vulkan --enable-pthreads --enable-indev=avfoundation --disable-libxcb --cc='clang -arch arm64' --cxx='clang++ -arch arm64' --extra-cflags='-I../include/ -I../include/libxml2 -I../include/mfx -I../include/svt-av1' --extra-ldflags=-L../lib/ --extra-libs='-lstdc++ -ldl -lz -lm' --enable-cross-compile --arch=arm64 --target-os=darwin",
+        "physical_audio_verified": false
+      },
+      "scene_edits_screenshot": "ui-smoke/desktop/scene-edits-restored.png",
+      "ui_status": "passed",
+      "ui_environment": "offscreen Compose scene with real native decoder on hosted OS"
+    },
+    {
+      "name": "desktop-windows-2025",
+      "id": 12656696597,
+      "digest": "sha256:e552bec4a7c6d257df399f64560216aa72eb66ce6c9ef925332d9a8609b34ee1",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true,
+      "core_tests": [
+        "versionTwoMigrationPreservesMediaDraftAndRunningOperationAtomically()",
+        "applyingClipRequiresExistingSceneAndManagedVideo()",
+        "preservesEncodedDimensionsAndComputesRotatedDisplaySize()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "clipPrecisionAndSceneOrderSurviveNewRepositoryAndFailedSave()",
+        "rangesAreNonEmptyAndBoundedByActualDuration()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "reorderingKeepsIdentityClipTargetsAndCheckpoints()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "rejectsInvalidMetadataWithoutHidingUnknownOrientation()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "invalidSavedClipOrDanglingReferenceNeverOverwritesDocument()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "referencedVideoCannotBeRemovedUntilAllScenesDetach()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "seekIsBoundedByTheActualMediaDuration()"
+      ],
+      "desktop_storage_media_ui_tests": [
+        "unreadableWorkspaceDisablesEditsAndCanBeRetried",
+        "copiesBytesAndKeepsAnIndependentReadableFile",
+        "nativeFilePickerCanBeCancelledWithoutImporting",
+        "damagedFileIsKeptForRecovery",
+        "editValidateReorderRecoverDetachAndRemoveUsingRealMedia",
+        "importsVideoWithCancelFailureAndMissingFileRecovery",
+        "malformedAtomSizesFailWithoutAllocatingFromUntrustedLengths",
+        "readsVideoGeometryFromManagedCopyWithOpaqueExtension",
+        "restoresSavedDraftFromNewRepositoryAndReplacesExistingFile",
+        "failedReadDoesNotCommitOrRetainPartialFiles",
+        "emptyVideoIsNotCommitted",
+        "nativeDecodePlaybackSeekAndRestoredPreviewKeepUnsavedEdits",
+        "editAppendAndResetDraft",
+        "corruptVideoCanBeRepairedAndRetriedWithoutLosingWorkspace",
+        "cleanupKeepsReferencedVideosAndUnrelatedFiles"
+      ],
+      "decoder_runtime": {
+        "ffmpeg_version": "8.1.2",
+        "avcodec_license": "LGPL version 3 or later",
+        "configuration": "--prefix=.. --disable-iconv --disable-opencl --disable-sdl2 --disable-bzlib --disable-lzma --disable-linux-perf --disable-xlib --enable-shared --enable-version3 --enable-runtime-cpudetect --enable-zlib --enable-libmp3lame --enable-libspeex --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-openssl --enable-libopenh264 --enable-libvpx --enable-libfreetype --enable-libharfbuzz --enable-libopus --enable-libxml2 --enable-libsrt --enable-libwebp --enable-libaom --enable-libsvtav1 --enable-libzimg --enable-vulkan --enable-hwaccel=h264_vulkan --enable-hwaccel=hevc_vulkan --enable-hwaccel=av1_vulkan --enable-cuda --enable-cuvid --enable-nvenc --enable-libmfx --enable-w32threads --enable-indev=dshow --target-os=mingw32 --cc='gcc -m64' --cxx='g++ -m64' --extra-cflags='-DLIBXML_STATIC -I../include/ -I../include/libxml2 -I../include/mfx/ -I../include/svt-av1' --extra-ldflags=-L../lib/ --extra-libs='-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lgcc_eh -lWs2_32 -lcrypt32 -lpthread -lz -lm -Wl,-Bdynamic -lole32 -luuid'",
+        "physical_audio_verified": false
+      },
+      "scene_edits_screenshot": "ui-smoke/desktop/scene-edits-restored.png",
+      "ui_status": "passed",
+      "ui_environment": "offscreen Compose scene with real native decoder on hosted OS"
+    },
+    {
+      "name": "android-debug",
+      "id": 12656528297,
+      "digest": "sha256:0d86dd2cc70d21180b0fa425c82bd416abd48da58144c821d54e767240dccf1b",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true,
+      "core_tests": [
+        "versionTwoMigrationPreservesMediaDraftAndRunningOperationAtomically()",
+        "applyingClipRequiresExistingSceneAndManagedVideo()",
+        "preservesEncodedDimensionsAndComputesRotatedDisplaySize()",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState()",
+        "clipPrecisionAndSceneOrderSurviveNewRepositoryAndFailedSave()",
+        "rangesAreNonEmptyAndBoundedByActualDuration()",
+        "newRepositoryRestoresDraftAndCheckpoint()",
+        "reorderingKeepsIdentityClipTargetsAndCheckpoints()",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried()",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields()",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity()",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation()",
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration()",
+        "noBoundaryNeedsNoBuffer()",
+        "newWorkspaceDoesNotWriteUntilSaved()",
+        "rejectsInvalidMetadataWithoutHidingUnknownOrientation()",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample()",
+        "draftSurvivesJsonRoundTrip()",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity()",
+        "invalidSavedClipOrDanglingReferenceNeverOverwritesDocument()",
+        "appendPreservesSourceAndAvoidsIdentityCollisions()",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata()",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave()",
+        "referencedVideoCannotBeRemovedUntilAllScenesDetach()",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint()",
+        "seekIsBoundedByTheActualMediaDuration()"
+      ],
+      "ui_status": "passed",
+      "ui_environment": "installed APK on Android emulator via system picker and adb UI actions",
+      "ui_result": {
+        "status": "passed",
+        "flow": "draft recovery; native picker cancel/import; independent copy; metadata/thumbnail/play/pause/seek; preview restart; corruption/retry; scene clip/range validation/reorder/restart/detach; remove/cleanup",
+        "serial": "emulator-5554",
+        "fixture_sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+        "imported_bytes": 1666,
+        "managed_cleanup_empty": true,
+        "system_launcher_recoveries": 0,
+        "scene_edits": {
+          "schema_version": 3,
+          "scene_order": [
+            "ending",
+            "opening",
+            "scene-3"
+          ],
+          "clip": {
+            "videoId": "2140ef04-39be-499b-a973-2154414ccde7",
+            "inMillis": 1250,
+            "outMillis": 6500
+          },
+          "restart_recovery": true,
+          "invalid_range_rejected": true,
+          "referenced_removal_blocked": true,
+          "detach_then_remove": true
+        },
+        "preview": {
+          "fixture_sha256": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a",
+          "metadata": "8023 ms · 160 × 90 · 0° · Audio",
+          "paused_position_ms": 1006,
+          "seek_position_ms": 5748,
+          "restart_recovery": true,
+          "corruption_and_retry": true
+        }
+      },
+      "scene_edits_screenshot": "ui-smoke/android/scene-edits-restored.png"
+    },
+    {
+      "name": "ios-simulator-evidence",
+      "id": 12658002651,
+      "digest": "sha256:3330740ec3e0b743b7ba42f1e6efff43a3e3cdb0d70ba20ecd06fe7c0bc85d61",
+      "source_run_id": 40334710634,
+      "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+      "checksum_verified": true,
+      "core_tests": [
+        "transitionConsumesExtraFootageInsteadOfVisibleDuration",
+        "noBoundaryNeedsNoBuffer",
+        "rejectsInvalidSceneDurationsAndDuplicateIdentity",
+        "appendPreservesSourceAndAvoidsIdentityCollisions",
+        "draftSurvivesJsonRoundTrip",
+        "rangesAreNonEmptyAndBoundedByActualDuration",
+        "applyingClipRequiresExistingSceneAndManagedVideo",
+        "reorderingKeepsIdentityClipTargetsAndCheckpoints",
+        "referencedVideoCannotBeRemovedUntilAllScenesDetach",
+        "clipPrecisionAndSceneOrderSurviveNewRepositoryAndFailedSave",
+        "versionTwoMigrationPreservesMediaDraftAndRunningOperationAtomically",
+        "invalidSavedClipOrDanglingReferenceNeverOverwritesDocument",
+        "preservesEncodedDimensionsAndComputesRotatedDisplaySize",
+        "seekIsBoundedByTheActualMediaDuration",
+        "rejectsInvalidMetadataWithoutHidingUnknownOrientation",
+        "newWorkspaceDoesNotWriteUntilSaved",
+        "newRepositoryRestoresDraftAndCheckpoint",
+        "runningJobsBecomeInterruptedWithoutLosingProviderOperation",
+        "unreadableOrFutureDocumentsAreNeverReplacedWithSample",
+        "failedSaveRetainsPreviousDocumentAndCanBeRetried",
+        "failedRecoveryDoesNotAllowSavingOverUnreadState",
+        "rejectsAmbiguousJobIdentityAndInvalidCheckpointFields",
+        "migratesVersionOneWithoutLosingDraftOrProviderCheckpoint",
+        "migrationWriteFailureKeepsOldDocumentAndDisablesSave",
+        "savesOpaqueVideoReferencesAndRejectsDuplicateIdentity",
+        "rejectsUnsafeHandlesAndEmptyVideoMetadata"
+      ],
+      "simulator": {
+        "id": "8FF455B7-79FA-489D-9D03-F548A951252A",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+        "device_type": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+        "requested_runtime": "latest",
+        "template_id": "E839A11B-51B4-4AD3-ACF4-A53B95B7C957",
+        "fresh_device_for_entire_suite": true,
+        "app_reset_between_cancel_and_reopen": false
+      },
+      "fixture_source": {
+        "provider": "Files LocalStorage app Documents",
+        "folder": "On My iPhone/Montage smoke fixtures",
+        "fixture_app_bundle_id": "dev.montage.fixture-source",
+        "creation": {
+          "creation": "Data.write(.withoutOverwriting)",
+          "error": "",
+          "saved_documents": [
+            "Montage-import-smoke.mp4",
+            "Montage-preview-smoke.mp4",
+            "Montage-preview-invalid.mp4"
+          ],
+          "status": "ready"
+        },
+        "outside_target_app_container": true,
+        "files": {
+          "Montage-import-smoke.mp4": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+          "Montage-preview-smoke.mp4": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a",
+          "Montage-preview-invalid.mp4": "2414a664d6f3f40086ab33737090f7ba661db4dbfda3a19f54550bb3059044e2"
+        }
+      },
+      "native_picker_control": {
+        "cancelled": 1,
+        "error": "",
+        "reads": {
+          "Montage-import-smoke.mp4": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+          "Montage-preview-invalid.mp4": "2414a664d6f3f40086ab33737090f7ba661db4dbfda3a19f54550bb3059044e2",
+          "Montage-preview-smoke.mp4": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a"
+        },
+        "status": "Read Montage-preview-invalid.mp4"
+      },
+      "player_ready_executions": 5,
+      "invalid_file_attempts": 2,
+      "ui_status": "passed",
+      "ui_environment": "installed iOS simulator app via XCTest and native document picker",
+      "ui_result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8FF455B7-79FA-489D-9D03-F548A951252A",
+              "deviceName": "Montage UI smoke 40334710634-1",
+              "modelName": "iPhone 17 Pro",
+              "osBuildNumber": "23F77",
+              "osVersion": "26.5",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 5,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "app · Built with macOS 26.6.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793024648.675,
+        "passedTests": 5,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793024088.226,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - app",
+        "topInsights": [],
+        "totalTestCount": 5
+      },
+      "xcode_sdk_versions": [
+        "26.5"
+      ],
+      "storage_result": {
+        "source_preserved": true,
+        "managed_cleanup_empty": true,
+        "preview_cache_cleanup_empty": true,
+        "schema_version": 3,
+        "scene_clips_remaining": [],
+        "source_location": "Files/On My iPhone/Montage smoke fixtures",
+        "sources_outside_app_container": true,
+        "managed_remaining": [],
+        "preview_cache_remaining": [],
+        "retained_video_count": 0,
+        "fixture_sha256": "af138040b22dd4b34cdeab13b2ae036605551e79351602dfc02fefd21b9dc086",
+        "preview_fixture_sha256": "e894398d60b53b9370143cba19da5d35b61d72393e55b984bf3f88a98af26c1a"
+      },
+      "ui_tests": [
+        "testEditAppendAndResetDraft",
+        "testFileProviderNativeControl",
+        "testImportVideoCancelSaveRestoreAndRemove",
+        "testSceneClipEditingAndRestart",
+        "testVideoPreviewPlaybackSeekAndRestart"
+      ],
+      "fixture_folder_resolutions": [
+        "picker-folder-resolved-Montage-preview-invalid_0_7EB94269-DA21-44FC-99C9-2A9D3FADB6AC.png",
+        "picker-folder-resolved-Montage-preview-smoke_0_11CEF6E9-3183-45B8-9963-1B17703B45D3.png",
+        "picker-folder-resolved-Montage-import-smoke_0_F143FB5F-6440-4713-9F2A-FD0BBF703C2F.png",
+        "picker-folder-resolved-Montage-import-smoke_0_BE817B2C-525E-40CF-BAD9-3328E6ECFC2F.png",
+        "picker-folder-resolved-Montage-preview-smoke_0_5A2EF13E-CA22-4F99-B2FC-98ACEFDB58C6.png",
+        "picker-folder-resolved-Montage-preview-invalid_0_2E56507C-FCB9-4788-BCC3-A82DAECFFFA2.png",
+        "picker-folder-resolved-Montage-preview-smoke_0_A02A9932-6F8D-4206-B11D-511742635AE0.png"
+      ],
+      "screenshots": {
+        "preview-ready": "build/ui-smoke/ios/attachments/9775FF5F-C0D8-426A-AE90-4AF0CD3C8D42.png",
+        "preview-seek": "build/ui-smoke/ios/attachments/ED726D7A-2131-42FC-9338-3884B400A67F.png",
+        "preview-restored": "build/ui-smoke/ios/attachments/A90F1626-1255-484C-ACAB-4E5D0819F5B7.png",
+        "preview-terminated-restored": "build/ui-smoke/ios/attachments/827971F9-4E68-4A8B-A94F-FA318A780FA5.png"
+      },
+      "managed_cleanup_executions": 4,
+      "scene_edits_screenshot": "build/ui-smoke/ios/attachments/50E01D84-EE25-43CF-838E-832AEBB46A7B.png",
+      "xcode_review": "dev.montage.app, iOS 15.0, shared app scheme with MontageUITests"
+    }
+  ],
+  "core_test_executions": 104,
+  "desktop_test_executions": 30,
+  "ios_ui_tests": 5,
+  "executed_test_failures": 0,
+  "executed_test_skips": 0,
+  "scope": "Scene managed-video links, exclusive millisecond in/out validation, scene order, save/restart recovery, reference protection/detach and media cleanup; existing preview regression retained; offscreen desktop and mobile simulators, no model API/composition/export/physical audio/performance claim",
+  "checked_in_screenshots": [
+    {
+      "file": "scene-edits-windows.png",
+      "sha256": "f7c41fa300fe8774d83983306bc9b7c0e687bbfebe9387d8ba426816227332da",
+      "source_artifact_id": 12656696597,
+      "source_path": "ui-smoke/desktop/scene-edits-restored.png"
+    },
+    {
+      "file": "scene-edits-macos.png",
+      "sha256": "db54f9d32abce68576ccca9973e970bdefcc79f804727837f8f22be44aea757f",
+      "source_artifact_id": 12656866433,
+      "source_path": "ui-smoke/desktop/scene-edits-restored.png"
+    },
+    {
+      "file": "scene-edits-android.png",
+      "sha256": "8faf2ffaed7048d972bb79e8e409c64051580ef2ca4002f4f460655883e0898a",
+      "source_artifact_id": 12656528297,
+      "source_path": "ui-smoke/android/scene-edits-restored.png"
+    },
+    {
+      "file": "scene-edits-ios.png",
+      "sha256": "6092f2cec423a2ea090d2446e6b8eae3264658655699ec1c1ec0d34169b4f54d",
+      "source_artifact_id": 12658002651,
+      "source_path": "build/ui-smoke/ios/attachments/50E01D84-EE25-43CF-838E-832AEBB46A7B.png"
+    }
+  ],
+  "limits": [
+    "Desktop Compose is offscreen with real native FFmpeg; Android/iOS run installed simulator apps",
+    "No physical-device, physical-sound, complete lifecycle/rotation, performance or release validation",
+    "Edit decisions only; no product trimming, composition/encoding/export or model API calls",
+    "FileProvider coverage uses native create-only local fixture publication with readiness and byte checks; other provider combinations remain unverified",
+    "Full xcresult ZIP is available but was not downloaded; the main iOS evidence ZIP contains exported reports/screenshots/logs and Xcode project"
+  ],
+  "manual_review": {
+    "scene_recovery_screenshots": [
+      "windows",
+      "macos",
+      "android",
+      "ios"
+    ],
+    "ios_additional_screenshots": [
+      "preview-seek: red surface at 5792ms",
+      "preview-terminated-restored: blue surface at 0ms"
+    ],
+    "xcode_artifact": "dev.montage.app; iOS 15.0; enabled unfiltered shared MontageUITests target; official KOTLIN_CLI_WRAPPER_PATH tool xcode-integration phase; DraftUiSmokeTests.swift included; diagnostic ProbeHost/PrepareFixtureIdentity absent"
+  },
+  "additional_artifacts": [
+    {
+      "name": "ios-ui-xcresult",
+      "id": 12657997778,
+      "size_bytes": 81423494,
+      "digest": "sha256:62388dce596aaffc09ea8821e11f2899913880faa5ae12073dc8411959d73683",
+      "downloaded": false,
+      "checksum_verified": false,
+      "reason": "Exceeds 32MiB download tool limit; exported main reports/logs/screenshots and Xcode project were reviewed"
+    }
+  ]
+}

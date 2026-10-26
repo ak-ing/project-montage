@@ -1,7 +1,7 @@
 {
   "accepted": false,
   "scope": "Standalone native diagnostics, separate from full KMP milestone acceptance",
-  "full_product_status": "40329665412: native control all 3 reads and original product import passed; UI 2/5, initial XCTest launch and post-scroll editor navigation failed; scene/storage milestone remains unaccepted.",
+  "full_product_status": "Full four-platform scene milestone passed in 40334710634 after source-matched artifact, screenshot, Xcode and storage review.",
   "runs": [
     {
       "run_id": 40213153912,
@@ -457,5 +457,14 @@
     "no Kotlin product in diagnostic builds",
     "original five product XCTest cases remain mandatory"
   ],
-  "next_required": "Resolve native FileProvider URL delivery, then pass all five iOS cases and real source/media/cache guards."
+  "next_required": "Standalone diagnostics remain historical; device composition/export follows the separately verified full product acceptance.",
+  "full_product_acceptance": {
+    "accepted": true,
+    "run_id": 40334710634,
+    "source_commit": "2430f84d622ea1a45a3a3ccebec77a2373302a19",
+    "core_test_executions": 104,
+    "desktop_test_executions": 30,
+    "ios_ui_tests": 5,
+    "evidence": "scene-edits-40334710634.json"
+  }
 }
