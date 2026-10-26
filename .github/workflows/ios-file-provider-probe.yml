@@ -5,6 +5,17 @@ on:
     branches: [rewrite/kmp]
     paths: ['diagnostics/apple/**', '.github/workflows/ios-file-provider-probe.yml']
   workflow_dispatch:
+    inputs:
+      track_identities:
+        description: Experimental source identity tracking (historical diagnostic, not product configuration)
+        type: boolean
+        required: true
+        default: false
+      pre_suite_restart:
+        description: Restart the same device after fixture preparation, before testing
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -15,31 +26,24 @@ concurrency:
 
 jobs:
   native-files:
-    name: Native Files (${{ matrix.identity }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - identity: native-created
-            track: '0'
-          - identity: tracked-synced
-            track: '1'
+    name: Native Files (${{ inputs.track_identities && 'tracked-synced' || 'native-created' }})
     runs-on: macos-26
     timeout-minutes: 25
     env:
-      MONTAGE_PROBE_TRACK_IDENTITIES: ${{ matrix.track }}
+      MONTAGE_PROBE_TRACK_IDENTITIES: ${{ inputs.track_identities && '1' || '0' }}
+      MONTAGE_PROBE_PRE_SUITE_RESTART: ${{ inputs.pre_suite_restart && '1' || '0' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Native UIKit control and read-only file identity diagnostics
+      - name: Native UIKit control and source identity diagnostics
         timeout-minutes: 22
         run: bash diagnostics/apple/run-file-provider-probe.sh
       - name: Upload native probe evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: native-files-probe-${{ matrix.identity }}
+          name: native-files-probe-${{ inputs.track_identities && 'tracked-synced' || 'native-created' }}
           path: ${{ runner.temp }}/montage-native-probe/evidence/**
           if-no-files-found: warn
           retention-days: 7

@@ -4,10 +4,10 @@ This standalone simulator probe builds only UIKit/Swift/XCTest. It reuses the
 existing `testFileProviderNativeControl` without changing its cancellation,
 reopen, original one-second source, selection callback or three SHA-256 checks.
 The product's five iOS cases and media-cleanup guards remain mandatory.
-The diagnostic build replaces XCTest `.firstMatch` with the public
-`.element(boundBy: 0)` full-query path. This controlled query experiment investigates
-remote Files elements absent from fast queries but present in complete snapshots;
-`query-mode.json` records the change. Product test sources remain untouched.
+The diagnostic build reuses the current product UI test helper. When evaluating
+older helpers, it normalizes `.firstMatch` to the public `.element(boundBy: 0)`
+query path and its navigation readiness wait. `query-mode.json` records whether
+normalization changed the generated test and preserves both source hashes.
 Navigation uses one native OR query for readiness rather than invoking several
 remote queries inside an XCTest predicate closure. It waits for the source folder
 while On My iPhone enumerates, instead of navigating back during that load.
@@ -27,8 +27,12 @@ It verifies the unchanged container and three hashes; `simulator.json` records i
 No restart occurs within a test case. This experiment timed out in navigation in
 run 40218813221; it has not established a fix for URL delivery.
 
-The workflow compares two fresh devices on separate jobs: the unchanged native
-source producer, and `MONTAGE_PROBE_TRACK_IDENTITIES=1`. The latter uses public
+The default workflow runs only the unchanged native source producer. The
+completed comparison in run 40220361345 passed all three actual reads with this
+producer; the tracking/sync experiment read the one-second file but failed on
+the eight-second file and was not adopted. Optional manual workflow inputs retain
+that experiment and the pre-suite restart for reproducing the diagnostic history.
+`MONTAGE_PROBE_TRACK_IDENTITIES=1` uses public
 Darwin `fchflags(UF_TRACKED)` and `fsync` on the source app's own three files and
 requires nonzero document IDs before publishing readiness. It preserves inode,
 filename and payload bytes. `source-identity-mode.json` records the generated
