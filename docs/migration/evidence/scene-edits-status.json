@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
-  "status": "blocked_ios_file_provider",
-  "latest_source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40166230382",
+  "status": "ios_keyboard_readiness_fix_pending_validation",
+  "latest_source_commit": "03197d976580f35ed49a6c4041ab648be1ca9b86",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40221883663",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -79,6 +79,38 @@
       "source_creation": "Data.write(.withoutOverwriting)",
       "original_sources_preserved": true,
       "empty_storage_is_acceptance": false
+    },
+    {
+      "run_id": 40221883663,
+      "run_attempt": 1,
+      "source_commit": "03197d976580f35ed49a6c4041ab648be1ca9b86",
+      "status": "Windows/macOS/Android passed; iOS 26 core passed, UI 1/5 failed original 1-second URL delivery",
+      "ios_artifact_id": 12609764206,
+      "ios_digest": "sha256:314cb4ef16293e712b92e12422e770364bd971037ced3a2b9287c35029be6194",
+      "ios_checksum_verified": true,
+      "native_cancelled": 1,
+      "native_read_count": 0,
+      "source_preserved": true,
+      "cleanup_accepted": false,
+      "note": "Independent original-source probe passed three callbacks; full suite still failed before product scene/preview flow. Source/metadata were unchanged. Empty storage does not count as cleanup acceptance."
+    },
+    {
+      "run_id": 40221883663,
+      "run_attempt": 2,
+      "source_commit": "03197d976580f35ed49a6c4041ab648be1ca9b86",
+      "status": "Native control passed three callbacks; draft typing failed before keyboard appeared; remaining product flows blocked by unsaved draft",
+      "ios_artifact_id": 12651647325,
+      "ios_digest": "sha256:e1bfd4533932b03e1257a4b5e17470dcc0e868cd94167c5b331f7fe00ceed979",
+      "ios_checksum_verified": true,
+      "core_native_passed": 26,
+      "ios_ui_passed": 1,
+      "ios_ui_failed": 4,
+      "native_cancelled": 1,
+      "native_read_count": 3,
+      "title_actual": "My first Montageitle",
+      "title_expected_suffix": "UI smoke title",
+      "cleanup_accepted": false,
+      "evidence": "Screen recording showed early keystrokes sent before the keyboard appeared. Await keyboard and per-edit value readiness, retaining five cases and source guards."
     }
   ],
   "platforms": {

@@ -26,13 +26,14 @@ final class DraftUiSmokeTests: XCTestCase {
         let title = app.textViews["project-title"]
         XCTAssertTrue(title.exists, app.debugDescription)
         title.tap()
+        waitForKeyboard(app)
         dismissKeyboardIntroduction(app)
-        typeSlowly(title, " UI smoke title")
+        typeSlowly(app, title, " UI smoke title")
         XCTAssertTrue((title.value as? String)?.contains("UI smoke title") == true, app.debugDescription)
         let description = app.textViews["scene-description"]
         XCTAssertTrue(description.exists, app.debugDescription)
         description.tap()
-        typeSlowly(description, "Smoke scene")
+        typeSlowly(app, description, "Smoke scene")
         XCTAssertTrue(add.isEnabled)
         add.tap()
         XCTAssertTrue(app.staticTexts["3 scenes · 14s visible · 2s transition buffer"].waitForExistence(timeout: 10))
@@ -73,11 +74,22 @@ final class DraftUiSmokeTests: XCTestCase {
         }
     }
 
-    private func typeSlowly(_ field: XCUIElement, _ value: String) {
-        // Hosted simulators can drop a burst of synthetic keystrokes while composing.
+    private func waitForKeyboard(_ app: XCUIApplication) {
+        XCTAssertTrue(app.keyboards.element(boundBy: 0).waitForExistence(timeout: 30), app.debugDescription)
+    }
+
+    private func typeSlowly(_ app: XCUIApplication, _ field: XCUIElement, _ value: String) {
+        // Focus can arrive before the first simulator keyboard is displayed.
+        // Deliver real keystrokes only once it exists, then observe each edit
+        // before sending another event to Compose's asynchronous input bridge.
+        waitForKeyboard(app)
         for character in value {
-            field.typeText(String(character))
-            Thread.sleep(forTimeInterval: 0.2)
+            let previous = field.value as? String ?? ""
+            let key = String(character)
+            if key == XCUIKeyboardKey.delete.rawValue && previous.isEmpty { continue }
+            field.typeText(key)
+            let edited = expectation(for: NSPredicate(format: "value != %@", previous), evaluatedWith: field)
+            wait(for: [edited], timeout: 10)
         }
     }
 
@@ -228,7 +240,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription)
         field.tap()
         let existing = field.value as? String ?? ""
-        typeSlowly(field, String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + value)
+        typeSlowly(app, field, String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + value)
     }
 
     func testSceneClipEditingAndRestart() {
