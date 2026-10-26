@@ -1,8 +1,8 @@
 {
   "milestone": "scene-video-links-order-and-clip-ranges",
-  "status": "ios_keyboard_readiness_fix_pending_validation",
-  "latest_source_commit": "03197d976580f35ed49a6c4041ab648be1ca9b86",
-  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40221883663",
+  "status": "ios_editor_scroll_settling_fix_pending_validation",
+  "latest_source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
+  "latest_run_url": "https://github.com/ak-ing/project-montage/actions/runs/40329665412",
   "history": [
     {
       "source_commit": "80a57df6ecfb4605e2e23623dcdc1646e487a7ff",
@@ -111,52 +111,71 @@
       "title_expected_suffix": "UI smoke title",
       "cleanup_accepted": false,
       "evidence": "Screen recording showed early keystrokes sent before the keyboard appeared. Await keyboard and per-edit value readiness, retaining five cases and source guards."
+    },
+    {
+      "run_id": 40329665412,
+      "run_attempt": 1,
+      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
+      "status": "three platforms passed; iOS 2/5, launch and post-scroll navigation failures",
+      "ios_artifact_id": 12656520180,
+      "ios_digest": "sha256:34fa77fb8366ea035a97720556b92e0728e0d001b54dcd597daabdae09541d11",
+      "ios_checksum_verified": true,
+      "core_native_passed": 26,
+      "ios_ui_passed": 2,
+      "ios_ui_failed": 3,
+      "native_cancelled": 1,
+      "native_read_count": 3,
+      "original_product_import": "passed actual cancel/import/save/restart/remove",
+      "draft_failure": "Initial app.launch background assertion timed out before editing",
+      "scene_failure": "Numeric range and Apply/reorder succeeded; immediate post-scroll back tap left editor visible",
+      "cleanup_accepted": false,
+      "evidence": "scene-edits-40329665412.json"
     }
   ],
   "platforms": {
     "Windows x64": "passed: 26 core +15 desktop tests",
     "macOS Arm64": "passed: 26 core +15 desktop tests",
-    "Android emulator": "passed: 26 host core tests and exact scene link/order/range/restart/detach/cleanup flow",
-    "iOS Arm64 simulator": "26 native core passed; UI 1/5 passed and 4 failed; pure UIKit first file URL blocked, scene recovery not verified"
+    "Android emulator": "passed: 26 host core and complete scene/preview/import UI/storage flow",
+    "iOS Arm64 simulator": "26 native core passed; UI 2/5; initial XCTest launch timeout, post-scroll editor back failed; preview blocked, final cleanup failed"
   },
   "verified_artifacts": [
     {
       "name": "desktop-windows-2025",
-      "id": 12588866634,
-      "digest": "sha256:834596727d28865bdc85ce555d49fdf4256621f2bbd498abe92b9145d4f81eff",
-      "source_run_id": 40166230382,
-      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "id": 12655111001,
+      "digest": "sha256:f07b6cf24037026e1514c0409568edd712476d998aedc501dd29f0f96ad8bf67",
+      "source_run_id": 40329665412,
+      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
       "checksum_verified": true,
       "ui_status": "passed"
     },
     {
       "name": "desktop-macos-26",
-      "id": 12588672040,
-      "digest": "sha256:5ea9a2bdb671aa75c1ab4b8e31eae878c0dc6bbe5bb25bd438105ac7ae4fb071",
-      "source_run_id": 40166230382,
-      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "id": 12653272639,
+      "digest": "sha256:961f83bee38ea6256d1ea9310ab3cd1ad84321ed108343686b3bf77f2a12e7a7",
+      "source_run_id": 40329665412,
+      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
       "checksum_verified": true,
       "ui_status": "passed"
     },
     {
       "name": "android-debug",
-      "id": 12588413327,
-      "digest": "sha256:777a45696d1f874d4bc380727d41df098b6aa5b641e327b84ab4a7db7eb6e15e",
-      "source_run_id": 40166230382,
-      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "id": 12653548631,
+      "digest": "sha256:5be4e1c1e34eb0e9858ae993c8179233ee4564013508cb2f9131bbdb548a2dd9",
+      "source_run_id": 40329665412,
+      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
       "checksum_verified": true,
       "ui_status": "passed"
     },
     {
       "name": "ios-simulator-evidence",
-      "id": 12588469198,
-      "digest": "sha256:fe2d444a2dd1d949d9eb93ce9b394d7b6ffdcde750847b9b17cb1e2a0ca5b143",
-      "source_run_id": 40166230382,
-      "source_commit": "655449afb3191f0a7501fd94f2e89c7a03f3d7cd",
+      "id": 12656520180,
+      "digest": "sha256:34fa77fb8366ea035a97720556b92e0728e0d001b54dcd597daabdae09541d11",
+      "source_run_id": 40329665412,
+      "source_commit": "fa8f698d8cca4e662369cf81abaac8252d49d766",
       "checksum_verified": true,
-      "ui_status": "blocked"
+      "ui_status": "failed"
     }
   ],
   "accepted_four_platforms": false,
-  "evidence": "scene-edits-40166230382.json"
+  "evidence": "scene-edits-40329665412.json"
 }

@@ -1,7 +1,7 @@
 {
   "accepted": false,
   "scope": "Standalone native diagnostics, separate from full KMP milestone acceptance",
-  "full_product_status": "Windows/macOS/Android scene flows passed in 40166230382; iOS remains blocked",
+  "full_product_status": "40329665412: native control all 3 reads and original product import passed; UI 2/5, initial XCTest launch and post-scroll editor navigation failed; scene/storage milestone remains unaccepted.",
   "runs": [
     {
       "run_id": 40213153912,

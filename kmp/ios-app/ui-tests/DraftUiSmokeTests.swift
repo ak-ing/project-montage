@@ -226,12 +226,52 @@ final class DraftUiSmokeTests: XCTestCase {
         let editor = app.descendants(matching: .any)["scene-editor-scroll"]
         let list = app.descendants(matching: .any)["workspace-list"]
         for _ in 0..<5 {
-            if button.exists && button.isHittable { button.tap(); return }
             let scroll = editor.exists ? editor : list
             XCTAssertTrue(scroll.exists, app.debugDescription)
-            if scrollDown { scroll.swipeDown() } else { scroll.swipeUp() }
+            var viewport = scroll.frame.intersection(app.frame)
+            let keyboard = app.keyboards.element(boundBy: 0)
+            if keyboard.exists {
+                viewport = viewport.intersection(CGRect(x: viewport.minX, y: viewport.minY,
+                    width: viewport.width, height: max(0, keyboard.frame.minY - viewport.minY)))
+            }
+            XCTAssertFalse(viewport.isEmpty, app.debugDescription)
+            if button.exists && button.isHittable && viewport.contains(button.frame) {
+                // UIKit can consume the first tap while a Compose scroll is
+                // decelerating. Observe the button's frame before dispatching.
+                var previous = CGRect.null
+                var stableSince = Date()
+                let settled = expectation(for: NSPredicate { _, _ in
+                    let frame = button.frame
+                    if frame != previous {
+                        previous = frame
+                        stableSince = Date()
+                        return false
+                    }
+                    return Date().timeIntervalSince(stableSince) >= 0.5
+                }, evaluatedWith: button)
+                wait(for: [settled], timeout: 10)
+                XCTAssertTrue(button.isHittable && viewport.contains(button.frame), app.debugDescription)
+                button.tap()
+                return
+            }
+            // Stop the drag before lifting the finger rather than flinging
+            // content and immediately tapping a moving accessibility element.
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: viewport.midX - app.frame.minX,
+                dy: viewport.minY - app.frame.minY + viewport.height * (scrollDown ? 0.3 : 0.7)))
+            let end = origin.withOffset(CGVector(dx: viewport.midX - app.frame.minX,
+                dy: viewport.minY - app.frame.minY + viewport.height * (scrollDown ? 0.7 : 0.3)))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
         }
         XCTFail("Editor button not reachable: " + identifier + "\n" + app.debugDescription)
+    }
+
+    private func editorBack(_ app: XCUIApplication) {
+        editorTap(app, "scene-editor-back", scrollDown: true)
+        let returned = expectation(for: NSPredicate(format: "exists == false"),
+                                   evaluatedWith: app.descendants(matching: .any)["scene-editor-scroll"])
+        wait(for: [returned], timeout: 15)
+        XCTAssertTrue(app.buttons["scene-tab"].waitForExistence(timeout: 10), app.debugDescription)
     }
 
     private func replaceNumber(_ app: XCUIApplication, _ identifier: String, _ value: String) {
@@ -269,7 +309,7 @@ final class DraftUiSmokeTests: XCTestCase {
         editorTap(app, "apply-scene-clip")
         editorTap(app, "move-scene-down", scrollDown: true)
         XCTAssertEqual(app.staticTexts["scene-editor-position"].label, "Scene 2")
-        editorTap(app, "scene-editor-back", scrollDown: true)
+        editorBack(app)
         XCTAssertTrue(app.staticTexts["Unsaved changes"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["edited-duration"].label, "9250 ms edited sequence · transitions not rendered")
         app.buttons["video-tab"].tap()
@@ -290,7 +330,7 @@ final class DraftUiSmokeTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["scene-editor-video"].label, "Montage-preview-smoke.mp4")
         attach(app, "scene-edits-restored")
         editorTap(app, "detach-scene-video")
-        editorTap(app, "scene-editor-back", scrollDown: true)
+        editorBack(app)
         app.buttons["save-draft"].tap()
         XCTAssertTrue(app.staticTexts["No unsaved changes"].waitForExistence(timeout: 30))
         app.buttons["video-tab"].tap()

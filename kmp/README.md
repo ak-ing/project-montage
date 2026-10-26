@@ -18,7 +18,7 @@
 
 Android 使用系统 MediaMetadataRetriever/MediaPlayer，iOS 使用 AVFoundation，桌面使用固定的 JavaCV/JavaCPP 1.5.14 与 FFmpeg 8.1.2 默认 LGPL 构建。桌面预览帧最大 640×360、15 fps，原始视频像素数限制为 3840×2160；本地 PCM 输出设备不可用时提示并继续视频预览，不修改原素材。已配置 Windows x64、macOS Arm64/x64、Linux x64 的原生资源；Intel Mac 尚未验证，Windows Arm64 未配置。安装包裁剪、签名和完整许可材料在发行阶段完成。编码兼容性仍须按实际平台验证，导入成功不代表一定可解码。
 
-**Scenes → Edit scene** 可选择已导入的视频、通过 **Move up / Move down** 调整分镜顺序，并设置毫秒级 **In / Out**（出点不包含在片段内）。点击 **Apply clip** 更新内存中的草稿，再返回点击 **Save draft**；尚未应用的输入可用 **Discard clip edits & back** 明确丢弃。区间须非空、不小于 0 且不超过本机实际读取的视频时长；文件不可读时禁止应用并提供重试。已关联素材必须先在全部分镜中 **Detach video**，才能移除副本。分镜顺序、关联和区间存入 schema 3，目标生成时长仍保留，另行显示本地编辑序列的毫秒时长。该步骤只保存编辑决定，实际裁切、拼接和导出尚未实现。Windows/macOS/Android 分镜恢复已验证；iOS 原生 Files URL 获取受阻，尚未完成分镜 UI 验收，详细记录见验证记录。
+**Scenes → Edit scene** 可选择已导入的视频、通过 **Move up / Move down** 调整分镜顺序，并设置毫秒级 **In / Out**（出点不包含在片段内）。点击 **Apply clip** 更新内存中的草稿，再返回点击 **Save draft**；尚未应用的输入可用 **Discard clip edits & back** 明确丢弃。区间须非空、不小于 0 且不超过本机实际读取的视频时长；文件不可读时禁止应用并提供重试。已关联素材必须先在全部分镜中 **Detach video**，才能移除副本。分镜顺序、关联和区间存入 schema 3，目标生成时长仍保留，另行显示本地编辑序列的毫秒时长。该步骤只保存编辑决定，实际裁切、拼接和导出尚未实现。Windows/macOS/Android 分镜恢复已验证；iOS 最新原生选择器及原始导入通过，首次启动/滚动后返回测试仍失败，尚未完成五项 UI 与最终清理验收，详细记录见验证记录。
 
 目标是设备端编排并直接调用外部模型 API，本地完成媒体处理与导出，无需部署自建后端。当前实现单个本地工作区、视频素材导入/预览与任务检查点的存储基础；恢复时将 Running 标记为 Interrupted，保留提供商 operation ID，不自动运行任务。模型 API、任务执行器、凭据接入、拼接和导出均尚未实现。
 
