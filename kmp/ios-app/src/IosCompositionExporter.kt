@@ -78,7 +78,10 @@ class IosCompositionExporter : DeviceCompositionExporter {
                                 } else if (continuation.isActive) continuation.resumeWithException(IllegalStateException("Cannot commit iOS export"))
                             }
                             AVAssetExportSessionStatusCancelled -> if (continuation.isActive) continuation.resumeWithException(ExportCancelledException())
-                            else -> if (continuation.isActive) continuation.resumeWithException(session.error ?: IllegalStateException("iOS export failed"))
+                            else -> if (continuation.isActive) {
+                                val detail = session.error?.toString() ?: "iOS export failed"
+                                continuation.resumeWithException(IllegalStateException(detail))
+                            }
                         }
                     }
                 }
