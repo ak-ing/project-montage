@@ -25,9 +25,9 @@ iOS 保持原始 1 秒片、独立源应用 `Data.write(.withoutOverwriting)` �
 
 桌面为离屏 Compose 与本机解码器，移动端为已安装的模拟器应用。主 iOS 包内的 Xcode 工程、汇总、截图和日志已审查，完整 xcresult 大包未下载。当前只保存编辑决定，尚未实际裁切、拼接、编码、导出或调用模型 API。真机、物理声音、完整生命周期/旋转和性能另行验证。
 
-## 设备端基础成片（2026-10-31：桌面与 Android 编译通过，iOS 待 CI）
+## 设备端基础成片（2026-10-31：适配器编译与四端回归通过）
 
-共享 `CompositionRequest` 冻结场景顺序和独占毫秒区间，基础渲染只接受 `none`/hard cut；未应用区间、悬空素材和 fade 会在适配器前拒绝。桌面 JavaCV 已用真实 8 秒素材测试裁切、顺序拼接、MP4 编码、约 2 秒输出时长和取消后 `.part.mp4` 清理，源素材保持不变。Android 已接入官方 Media3 Transformer 1.11.1，构建通过，使用明确音视频序列和 clipping；iOS AVFoundation 适配器已加入但需托管 macOS/Xcode CI 验证。
+共享 `CompositionRequest` 冻结场景顺序和独占毫秒区间，基础渲染只接受 `none`/hard cut；未应用区间、悬空素材和 fade 会在适配器前拒绝。桌面 JavaCV 已用真实 8 秒素材测试裁切、顺序拼接、MP4 编码、约 2 秒输出时长和取消后 `.part.mp4` 清理，源素材保持不变。Android 已接入官方 Media3 Transformer 1.11.1，构建和既有 APK UI 流程通过，使用明确音视频序列和 clipping；iOS AVFoundation 适配器已在 [41161786210 重跑](https://github.com/ak-ing/project-montage/actions/runs/41161786210) 的 Xcode 构建中通过，五项既有 UI 冒烟也全部通过。
 
 当前输出写入应用私有 `exports/` 目录，系统保存/分享 picker 尚未接入；转场、完整混音/字幕、真机、性能和四端输出画面验收仍未完成。后续 CI 需增加真实成片 UI/存储断言，再接系统保存/分享。
 
