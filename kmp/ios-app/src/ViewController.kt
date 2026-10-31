@@ -12,7 +12,6 @@ fun ViewController(): platform.UIKit.UIViewController {
         presenter.presentViewController(picker, true, null)
     }
     val previews = IosVideoPreview()
-    val exporter = IosCompositionExporter()
-    controller = ComposeUIViewController { MontageApp("iOS", storage, videos, previews, exporter) }
+    controller = ComposeUIViewController { MontageApp("iOS", storage, videos, previews) }
     return controller
 }

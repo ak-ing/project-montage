@@ -19,9 +19,8 @@ class MainActivity : ComponentActivity() {
         val storage = AndroidWorkspaceStorage(applicationContext)
         val videos = AndroidVideoLibrary(this)
         previews = AndroidVideoPreview(this)
-        val exporter = AndroidCompositionExporter(this, videos)
         setContent {
-            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage, videos, previews, exporter) }
+            Box(Modifier.semantics { testTagsAsResourceId = true }) { MontageApp("Android", storage, videos, previews) }
         }
     }
     override fun onPause() {
