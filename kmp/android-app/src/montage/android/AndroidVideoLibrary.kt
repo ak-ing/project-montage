@@ -19,6 +19,8 @@ import kotlin.coroutines.resume
 class AndroidVideoLibrary(activity: ComponentActivity) : VideoLibrary {
     private val resolver = activity.applicationContext.contentResolver
     private val directory = File(activity.filesDir, "media")
+
+    fun managedUri(videoId: String): Uri = Uri.fromFile(File(directory, "$videoId.media"))
     private var pending: CancellableContinuation<Uri?>? = null
     private val picker = activity.registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         pending?.let { if (it.isActive) it.resume(uri) }

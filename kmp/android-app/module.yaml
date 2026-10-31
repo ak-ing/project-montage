@@ -5,6 +5,7 @@ dependencies:
   - ../shared-ui
   - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
   - androidx.activity:activity-compose:1.13.0
+  - androidx.media3:media3-transformer:1.11.1
 settings:
   android:
     namespace: dev.montage.app

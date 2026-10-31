@@ -21,10 +21,15 @@ import montage.core.VideoAsset
 import montage.core.VideoLibrary
 import montage.core.appendScene
 import montage.core.sampleProject
+import montage.core.DeviceCompositionExporter
+import montage.core.ExportCancelledException
+import montage.core.toCompositionRequest
+import montage.core.withTransition
 import montage.core.withoutVideo
 
 @Composable
-fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLibrary? = null, previews: VideoPreviewProvider? = null) {
+fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLibrary? = null, previews: VideoPreviewProvider? = null,
+               exporter: DeviceCompositionExporter? = null) {
     val repository = remember(storage) { WorkspaceRepository(storage) }
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
@@ -42,6 +47,8 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
     // Import/remove can return to the same workspace JSON while leaving a new
     // managed copy. It still needs a successful save or explicit discard.
     var pendingVideoCleanup by remember(repository) { mutableStateOf(false) }
+    var exportBusy by remember(repository) { mutableStateOf(false) }
+    var exportNotice by remember(repository) { mutableStateOf<String?>(null) }
 
     suspend fun cleanVideos(retained: List<VideoAsset>): Boolean = try {
         withContext(Dispatchers.Default) { videos?.removeUnreferenced(retained) }
@@ -102,7 +109,8 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
             Column(Modifier.safeDrawingPadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Project Montage", style = MaterialTheme.typography.headlineMedium)
                 Text("$platformName · Device workspace")
-                Text("Save changes before closing. Generation and rendering are not connected.")
+                Text(if (exporter == null) "Save changes before closing. This device has no render adapter yet."
+                     else "Save changes before exporting. Basic hard-cut rendering runs on this device.")
                 OutlinedTextField(
                     value = draft.title,
                     onValueChange = { workspace = workspace.copy(draft = draft.copy(title = it)); failure = null },
@@ -111,6 +119,12 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                     modifier = Modifier.fillMaxWidth().testTag("project-title"),
                 )
                 Text("${draft.scenes.size} scenes · ${draft.visibleDurationSeconds}s visible · ${draft.transitionBufferSeconds}s transition buffer", modifier = Modifier.testTag("draft-summary"))
+                if (exporter != null && draft.transition != "none") {
+                    Text("Basic device export requires hard cuts; transitions are not rendered yet.", modifier = Modifier.testTag("export-transition-warning"))
+                    TextButton(enabled = editable && !exportBusy, modifier = Modifier.testTag("transition-none"), onClick = {
+                        workspace = workspace.copy(draft = draft.withTransition("none")); failure = null
+                    }) { Text("Use hard cuts for export") }
+                }
                 if (draft.scenes.any { it.clip != null }) Text("${draft.editedDurationMillis} ms edited sequence · transitions not rendered", modifier = Modifier.testTag("edited-duration"))
                 if (!showVideos) {
                     OutlinedTextField(
@@ -134,6 +148,25 @@ fun MontageApp(platformName: String, storage: WorkspaceStorage, videos: VideoLib
                             focus.clearFocus()
                         }) { Text("Reset sample") }
                     }
+                }
+                if (exporter != null && !showVideos) {
+                    Button(enabled = editable && !dirty && !exportBusy, modifier = Modifier.testTag("export-video"), onClick = {
+                        exportNotice = null
+                        scope.launch {
+                            exportBusy = true
+                            try {
+                                val result = withContext(Dispatchers.Default) { workspace.toCompositionRequest() }
+                                val output = exporter.export(result)
+                                exportNotice = "Exported ${output.durationMillis} ms (${output.byteSize} bytes)"
+                            } catch (_: ExportCancelledException) {
+                                exportNotice = "Export cancelled; partial output removed"
+                            } catch (error: Exception) {
+                                exportNotice = "Export failed: ${error.message ?: "unknown error"}"
+                            } finally { exportBusy = false }
+                        }
+                    }) { Text(if (exportBusy) "Exporting…" else "Export video") }
+                    if (exportBusy) OutlinedButton(modifier = Modifier.testTag("cancel-export"), onClick = exporter::cancel) { Text("Cancel export") }
+                    exportNotice?.let { Text(it, modifier = Modifier.testTag("export-status")) }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(modifier = Modifier.testTag("save-draft"), enabled = editable && dirty, onClick = {

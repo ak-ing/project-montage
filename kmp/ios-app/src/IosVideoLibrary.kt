@@ -24,6 +24,8 @@ class IosVideoLibrary(private val present: (UIViewController) -> Unit) : VideoLi
     private val manager = NSFileManager.defaultManager
     private val directory = (manager.URLsForDirectory(NSApplicationSupportDirectory, NSUserDomainMask).first() as NSURL)
         .path!! + "/ProjectMontage/media"
+
+    fun managedPath(videoId: String): String = "$directory/$videoId.media"
     private var pending: CancellableContinuation<NSURL?>? = null
     private val delegate = object : NSObject(), UIDocumentPickerDelegateProtocol {
         override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) {

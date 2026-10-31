@@ -39,3 +39,8 @@ fun ProjectDraft.appendScene(description: String): ProjectDraft {
     while (scenes.any { it.id == "scene-$number" }) number++
     return copy(scenes = scenes + Scene("scene-$number", description.trim(), 4))
 }
+
+fun ProjectDraft.withTransition(value: String): ProjectDraft {
+    require(value in setOf("none", "fade")) { "Unsupported transition" }
+    return copy(transition = value)
+}

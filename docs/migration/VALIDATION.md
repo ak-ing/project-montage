@@ -10,6 +10,12 @@ iOS 实际运行时 26.5，Xcode 工程的 bundle ID、iOS 15.0 与共享 scheme
 
 本里程碑仅保存编辑决定，生成目标时长与本地序列长度分别保留。实际裁切、拼接、编码、系统导出和模型 API 尚未实现；下一步先完成设备端基础成片。
 
+## 2026-10-31：设备端基础成片（进行中）
+
+已加入共享 `CompositionRequest`/`DeviceCompositionExporter` 契约：冻结分镜顺序和独占毫秒区间，未应用片段、悬空素材或尚未实现的 fade 会在进入适配器前拒绝。桌面 JavaCV 适配器已用仓库 8 秒蓝/红素材完成本地测试：两段裁切后按指定顺序编码为约 2 秒 MP4，真实输出可重新读取；取消回调删除 `.part.mp4`，不改写源素材。核心 28 项测试通过，桌面新增成片测试通过；无 X11 的本地环境仍会使原有原生 FileDialog 取消测试失败，这不是编码测试失败。
+
+Android 已接入官方 Media3 Transformer 1.11.1（最低 API 23，应用 minSdk 24），构建通过；适配器使用明确的音频/视频序列和 `MediaItem` clipping，取消后主动删除 Transformer 不会替应用删除的部分输出。iOS 已接入 iOS 15 可用的 AVFoundation composition/export 适配器，待 macOS/Xcode CI 编译和模拟器验证。当前输出写入应用私有 exports 目录，系统保存/分享 picker 尚未接入或验收；转场、混音、字幕、真机和性能也未声称完成。
+
 ## 2026-10-24：视频信息与播放预览（四端通过）
 
 [40115876922](https://github.com/ak-ing/project-montage/actions/runs/40115876922)（源码 `f9a3698`）四个作业全部成功。四份主报告 ZIP 的 SHA-256、实际测试报告、蓝/红解码帧截图、原生日志和存储结果均已核验：76 次领域测试、Windows/macOS 合计 28 次存储/媒体/UI 测试、3 条 iOS XCTest 和 Android 实际 APK 流程全部成功，测试无失败/跳过。[完整证据清单](evidence/video-preview-40115876922.json)、[截图与复现](CI.md)、[失败历史](evidence/video-preview-status.json) 保留执行来源。
